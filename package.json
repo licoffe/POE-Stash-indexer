@@ -1,0 +1,25 @@
+{
+  "name": "poe-price",
+  "version": "1.0.0",
+  "description": "Fetch and query poe item prices through Stash API",
+  "main": "poll.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://thibautjacob@relay28.dyndns.info/Users/thibautjacob/Documents/Projects/POE-price"
+  },
+  "keywords": [
+    "path-of-exile",
+    "poe",
+    "stash-api"
+  ],
+  "author": "Licoffe",
+  "license": "ISC",
+  "dependencies": {
+    "copy-paste": "^1.3.0",
+    "jsdom": "^9.5.0",
+    "mongodb": "^2.2.10"
+  }
+}
