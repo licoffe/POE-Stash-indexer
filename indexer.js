@@ -11,8 +11,6 @@ logger.set_file_path( "log.txt" );
 var page             = "http://www.pathofexile.com/api/public-stash-tabs";
 // Variables that can be tweaked
 var downloadInterval = 2000; // Time between downloads in seconds
-var debug            = false; // set to true to show debug messages
-// var league           = "Standard";
 var mongo_client     = require( "mongodb" ).MongoClient;
 // MongoDB vars
 var address          = "localhost";
@@ -42,6 +40,29 @@ var lastDownloadedChunk = function( db, callback ) {
         });
     } else {
         logger.log( "There was an issue while querying for last chunk ID", 
+                    script_name, "e" );
+    }
+}
+
+/**
+ * Return items associated to input stash ID
+ *
+ * @params Mongo database handler, stashID
+ * @return items included
+ */
+var getStashByID = function( db, stashID, callback ) {
+    var entries = [];
+    var cursor = db.collection('stashes').find({ "stashID": stashID });
+    if ( cursor !== undefined ) {
+        cursor.each( function( err, doc ) {
+            if ( doc !== null ) {
+                entries.push( doc );
+            } else {
+                callback( entries );
+            }
+        });
+    } else {
+        logger.log( "No such stash ID: " + stashID, 
                     script_name, "e" );
     }
 }
@@ -103,6 +124,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                     process.exit(0);
                 }
                 
+                // Store last chunk ID
                 db.createCollection( 'chunk_id', function( err, chunk_collection ) {
                     if ( err !== null ) {
                         logger.log( "There was an error creating the collection: " + err, script_name, "e" );
@@ -116,14 +138,48 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                             console.time( "Loading data into DB" );
                             async.each( data.stashes, function( stash, callbackStash ) {
                                 // logger.log( stash.accountName );
+                                getStashByID( db, stash.id, function( results ) {
+                                    // If there are less items in stash then 
+                                    // there used to be
+                                    if ( results.length > stash.items.length ) {
+                                        logger.log(
+                                            ( results.length - stash.items.length ) + 
+                                            " items out of " + results.length + " were removed from stash " + 
+                                            stash.id, script_name );
+                                        // Find missing item and change its
+                                        // available status to false
+                                        async.each( results, function( oldItem, presence ) {
+                                            var currentID = oldItem.id;
+                                            var found     = false;
+                                            async.each( stash.items, function( item, cb ) {
+                                                if ( item.id === currentID ) {
+                                                    found = true;
+                                                    cb();
+                                                }
+                                            });
+                                            // If item was not found, update its status in db
+                                            if ( !found ) {
+                                                oldItem.available = false;
+                                                logger.log( "Item " + oldItem.id + " no longer available", script_name );
+                                                collection.save( oldItem, function( err, result ) {
+                                                    if ( err !== null ) {
+                                                        logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                                    }
+                                                });
+                                            }
+                                            presence();
+                                        });
+                                    }
+                                });
                                 async.each( stash.items, function( item, callbackItem ) {
                                     item.accountName = stash.accountName;
                                     item.lastCharacterName = stash.lastCharacterName;
-                                    item.stashID = stash.id;
-                                    item.stashName = stash.stash;
-                                    item.stashType = stash.stashType;
+                                    item.stashID     = stash.id;
+                                    item.stashName   = stash.stash;
+                                    item.stashType   = stash.stashType;
                                     item.publicStash = stash.public;
-                                    item._id = item.id;
+                                    item._id         = item.id;
+                                    item.available   = true;
                                     collection.save( item, function( err, result ) {
                                         if ( err !== null ) {
                                             logger.log( "There was an error inserting value: " + err, script_name, "w" );
