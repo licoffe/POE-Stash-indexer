@@ -1,0 +1,2844 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>POE-price-helper</title>
+        <link rel="stylesheet" href="./style.css">
+        <link rel="stylesheet" href="./font/stylesheet.css">
+        <!--<script href="https://cdnjs.com/libraries/Chart.js"></script>-->
+    </head>
+    <body>
+        <div class="container" id="market-rates">
+            <span class="title">Market rates</span>
+            <img class="loading" src="./media/loading.gif" alt=""><br><br>
+            <table>
+                <tr>
+                    <td>
+                        <span id="alt">
+                            <img src="./media/alt.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="alch">
+                            <img src="./media/alch.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="fuse">
+                            <img src="./media/fuse.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chaos">
+                            <img src="./media/chaos.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="exa">
+                            <img src="./media/exa.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chisel">
+                            <img src="./media/chisel.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="prism">
+                            <img src="./media/prism.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chrome">
+                            <img src="./media/chrome.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="jew">
+                            <img src="./media/jew.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chance">
+                            <img src="./media/chance.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="scouring">
+                            <img src="./media/scouring.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="bless">
+                            <img src="./media/bless.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="regret">
+                            <img src="./media/regret.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="regal">
+                            <img src="./media/regal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="divine">
+                            <img src="./media/divine.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="vaal">
+                            <img src="./media/vaal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="wisdom">
+                            <img src="./media/wisdom.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="portal">
+                            <img src="./media/portal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="scrap">
+                            <img src="./media/scrap.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="stone">
+                            <img src="./media/stone.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="bauble">
+                            <img src="./media/bauble.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="trans">
+                            <img src="./media/trans.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="aug">
+                            <img src="./media/aug.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="eternal">
+                            <img src="./media/eternal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="mirror">
+                            <img src="./media/mirror.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <label>
+                            <select id="base-currency">
+                                <option selected disabled>Base curreny</option>
+                                <option value="alt">alt</option>
+                                <option value="fuse">fuse</option>
+                                <option value="alch">alch</option>
+                                <option value="chaos">chaos</option>
+                                <option value="prism">prism</option>
+                                <option value="exa">exa</option>
+                                <option value="chrome">chrome</option>
+                                <option value="jew">jew</option>
+                                <option value="chance">chance</option>
+                                <option value="chisel">chisel</option>
+                                <option value="scouring">scouring</option>
+                                <option value="bless">bless</option>
+                                <option value="regret">regret</option>
+                                <option value="regal">regal</option>
+                                <option value="divine">divine</option>
+                                <option value="vaal">vaal</option>
+                                <option value="wisdom">wisdom</option>
+                                <option value="portal">portal</option>
+                                <option value="scrap">scrap</option>
+                                <option value="stone">stone</option>
+                                <option value="bauble">bauble</option>
+                                <option value="trans">trans</option>
+                                <option value="aug">aug</option>
+                                <option value="eternal">eternal</option>
+                                <option value="mirror">mirror</option>
+                            </select>
+                        </label>
+                        <br>
+                        <br>
+                        <input type="button" id="update-market" value="Update">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br>
+
+        <div class="container" id="settings">
+            <span class="title">Parameters</span><br><br>
+            <table>
+                <tr>
+                    <td>
+                        <span>League</span>&nbsp;
+                        <label>
+                            <select id="league">
+                                <option selected value="Standard">Standard</option>
+                                <option value="Essence">Essence</option>
+                            </select>
+                        </label>
+                    </td>
+                    <td>
+                        <span>Item type</span>&nbsp;
+                        <label>
+                            <select id="item-type">
+                                <option selected value="any">Any</option>
+                                <option disabled>Weapons</option>
+                                <option value="bow">Bow</option>
+                                <option value="claw">Claw</option>
+                                <option value="dagger">Dagger</option>
+                                <option value="sceptre">Sceptre</option>
+                                <option value="staff">Staff</option>
+                                <option value="wand">Wand</option>
+                                <option disabled>Armor</option>
+                                <option value="body-armor">Body armor</option>
+                                <option value="boots">Boots</option>
+                                <option value="gloves">Gloves</option>
+                                <option value="helmet">Helmet</option>
+                                <option value="shield">Shield</option>
+                                <option disabled>Misc</option>
+                                <option value="amulet">Amulet</option>
+                                <option value="belt">Belt</option>
+                                <option value="divination-card">Divination Card</option>
+                                <option value="flask">Flask</option>
+                                <option value="gem">Gem</option>
+                                <option value="jewel">Jewel</option>
+                                <option value="map">Map</option>
+                                <option value="prophecy">Prophecy</option>
+                                <option value="quiver">Quiver</option>
+                                <option value="ring">Ring</option>
+                                <option value="map-fragments">Map</option>
+                            </select>
+                        </label>
+                    </td>
+                    <td>
+                        <span>Rarity</span>&nbsp;
+                        <label>
+                            <select id="rarity">
+                                <option value="any" selected>Any</option>
+                                <option value="0">Standard</option>
+                                <option value="1">Magic</option>
+                                <option value="2">Rare</option>
+                                <option value="3">Unique</option>
+                            </select>
+                        </label>
+                    </td>
+                    <td>
+                        <span>Corrupted</span>
+                        &nbsp;
+                        <label>
+                            <select id="corrupted">
+                                <option value="either" selected>Either</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="item-level" placeholder="Item level" value="">
+                    </td>
+                    <td>
+                        <span>Item subtype</span>&nbsp;
+                         <label>
+                            <select id="item-subtype">
+                            </select>
+                        </label>
+                    </td>
+                    <td>
+                        <span>Identified</span>&nbsp;
+                        <label>
+                            <select id="identified">
+                                <option value="either" selected>Either</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </label>
+                    </td>
+                    <td>
+                        <input type="checkbox" id="verified" value="">Verified
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br>
+
+        <div class="container" id="search">
+            <table>
+                <tr>
+                    <th>
+                        <span class="title">Search</span>
+                    </th>
+                    <th>
+                        <span class="title">Price stats</span>
+                    </th>
+                    <th>
+                        <span class="title">Results</span>
+                    </th>
+                    <th>
+                        <span class="title">Item preview</span>
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <label>
+                            <select id="search-by">
+                                <option value="name">Item Name</option>
+                                <option value="lastCharacterName">character</option>
+                                <option value="accountName">Account</option>
+                                <option value="mods">Mods</option>
+                            </select>
+                        </label>
+                    </td>
+                    <td>
+                        Kept <span id="kept-items">0</span> items out of <span id="total-items">0</span>.
+                    </td>
+                    <td rowspan="3">
+                        <div id="results">
+                            <table>
+                                <tr>
+                                    <td>Roth's Reach</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                    <td id="preview" rowspan="3" width="20%">
+                        <div id="item-overlay">
+                            <div id="price">
+                                2
+                                <img src="./media/exa.png">
+                            </div>
+                            <span id="item-name">Roth's Reach</span><br>
+                            <span id="item-type-prev">Recurve Bow</span><br>
+                            <div id="item-properties">
+                                <span class="item-property">Bow</span><br>
+                                <span class="item-property">Quality</span>
+                                <span class="item-value">+17%</span>
+                                <br>
+                                <span class="item-property">Physical Damage:</span>
+                                <span class="item-value">20-63</span><br>
+                                <span class="item-property">Critical Strike Chance:</span>
+                                <span class="item-value">6.50%</span><br>
+                                <span class="item-property">Attacks per Second:</span>
+                                <span class="item-value">1.31</span><br>
+                            </div><br>
+                            <span id="item-enchant-mods">20% for Discharge not to Consume a Charge</span>
+                            <div id="item-implicit-mods">
+                            </div><br>
+                            <div id="item-explicit-mods">
+                                <span>68% increased Physical Damage</span><br>
+                                <span>34% increased Elemental Damage with Weapons</span><br>
+                                <span>5% increased Attack Speed</span><br>
+                                <span>Skills Chain +1 times</span><br>
+                                <span>30% increased Projectile Speed</span>
+                            </div>
+                            <div id="item-crafted-mods">
+                                <span>Causes Bleeding on Hit</span><br>
+                            </div><br>
+                            <div id="item-corrupted">
+                                Corrupted
+                            </div>
+                            <div id="item-flavor">
+                                <span>"Exiled to the sea; what a joke.</span><br>
+                                <span>I'm more free than I've ever been."
+</span><br>
+                                <span>- Captain Weylam "Rot-tooth" Roth of the Black Crest</span>
+                            </div>
+                        </div>
+                        <div id="sockets">
+                            <img class="socket" id="socket1" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket2" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket3" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket4" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket5" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket6" src="./media/socket_dex.png" alt="">
+                            <img class="link" id="link1" src="./media/socket_link_horiz.png" alt="">
+                            <img class="link" id="link2" src="./media/socket_link_vert.png" alt="">
+                            <img class="link" id="link3" src="./media/socket_link_horiz.png" alt="">
+                            <img class="link" id="link4" src="./media/socket_link_vert.png" alt="">
+                            <img class="link" id="link5" src="./media/socket_link_horiz.png" alt="">
+                        </div>
+                        <img id="item-picture" src="http://web.poecdn.com/image/Art/2DItems/Weapons/TwoHandWeapons/Bows/SarkhamsReach.png?scale=1&w=2&h=4&v=f333c2e4005ee20a84270731baa5fa6a3" alt="">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <textarea rows="" cols=""></textarea>
+                    </td>
+                    <td>
+                        <div id="plot">
+                            <canvas id="myChart" width="300" height="200"></canvas>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="button" id="search-item" value="Search">
+                        <img class="loading" src="./media/loading.gif" alt="">
+                    </td>
+                    <td>
+                        <table id="prices">
+                            <tr>
+                                <td>Average price:</td>
+                                <td><span id="avg-price">2.0 chaos</span></td>
+                            </tr>
+                            <tr>
+                                <td>Median price:</td>
+                                <td><span id="median-price">2.0 chaos</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mode price:</td>
+                                <td><span id="mode-price">2.0 chaos</span></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <script type="text/javascript">
+            var $ = require('jQuery');
+            
+            $( document ).ready( function() {
+                var league   = "Standard";
+                var Chart    = require('./node_modules/chart.js/src/chart.js')
+                var Currency = require( "../modules/currency" );
+                var currency = new Currency( league );
+                var mongo_client = require( "mongodb" ).MongoClient;
+                const notifier   = require('node-notifier');
+                var Logger       = require( "../modules/logger.js" );
+                var logger       = new Logger();
+                logger.set_use_timestamp( true );
+                logger.set_file_path( "log.txt" );
+                var async        = require( "async" );
+                var ncp          = require( "copy-paste" );
+                var itemTypes    = {
+                    // db.getCollection('stashes').distinct( "typeLine", { "properties.name": /Bow/, frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "bow": [
+                        "Recurve Bow",
+                        "Decimation Bow",
+                        "Death Bow",
+                        "Assassin Bow",
+                        "Royal Bow",
+                        "Imperial Bow",
+                        "Thicket Bow",
+                        "Citadel Bow",
+                        "Harbinger Bow",
+                        "Compound Bow",
+                        "Maraketh Bow",
+                        "Ivory Bow",
+                        "Crude Bow",
+                        "Long Bow",
+                        "Short Bow",
+                        "Highborn Bow",
+                        "Spine Bow",
+                        "Decurve Bow",
+                        "Grove Bow",
+                        "Bone Bow",
+                        "Ranger Bow",
+                        "Sniper Bow",
+                        "Steelwood Bow",
+                        "Reflex Bow",
+                        "Composite Bow"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { "properties.name": /Claw/, frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "claw": [
+                        "Timeworn Claw",
+                        "Hellion's Paw",
+                        "Eagle Claw",
+                        "Thresher Claw",
+                        "Nailed Fist",
+                        "Sharktooth Claw",
+                        "Fright Claw",
+                        "Gut Ripper",
+                        "Great White Claw",
+                        "Gemini Claw",
+                        "Imperial Claw",
+                        "Awl",
+                        "Eye Gouger",
+                        "Terror Claw",
+                        "Noble Claw",
+                        "Vaal Claw",
+                        "Tiger's Paw",
+                        "Double Claw",
+                        "Gouger",
+                        "Sparkling Claw",
+                        "Prehistoric Claw",
+                        "Throat Stabber",
+                        "Twin Claw",
+                        "Blinder",
+                        "Cat's Paw"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { "properties.name": /Dagger/, frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "dagger": [
+                        "Royal Skean",
+                        "Gutting Knife",
+                        "Fiend Dagger",
+                        "Golden Kris",
+                        "Boot Knife",
+                        "Flaying Knife",
+                        "Boot Blade",
+                        "Stiletto",
+                        "Slaughter Knife",
+                        "Ambusher",
+                        "Imperial Skean",
+                        "Platinum Kris",
+                        "Glass Shank",
+                        "Sai",
+                        "Ezomyte Dagger",
+                        "Demon Dagger",
+                        "Butcher Knife",
+                        "Poignard",
+                        "Copper Kris",
+                        "Prong Dagger",
+                        "Skean",
+                        "Skinning Knife",
+                        "Imp Dagger",
+                        "Trisula",
+                        "Carving Knife"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ (?:Sceptre|Fetish|Sekhem)/] }})
+                    "sceptre": [
+                        "Void Sceptre",
+                        "Iron Sceptre",
+                        "Shadow Sceptre",
+                        "Darkwood Sceptre",
+                        "Bronze Sceptre",
+                        "Tyrant's Sekhem",
+                        "Opal Sceptre",
+                        "Carnal Sceptre",
+                        "Vaal Sceptre",
+                        "Karui Sceptre",
+                        "Crystal Sceptre",
+                        "Royal Sceptre",
+                        "Ochre Sceptre",
+                        "Platinum Sceptre",
+                        "Abyssal Sceptre",
+                        "Blood Sceptre",
+                        "Grinning Fetish",
+                        "Quartz Sceptre",
+                        "Lead Sceptre",
+                        "Sambar Sceptre",
+                        "Stag Sceptre",
+                        "Ritual Sceptre",
+                        "Driftwood Sceptre",
+                        "Horned Sceptre" 
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { "properties.name": /Staff/, frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "staff": [
+                        "Military Staff",
+                        "Highborn Staff",
+                        "Moon Staff",
+                        "Primordial Staff",
+                        "Eclipse Staff",
+                        "Serpentine Staff",
+                        "Long Staff",
+                        "Imperial Staff",
+                        "Foul Staff",
+                        "Gnarled Branch",
+                        "Judgement Staff",
+                        "Royal Staff",
+                        "Lathi",
+                        "Ezomyte Staff",
+                        "Quarterstaff",
+                        "Woodful Staff",
+                        "Vile Staff",
+                        "Iron Staff",
+                        "Maelström Staff",
+                        "Crescent Staff",
+                        "Coiled Staff",
+                        "Primitive Staff"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { "properties.name": /Wand/, frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "wand": [
+                        "Demon's Horn",
+                        "Imbued Wand",
+                        "Omen Wand",
+                        "Crystal Wand",
+                        "Goat's Horn",
+                        "Spiraled Wand",
+                        "Opal Wand",
+                        "Carved Wand",
+                        "Prophecy Wand",
+                        "Serpent Wand",
+                        "Engraved Wand",
+                        "Tornado Wand",
+                        "Sage Wand",
+                        "Heathen Wand",
+                        "Faun's Horn",
+                        "Pagan Wand",
+                        "Profane Wand",
+                        "Driftwood Wand",
+                        "Quartz Wand"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, "properties.name": /Armour/, typeLine: { $all: [/^(?!Superior|<<).+ (?:Plate|Garb|Lamellar|Raiment|Armour|Tunic|Regalia|Hauberk|Doublet|Vest|Chestplate|Brigandine|Vestment|Chainmail|Leather|Ringmail|Dragonscale|Wyrmscale|Mantle|Silks|Coat|Jacket|Robe|Jerkin|Wrap)/] }})
+                    "body-armor": [
+                        "Crusader Chainmail",
+                        "Gladiator Plate",
+                        "Saint's Hauberk",
+                        "Dragonscale Doublet",
+                        "Golden Plate",
+                        "Majestic Plate",
+                        "Sacrificial Garb",
+                        "Loricated Ringmail",
+                        "Desert Brigandine",
+                        "Crusader Plate",
+                        "Glorious Plate",
+                        "Full Chainmail",
+                        "Battle Lamellar",
+                        "Commander's Brigandine",
+                        "Astral Plate",
+                        "Holy Chainmail",
+                        "Saintly Chainmail",
+                        "Full Wyrmscale",
+                        "Colosseum Plate",
+                        "General's Brigandine",
+                        "Hussar Brigandine",
+                        "Devout Chainmail",
+                        "Full Dragonscale",
+                        "Triumphant Lamellar",
+                        "Infantry Brigandine",
+                        "Arena Plate",
+                        "Copper Plate",
+                        "Scale Doublet",
+                        "Plate Vest",
+                        "Elegant Ringmail",
+                        "Chain Hauberk",
+                        "Sun Plate",
+                        "Conquest Chainmail",
+                        "Battle Plate",
+                        "Ornate Ringmail",
+                        "Full Scale Armour",
+                        "Latticed Ringmail",
+                        "Field Lamellar",
+                        "Bronze Plate",
+                        "Chainmail Tunic",
+                        "Lordly Plate",
+                        "Full Ringmail",
+                        "Light Brigandine",
+                        "Wyrmscale Doublet",
+                        "Full Plate",
+                        "Soldier's Brigandine",
+                        "War Plate",
+                        "Scale Vest",
+                        "Chainmail Doublet",
+                        "Ringmail Coat",
+                        "Chainmail Vest",
+                        "Golden Mantle",
+                        "Destiny Leather",
+                        "Lacquered Garb",
+                        "Crypt Armour",
+                        "Crimson Raiment",
+                        "Occultist's Vestment"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, "properties.name": /Armour/, typeLine: { $all: [/^(?!Superior|<<).+ (?:Boots|Greaves|Slippers|Caligae|Shoes)/] }})
+                    "boots": [
+                        "Serpentscale Boots",
+                        "Ancient Greaves",
+                        "Goliath Greaves",
+                        "Titan Greaves",
+                        "Bronzescale Boots",
+                        "Hydrascale Boots",
+                        "Steelscale Boots",
+                        "Reinforced Greaves",
+                        "Legion Boots",
+                        "Mesh Boots",
+                        "Vaal Greaves",
+                        "Dragonscale Boots",
+                        "Ironscale Boots",
+                        "Iron Greaves",
+                        "Steel Greaves",
+                        "Crusader Boots",
+                        "Antique Greaves",
+                        "Soldier Boots",
+                        "Wyrmscale Boots",
+                        "Zealot Boots",
+                        "Riveted Boots",
+                        "Plated Greaves",
+                        "Leatherscale Boots",
+                        "Ringmail Boots",
+                        "Chain Boots",
+                        "Stealth Boots",
+                        "Shagreen Boots",
+                        "Carnal Boots",
+                        "Conjurer Boots",
+                        "Murder Boots",
+                        "Two-Toned Boots",
+                        "Nubuck Boots",
+                        "Sorcerer Boots",
+                        "Sharkskin Boots"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, "properties.name": /Armour/, typeLine: { $all: [/^(?!Superior|<<).+ (?:Mitts|Gauntlets|Gloves|Bracers)/] }})
+                    "gloves": [
+                        "Wyrmscale Gauntlets",
+                        "Bronzescale Gauntlets",
+                        "Iron Gauntlets",
+                        "Goliath Gauntlets",
+                        "Steel Gauntlets",
+                        "Vaal Gauntlets",
+                        "Hydrascale Gauntlets",
+                        "Crusader Gloves",
+                        "Serpentscale Gauntlets",
+                        "Dragonscale Gauntlets",
+                        "Antique Gauntlets",
+                        "Ancient Gauntlets",
+                        "Titan Gauntlets",
+                        "Soldier Gloves",
+                        "Chain Gloves",
+                        "Legion Gloves",
+                        "Riveted Gloves",
+                        "Zealot Gloves",
+                        "Fishscale Gauntlets",
+                        "Steelscale Gauntlets",
+                        "Plated Gauntlets",
+                        "Ringmail Gloves",
+                        "Bronze Gauntlets",
+                        "Mesh Gloves",
+                        "Ironscale Gauntlets",
+                        "Embroidered Gloves",
+                        "Assassin's Mitts",
+                        "Shagreen Gloves",
+                        "Strapped Mitts",
+                        "Sharkskin Gloves",
+                        "Nubuck Gloves",
+                        "Conjurer Gloves",
+                        "Spiked Gloves",
+                        "Slink Gloves",
+                        "Deerskin Gloves"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, "properties.name": /Armour/, typeLine: { $all: [/^(?!Superior|<<).+ (?:Helmet|Helm|Circlet|Mask|BurgonetBascinet|Sallet|Crown|Wreath|Hood|Hat|Cap|Pelt|Cage|Tricorne|Coif)/] }})
+                    "helmet": [
+                        "Siege Helmet",
+                        "Gilded Sallet",
+                        "Visored Sallet",
+                        "Samite Helmet",
+                        "Reaver Helmet",
+                        "Magistrate Crown",
+                        "Great Crown",
+                        "Close Helmet",
+                        "Crusader Helmet",
+                        "Fencer Helm",
+                        "Great Helmet",
+                        "Iron Hat",
+                        "Prophet Crown",
+                        "Aventail Helmet",
+                        "Soldier Helmet",
+                        "Zealot Helmet",
+                        "Lacquered Helmet",
+                        "Gladiator Helmet",
+                        "Praetor Crown",
+                        "Secutor Helm",
+                        "Barbute Helmet",
+                        "Battered Helm",
+                        "Rusted Coif",
+                        "Cone Helmet",
+                        "Hunter Hood",
+                        "Tribal Circlet",
+                        "Regicide Mask",
+                        "Lunaris Circlet",
+                        "Callous Mask",
+                        "Hubris Circlet",
+                        "Bone Helmet",
+                        "Mind Cage",
+                        "Necromancer Circlet",
+                        "Ursine Pelt",
+                        "Solaris Circlet"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ (?:Shield|Buckler)/] }})
+                    "shield": [
+                        "Girded Tower Shield",
+                        "Alder Spiked Shield",
+                        "Branded Kite Shield",
+                        "Thorium Spirit Shield",
+                        "Polished Spiked Shield",
+                        "Harmonic Spirit Shield",
+                        "Plank Kite Shield",
+                        "Ezomyte Tower Shield",
+                        "Mahogany Tower Shield",
+                        "War Buckler",
+                        "Corrugated Buckler",
+                        "Golden Buckler",
+                        "Pine Buckler",
+                        "Studded Round Shield",
+                        "Chiming Spirit Shield",
+                        "Redwood Spiked Shield",
+                        "Ancient Spirit Shield",
+                        "Titanium Spirit Shield",
+                        "Mosaic Kite Shield",
+                        "Pinnacle Tower Shield",
+                        "Archon Kite Shield",
+                        "Fossilised Spirit Shield",
+                        "Ivory Spirit Shield",
+                        "Lacewood Spirit Shield",
+                        "Laminated Kite Shield",
+                        "Shagreen Tower Shield",
+                        "Teak Round Shield",
+                        "Crimson Round Shield",
+                        "Supreme Spiked Shield",
+                        "Baroque Round Shield",
+                        "Tarnished Spirit Shield",
+                        "Angelic Kite Shield",
+                        "Bone Spirit Shield",
+                        "Colossal Tower Shield",
+                        "Ironwood Buckler",
+                        "Rotted Round Shield",
+                        "Sovereign Spiked Shield",
+                        "Compound Spiked Shield",
+                        "Vaal Buckler",
+                        "Enameled Buckler",
+                        "Battle Buckler",
+                        "Twig Spirit Shield",
+                        "Walnut Spirit Shield",
+                        "Jingling Spirit Shield",
+                        "Brass Spirit Shield",
+                        "Ceremonial Kite Shield",
+                        "Vaal Spirit Shield",
+                        "Ezomyte Spiked Shield",
+                        "Spiked Round Shield",
+                        "Champion Kite Shield",
+                        "Reinforced Tower Shield",
+                        "Ornate Spiked Shield",
+                        "Cardinal Round Shield",
+                        "Imperial Buckler",
+                        "Ebony Tower Shield",
+                        "Painted Buckler",
+                        "Crested Tower Shield",
+                        "Crusader Buckler",
+                        "Etched Kite Shield",
+                        "Bronze Tower Shield",
+                        "Yew Spirit Shield",
+                        "Lacquered Buckler",
+                        "Oak Buckler",
+                        "Elegant Round Shield",
+                        "Steel Kite Shield",
+                        "Gilded Buckler",
+                        "Cedar Tower Shield",
+                        "Linden Kite Shield",
+                        "Splintered Tower Shield",
+                        "Painted Tower Shield",
+                        "Mirrored Spiked Shield",
+                        "Splendid Round Shield",
+                        "Spiny Round Shield",
+                        "Maple Round Shield",
+                        "Goathide Buckler",
+                        "Hammered Buckler",
+                        "Layered Kite Shield",
+                        "Buckskin Tower Shield",
+                        "Scarlet Round Shield",
+                        "Fir Round Shield",
+                        "Reinforced Kite Shield",
+                        "Copper Tower Shield",
+                        "Rawhide Tower Shield",
+                        "Driftwood Spiked Shield",
+                        "Burnished Spiked Shield",
+                        "Alloyed Spiked Shield",
+                        "Corroded Tower Shield"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ Amulet/] }})
+                    "amulet": [
+                        "Turquoise Amulet",
+                        "Onyx Amulet",
+                        "Gold Amulet",
+                        "Coral Amulet",
+                        "Paua Amulet",
+                        "Citrine Amulet",
+                        "Lapis Amulet",
+                        "Agate Amulet",
+                        "Amber Amulet",
+                        "Jade Amulet",
+                        "Jet Amulet",
+                        "Ruby Amulet",
+                        "Blue Pearl Amulet",
+                        "Marble Amulet"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ (?:Belt|Obi|Sash)/] }})
+                    "belt": [
+                        "Chain Belt",
+                        "Studded Belt",
+                        "Cloth Belt",
+                        "Rustic Sash",
+                        "Leather Belt",
+                        "Heavy Belt",
+                        "Golden Obi",
+                        "Vanguard Belt",
+                        "Crystal Belt"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $eq: 6 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "divination-card": [
+                        "The Gambler",
+                        "Rain of Chaos",
+                        "The Metalsmith's Gift",
+                        "The Warden",
+                        "Three Faces in the Dark",
+                        "The Battle Born",
+                        "The Encroaching Darkness",
+                        "Volatile Power",
+                        "The Inventor",
+                        "The Rabid Rhoa",
+                        "Gemcutter's Promise",
+                        "Emperor's Luck",
+                        "The Wrath",
+                        "The Lover",
+                        "Vinia's Token",
+                        "The Dragon",
+                        "The Carrion Crow",
+                        "The Survivalist",
+                        "A Mother's Parting Gift",
+                        "The Wolf's Shadow",
+                        "The Twins",
+                        "The Trial",
+                        "Her Mask",
+                        "The Flora's Gift",
+                        "The Gemcutter",
+                        "Prosperity",
+                        "The Fox",
+                        "Doedre's Madness",
+                        "The Gentleman",
+                        "Assassin's Favour",
+                        "The Sigil",
+                        "The Scholar",
+                        "Scholar of the Seas",
+                        "The Watcher",
+                        "The Inoculated",
+                        "Hubris",
+                        "The Gladiator",
+                        "Turn the Other Cheek",
+                        "The Hermit",
+                        "The Lich",
+                        "The Catalyst",
+                        "The Cataclysm",
+                        "The Summoner",
+                        "Gift of the Gemling Queen",
+                        "Humility",
+                        "Lantador's Lost Love",
+                        "The Poet",
+                        "The Lion",
+                        "The King's Blade",
+                        "Coveted Possession",
+                        "Jack in the Box",
+                        "The Surgeon",
+                        "The Drunken Aristocrat",
+                        "The Siren",
+                        "The Tower",
+                        "The Mercenary",
+                        "The Scarred Meadow",
+                        "The Doppelganger",
+                        "The Body",
+                        "Treasure Hunter",
+                        "The Conduit",
+                        "Hunter's Resolve",
+                        "Loyalty",
+                        "Rats",
+                        "The Surveyor",
+                        "The Traitor",
+                        "The Risk",
+                        "Anarchy's Price",
+                        "Lucky Connections",
+                        "The Incantation",
+                        "The Cartographer",
+                        "The Union",
+                        "The Betrayal",
+                        "The Road to Power",
+                        "The Sun",
+                        "Tranquillity",
+                        "The Spoiled Prince",
+                        "Glimmer of Hope",
+                        "The Lord in Black",
+                        "The Pack Leader",
+                        "The King's Heart",
+                        "Death",
+                        "The Wind",
+                        "The Dapper Prodigy",
+                        "Hope",
+                        "Pride Before the Fall",
+                        "The Feast",
+                        "The Chains that Bind",
+                        "The Pact",
+                        "Lost Worlds",
+                        "Earth Drinker",
+                        "The Ethereal",
+                        "Birth of the Three",
+                        "The Fletcher",
+                        "The One With All",
+                        "The Celestial Justicar",
+                        "Blind Venture",
+                        "The Explorer",
+                        "The Brittle Emperor",
+                        "Chaotic Disposition",
+                        "Audacity",
+                        "Grave Knowledge",
+                        "Merciless Armament",
+                        "The Hoarder",
+                        "The Dark Mage",
+                        "The Hunger",
+                        "The Avenger",
+                        "Last Hope",
+                        "Time-Lost Relic",
+                        "The Warlord",
+                        "The Offering",
+                        "Abandoned Wealth",
+                        "The Doctor",
+                        "The Artist",
+                        "The Arena Champion",
+                        "Bowyer's Dream",
+                        "The Aesthete",
+                        "The Last One Standing",
+                        "The Queen",
+                        "The Enlightened",
+                        "Wealth and Power",
+                        "Thunderous Skies",
+                        "The Fiend",
+                        "Destined to Crumble",
+                        "Boundless Realms",
+                        "Dying Anguish",
+                        "The Throne",
+                        "Shard of Fate",
+                        "The Demoness",
+                        "Rain Tempter",
+                        "The Thaumaturgist",
+                        "The Dragon's Heart",
+                        "Heterochromia",
+                        "Emperor of Purity",
+                        "The Lunaris Priestess",
+                        "The Immortal",
+                        "The Web",
+                        "The Harvester",
+                        "The Cursed King",
+                        "Hunter's Reward",
+                        "The Stormcaller",
+                        "Cartographer's Delight",
+                        "The Vast",
+                        "Dialla's Subjugation",
+                        "The Calling",
+                        "Lysah's Respite",
+                        "The Valkyrie",
+                        "The Endurance",
+                        "Light and Truth",
+                        "Lucky Deck",
+                        "The Jester",
+                        "The Sephirot",
+                        "The Tyrant",
+                        "The Wolf",
+                        "The Formless Sea",
+                        "The Soul",
+                        "The Penitent",
+                        "The Visionary",
+                        "House of Mirrors",
+                        "The Scavenger",
+                        "The Oath",
+                        "The Void"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ Flask/] }})
+                    "flask": [
+                        "Jade Flask",
+                        "Ruby Flask",
+                        "Topaz Flask",
+                        "Quartz Flask",
+                        "Amethyst Flask",
+                        "Quicksilver Flask",
+                        "Sapphire Flask",
+                        "Diamond Flask",
+                        "Large Hybrid Flask",
+                        "Granite Flask",
+                        "Hallowed Life Flask",
+                        "Greater Mana Flask",
+                        "Sanctified Mana Flask",
+                        "Colossal Life Flask",
+                        "Divine Life Flask",
+                        "Eternal Life Flask",
+                        "Sacred Mana Flask",
+                        "Sanctified Life Flask",
+                        "Small Life Flask",
+                        "Giant Mana Flask",
+                        "Medium Mana Flask",
+                        "Small Hybrid Flask",
+                        "Large Mana Flask",
+                        "Grand Mana Flask",
+                        "Divine Mana Flask",
+                        "Hallowed Mana Flask",
+                        "Sacred Life Flask",
+                        "Colossal Mana Flask",
+                        "Colossal Hybrid Flask",
+                        "Greater Life Flask",
+                        "Giant Life Flask",
+                        "Grand Life Flask",
+                        "Medium Life Flask",
+                        "Sacred Hybrid Flask",
+                        "Aquamarine Flask",
+                        "Sulphur Flask",
+                        "Bismuth Flask",
+                        "Eternal Mana Flask",
+                        "Stibnite Flask",
+                        "Small Mana Flask",
+                        "Large Life Flask",
+                        "Hallowed Hybrid Flask",
+                        "Silver Flask",
+                        "Basalt Flask",
+                        "Medium Hybrid Flask"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ Jewel/] }})
+                    "jewel": [
+                        "Crimson Jewel",
+                        "Cobalt Jewel",
+                        "Viridian Jewel",
+                        "Prismatic Jewel"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $eq: 4 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "gem": [
+                        "Leap Slam",
+                        "Increased Duration Support",
+                        "Immortal Call",
+                        "Herald of Ice",
+                        "Life Leech Support",
+                        "Essence Drain",
+                        "Vaal Arc",
+                        "Animate Guardian",
+                        "Cold to Fire Support",
+                        "Glacial Hammer",
+                        "Punishment",
+                        "Ranged Attack Totem Support",
+                        "Molten Shell",
+                        "Purity of Fire",
+                        "Rallying Cry",
+                        "Blood Magic Support",
+                        "Weapon Elemental Damage Support",
+                        "Multistrike Support",
+                        "Anger",
+                        "Void Manipulation Support",
+                        "Purity of Ice",
+                        "Blade Vortex",
+                        "Lesser Multiple Projectiles Support",
+                        "Siege Ballista",
+                        "Blood Rage",
+                        "Mirror Arrow",
+                        "Animate Weapon",
+                        "Chain Support",
+                        "Cold Penetration Support",
+                        "Faster Attacks Support",
+                        "Dual Strike",
+                        "Smoke Mine",
+                        "Concentrated Effect Support",
+                        "Arc",
+                        "Purity of Elements",
+                        "Remote Mine Support",
+                        "Blasphemy Support",
+                        "Flameblast",
+                        "Faster Casting Support",
+                        "Summon Chaos Golem",
+                        "Added Lightning Damage Support",
+                        "Fire Nova Mine",
+                        "Added Chaos Damage Support",
+                        "Increased Critical Strikes Support",
+                        "Spell Echo Support",
+                        "Innervate Support",
+                        "Curse On Hit Support",
+                        "Herald of Thunder",
+                        "Elemental Weakness",
+                        "Wrath",
+                        "Assassin's Mark",
+                        "Poison Support",
+                        "Melee Splash Support",
+                        "Herald of Ash",
+                        "Blink Arrow",
+                        "Melee Physical Damage Support",
+                        "Vaal Reave",
+                        "Increased Critical Damage Support",
+                        "Vaal Grace",
+                        "Lightning Arrow",
+                        "Reave",
+                        "Hatred",
+                        "Reduced Mana Support",
+                        "Projectile Weakness",
+                        "Clarity",
+                        "Tempest Shield",
+                        "Enduring Cry",
+                        "Ice Nova",
+                        "Lightning Penetration Support",
+                        "Greater Multiple Projectiles Support",
+                        "Cast when Damage Taken Support",
+                        "Bone Offering",
+                        "Vaal Clarity",
+                        "Ice Shot",
+                        "Faster Projectiles Support",
+                        "Vaal Lightning Strike",
+                        "Abyssal Cry",
+                        "Generosity Support",
+                        "Culling Strike Support",
+                        "Determination",
+                        "Fortify Support",
+                        "Bladefall",
+                        "Enhance Support",
+                        "Flammability",
+                        "Spectral Throw",
+                        "Magma Orb",
+                        "Vulnerability",
+                        "Added Cold Damage Support",
+                        "Physical Projectile Attack Damage Support",
+                        "Lightning Tendrils",
+                        "Freezing Pulse",
+                        "Vaal Rain of Arrows",
+                        "Righteous Fire",
+                        "Incinerate",
+                        "Vaal Ice Nova",
+                        "Vaal Righteous Fire",
+                        "Viper Strike",
+                        "Vaal Flameblast",
+                        "Reckoning",
+                        "Chance to Flee Support",
+                        "Fire Trap",
+                        "Vaal Spectral Throw",
+                        "Tornado Shot",
+                        "Flame Totem",
+                        "Searing Bond",
+                        "Vigilant Strike",
+                        "Dominating Blow",
+                        "Devouring Totem",
+                        "Fire Penetration Support",
+                        "Power Charge On Critical Support",
+                        "Flame Surge",
+                        "Cleave",
+                        "Blast Rain",
+                        "Summon Ice Golem",
+                        "Cast when Stunned Support",
+                        "Enfeeble",
+                        "Cast on Melee Kill Support",
+                        "Decoy Totem",
+                        "Shrapnel Shot",
+                        "Discipline",
+                        "Frost Blades",
+                        "Empower Support",
+                        "Ethereal Knives",
+                        "Convocation",
+                        "Ice Crash",
+                        "Fork Support",
+                        "Bloodlust Support",
+                        "Additional Accuracy Support",
+                        "Kinetic Blast",
+                        "Rapid Decay Support",
+                        "Raise Zombie",
+                        "Knockback Support",
+                        "Phase Run",
+                        "Stun Support",
+                        "Minion Speed Support",
+                        "Grace",
+                        "Iron Will Support",
+                        "Wither",
+                        "Flame Dash",
+                        "Glacial Cascade",
+                        "Riposte",
+                        "Summon Skeletons",
+                        "Shockwave Totem",
+                        "Summon Flame Golem",
+                        "Controlled Destruction Support",
+                        "Chance to Ignite Support",
+                        "Trap Support",
+                        "Barrage",
+                        "Bear Trap",
+                        "Lightning Trap",
+                        "Life Gain on Hit Support",
+                        "Haste",
+                        "Caustic Arrow",
+                        "Detonate Mines",
+                        "Increased Burning Damage Support",
+                        "Shock Nova",
+                        "Cast on Death Support",
+                        "Vaal Lightning Warp",
+                        "Spell Totem Support",
+                        "Burning Arrow",
+                        "Rain of Arrows",
+                        "Elemental Hit",
+                        "Summon Raging Spirit",
+                        "Elemental Proliferation Support",
+                        "Wild Strike",
+                        "Lightning Strike",
+                        "Freeze Mine",
+                        "Vaal Fireball",
+                        "Vaal Storm Call",
+                        "Detonate Dead",
+                        "Explosive Arrow",
+                        "Warlord's Mark",
+                        "Cyclone",
+                        "Discharge",
+                        "Multiple Traps Support",
+                        "Puncture",
+                        "Less Duration Support",
+                        "Heavy Strike",
+                        "Molten Strike",
+                        "Item Rarity Support",
+                        "Increased Area of Effect Support",
+                        "Added Fire Damage Support",
+                        "Trap and Mine Damage Support",
+                        "Pierce Support",
+                        "Vaal Detonate Dead",
+                        "Vaal Immortal Call",
+                        "Lightning Warp",
+                        "Vaal Glacial Hammer",
+                        "Purity of Lightning",
+                        "Minion Life Support",
+                        "Minion and Totem Elemental Resistance Support",
+                        "Ball Lightning",
+                        "Static Strike",
+                        "Ice Bite Support",
+                        "Frost Wall",
+                        "Infernal Blow",
+                        "Vengeance",
+                        "Ground Slam",
+                        "Endurance Charge on Melee Stun Support",
+                        "Melee Damage on Full Life Support",
+                        "Arctic Armour",
+                        "Vaal Spark",
+                        "Conversion Trap",
+                        "Portal",
+                        "Flicker Strike",
+                        "Cold Snap",
+                        "Temporal Chains",
+                        "Point Blank Support",
+                        "Ice Spear",
+                        "Arctic Breath",
+                        "Vaal Double Strike",
+                        "Double Strike",
+                        "Vaal Cyclone",
+                        "Vaal Ground Slam",
+                        "Physical to Lightning Support",
+                        "Split Arrow",
+                        "Vaal Cold Snap",
+                        "Vaal Summon Skeletons",
+                        "Vaal Power Siphon",
+                        "Fireball",
+                        "Hypothermia Support",
+                        "Firestorm",
+                        "Contagion",
+                        "Shield Charge",
+                        "Minion Damage Support",
+                        "Storm Call",
+                        "Cast On Critical Strike Support",
+                        "Sweep",
+                        "Poacher's Mark",
+                        "Frostbite",
+                        "Rejuvenation Totem",
+                        "Vaal Burning Arrow",
+                        "Vitality",
+                        "Frenzy",
+                        "Conductivity",
+                        "Desecrate",
+                        "Spark",
+                        "Raise Spectre",
+                        "Flesh Offering",
+                        "Power Siphon",
+                        "Vaal Haste",
+                        "Vaal Lightning Trap",
+                        "Blind Support",
+                        "Iron Grip Support",
+                        "Mana Leech Support",
+                        "Vaal Molten Shell",
+                        "Slower Projectiles Support",
+                        "Enlighten Support",
+                        "Vaal Discipline",
+                        "Whirling Blades",
+                        "Item Quantity Support",
+                        "Minefield Support",
+                        "Earthquake",
+                        "Frost Bomb",
+                        "Block Chance Reduction Support",
+                        "Sunder",
+                        "Summon Stone Golem",
+                        "Trap Cooldown Support",
+                        "Ice Trap",
+                        "Orb of Storms",
+                        "Ancestral Protector",
+                        "Elemental Focus Support",
+                        "Cluster Traps Support",
+                        "Summon Lightning Golem",
+                        "Ancestral Warchief",
+                        "Vortex",
+                        "Spirit Offering",
+                        "Frostbolt",
+                        "Lacerate"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { "properties.name": /Map/, frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "map": [
+                        "Museum Map",
+                        "Arena Map",
+                        "Tropical Island Map",
+                        "Crypt Map",
+                        "Promenade Map",
+                        "Vaal Pyramid Map",
+                        "Thicket Map",
+                        "Arachnid Nest Map",
+                        "Spider Lair Map",
+                        "Villa Map",
+                        "Underground Sea Map",
+                        "Underground River Map",
+                        "Crystal Ore Map",
+                        "Reef Map",
+                        "Peninsula Map",
+                        "Colonnade Map",
+                        "Temple Map",
+                        "Strand Map",
+                        "Pier Map",
+                        "Graveyard Map",
+                        "Ashen Wood Map",
+                        "Dark Forest Map",
+                        "Ghetto Map",
+                        "Cavern Map",
+                        "Wharf Map",
+                        "Dungeon Map",
+                        "Coves Map",
+                        "Sewer Map",
+                        "Arsenal Map",
+                        "Mud Geyser Map",
+                        "Cemetery Map",
+                        "Arid Lake Map",
+                        "Springs Map",
+                        "Catacombs Map",
+                        "Cells Map",
+                        "Terrace Map",
+                        "Overgrown Shrine Map",
+                        "Atoll Map",
+                        "Overgrown Ruin Map",
+                        "Bog Map",
+                        "Shore Map",
+                        "Crematorium Map",
+                        "Desert Map",
+                        "Quarry Map",
+                        "Arcade Map",
+                        "Pit Map",
+                        "Grotto Map",
+                        "Channel Map",
+                        "Spider Forest Map",
+                        "Torture Chamber Map",
+                        "Waste Pool Map",
+                        "Orchard Map",
+                        "Residence Map",
+                        "Jungle Valley Map",
+                        "Phantasmagoria Map",
+                        "Dunes Map",
+                        "Volcano Map",
+                        "Academy Map",
+                        "Precinct Map",
+                        "Necropolis Map",
+                        "Bazaar Map",
+                        "Plateau Map",
+                        "Malformation Map",
+                        "Canyon Map",
+                        "Gorge Map",
+                        "Maze Map",
+                        "Courtyard Map",
+                        "Shrine Map",
+                        "Abyss Map",
+                        "Colosseum Map",
+                        "Shipyard Map",
+                        "Castle Ruin Map",
+                        "Palace Map",
+                        "Core Map",
+                        "Vaal Temple Map",
+                        "Wasteland Map",
+                        "Excavation Map",
+                        "Chateau Map",
+                        "Waterways Map",
+                        "Plaza Map",
+                        "Ivory Temple Map",
+                        "Castle Ruins Map",
+                        "Arachnid Tomb Map",
+                        "Primordial Pool Map",
+                        "Mesa Map",
+                        "Factory Map",
+                        "Oasis Map",
+                        "Beach Map",
+                        "Racecourse Map",
+                        "Marshes Map",
+                        "Vaal City Map",
+                        "Acid Lakes Map",
+                        "Tower Map",
+                        "Shaped Desert Map",
+                        "Quay Map",
+                        "Shaped Phantasmagoria Map",
+                        "Estuary Map",
+                        "Burial Chambers Map",
+                        "Shaped Arid Lake Map",
+                        "Ramparts Map",
+                        "High Gardens Map",
+                        "Sulphur Wastes Map",
+                        "Lair Map",
+                        "Scriptorium Map",
+                        "Barrows Map",
+                        "Shaped Jungle Valley Map",
+                        "Armory Map",
+                        "Shaped Channel Map",
+                        "Shaped Oasis Map",
+                        "Shaped Strand Map",
+                        "Shaped Acid Lakes Map",
+                        "Vault Map",
+                        "Shaped Beach Map",
+                        "Shaped Factory Map",
+                        "Shaped Crystal Ore Map",
+                        "Shaped Primordial Pool Map",
+                        "Shaped Arcade Map",
+                        "Shaped Marshes Map",
+                        "Lair of the Hydra Map",
+                        "Shaped Academy Map",
+                        "Pit of the Chimera Map",
+                        "Shaped Waste Pool Map",
+                        "Shaped Ghetto Map",
+                        "Shaped Dunes Map",
+                        "Shaped Graveyard Map",
+                        "Maze of the Minotaur Map",
+                        "Shaped Cavern Map",
+                        "Shaped Mesa Map",
+                        "Shaped Tower Map",
+                        "Forge of the Phoenix Map",
+                        "Shaped Promenade Map",
+                        "Shaped Peninsula Map",
+                        "Shaped Vaal Pyramid Map",
+                        "Mineral Pools Map",
+                        "Beacon Map",
+                        "Shaped Arachnid Tomb Map",
+                        "Shaped Wharf Map",
+                        "Shaped Atoll Map",
+                        "Shaped Armory Map",
+                        "Shaped Castle Ruins Map",
+                        "Shaped Villa Map"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $eq: 8 }, typeLine: { $all: [/^(?!Superior|<<).+/] }})
+                    "prophecy": [
+                        "Mysterious Invaders",
+                        "The Prison Guard",
+                        "The Jeweller's Touch",
+                        "Nature's Resilience",
+                        "Ancient Rivalries I",
+                        "The Flow of Energy",
+                        "The Servant's Heart",
+                        "The Undead Brutes",
+                        "The Invader",
+                        "The Lost Undying",
+                        "The Corrupt",
+                        "The Twins",
+                        "The Forgotten Garrison",
+                        "Holding the Bridge",
+                        "Heavy Blows",
+                        "A Regal Death",
+                        "Notched Flesh",
+                        "Fire and Ice",
+                        "Pleasure and Pain",
+                        "The Misunderstood Queen",
+                        "Fear's Wide Reach",
+                        "Baptism by Death",
+                        "The Unbreathing Queen I",
+                        "The Sword King's Passion",
+                        "A Gracious Master",
+                        "The Feral Lord V",
+                        "Storm on the Shore",
+                        "The Lady in Black",
+                        "The Undead Storm",
+                        "The Plaguemaw I",
+                        "The Sinner's Stone",
+                        "The Bloody Flowers Redux",
+                        "A Master Seeks Help",
+                        "The Queen's Vaults",
+                        "A Whispered Prayer",
+                        "Strong as a Bull",
+                        "Soil, Worms and Blood",
+                        "Erasmus' Gift",
+                        "Rebirth",
+                        "The Eagle's Cry",
+                        "Waiting in Ambush",
+                        "Possessed Foe",
+                        "Lightning Falls",
+                        "Erased from Memory",
+                        "Graceful Flames",
+                        "Mouth of Horrors",
+                        "Custodians of Silence",
+                        "A Prodigious Hand",
+                        "The Plaguemaw II",
+                        "Forceful Exorcism",
+                        "Fire from the Sky",
+                        "Gilded Within",
+                        "Nemesis of Greed",
+                        "The Brutal Enforcer",
+                        "Unbearable Whispers I",
+                        "Hidden Reinforcements",
+                        "Ending the Torment",
+                        "Reforged Bonds",
+                        "Plague of Frogs",
+                        "The Scout",
+                        "Winter's Mournful Melodies",
+                        "Hunter's Lesson",
+                        "The Soulless Beast",
+                        "Abnormal Effulgence",
+                        "The Feral Lord I",
+                        "Ice from Above",
+                        "The Bowstring's Music",
+                        "Ancient Doom",
+                        "Twice Enchanted",
+                        "The Beginning and the End",
+                        "Fire and Brimstone",
+                        "From Death Springs Life",
+                        "The Last Watch",
+                        "The Blacksmith",
+                        "Severed Limbs",
+                        "The Ambitious Bandit I",
+                        "The Apex Predator",
+                        "The Dream Trial",
+                        "Blood of the Betrayed",
+                        "Dying Cry",
+                        "Power Magnified",
+                        "Thaumaturgical History I",
+                        "Storm on the Horizon",
+                        "The Emperor's Trove",
+                        "The Stockkeeper",
+                        "Vaal Invasion",
+                        "The Lost Maps",
+                        "Defiled in the Sceptre",
+                        "Pools of Wealth",
+                        "Undead Uprising",
+                        "A Firm Foothold",
+                        "Plague of Rats",
+                        "The Feral Lord II",
+                        "Living Fires",
+                        "The Hungering Swarm",
+                        "The Karui Rebellion",
+                        "The Child of Lunaris",
+                        "The Ward's Ward",
+                        "In the Grasp of Corruption",
+                        "Echoes of Lost Love",
+                        "The Silverwood",
+                        "The Unbreathing Queen II",
+                        "Flesh of the Beast",
+                        "Monstrous Treasure",
+                        "Deadly Twins",
+                        "Risen Blood",
+                        "Unbearable Whispers II",
+                        "Hidden Vaal Pathways",
+                        "The Cursed Choir",
+                        "The Petrified",
+                        "The Snuffed Flame",
+                        "The Prison Key",
+                        "The Vanguard",
+                        "Against the Tide",
+                        "The Walking Mountain",
+                        "Heart of the Fire",
+                        "The Trembling Earth",
+                        "Roth's Legacy",
+                        "A Call into the Void",
+                        "The King and the Brambles",
+                        "The God of Misfortune",
+                        "The Feral Lord IV",
+                        "The King's Path",
+                        "Golden Touch",
+                        "The Aesthete's Spirit",
+                        "Vital Transformation",
+                        "Day of Sacrifice I",
+                        "Touched by the Wind",
+                        "The Forgotten Soldiers",
+                        "Path of Betrayal",
+                        "The Hardened Armour",
+                        "Brothers in Arms",
+                        "The Sharpened Blade",
+                        "The Brothers of Necromancy",
+                        "Weeping Death",
+                        "Fallow At Last",
+                        "Bountiful Traps",
+                        "The Warmongers I",
+                        "Crushing Squall",
+                        "Deadly Rivalry II",
+                        "Smothering Tendrils",
+                        "Day of Sacrifice II",
+                        "A Valuable Combination",
+                        "The Beautiful Guide",
+                        "The Wealthy Exile",
+                        "Beyond Sight I",
+                        "The Four Feral Exiles",
+                        "Resistant to Change",
+                        "The Watcher's Watcher",
+                        "Echoes of Witchcraft",
+                        "Unnatural Energy",
+                        "The Mysterious Gift",
+                        "A Forest of False Idols",
+                        "The Warmongers IV",
+                        "Day of Sacrifice IV",
+                        "Ancient Rivalries IV",
+                        "The Dreamer's Dream",
+                        "The Alchemist",
+                        "Deadly Rivalry I",
+                        "Vaal Winds",
+                        "Wind and Thunder",
+                        "Unbearable Whispers V",
+                        "The Fortune Teller's Collection",
+                        "The Hollow Pledge",
+                        "The Nest",
+                        "Deadly Rivalry V",
+                        "Lasting Impressions",
+                        "An Unseen Peril",
+                        "Blood in the Eyes",
+                        "The Warmongers II",
+                        "The Plaguemaw IV",
+                        "The Flayed Man",
+                        "Beyond Sight IV",
+                        "The Unbreathing Queen V",
+                        "Unbearable Whispers III",
+                        "Kalandra's Craft",
+                        "Fated Connections",
+                        "The Singular Spirit",
+                        "Anarchy's End I",
+                        "Cleanser of Sins",
+                        "Fire, Wood and Stone",
+                        "Overflowing Riches",
+                        "Echoes of Mutation",
+                        "Ancient Rivalries III",
+                        "Anarchy's End II",
+                        "From The Void",
+                        "Ancient Rivalries II",
+                        "The Plaguemaw III",
+                        "The Warmongers III",
+                        "Visions of the Drowned",
+                        "Deadly Rivalry III",
+                        "The Feral Lord III",
+                        "Thaumaturgical History IV",
+                        "Beyond Sight II",
+                        "Anarchy's End III",
+                        "The Ambitious Bandit III",
+                        "Thaumaturgical History III",
+                        "The Unbreathing Queen IV",
+                        "The Plaguemaw V",
+                        "Anarchy's End IV",
+                        "Deadly Rivalry IV"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ Quiver/] }})
+                    "quiver": [
+                        "Spike-Point Arrow Quiver",
+                        "Two-Point Arrow Quiver",
+                        "Fire Arrow Quiver",
+                        "Broadhead Arrow Quiver",
+                        "Serrated Arrow Quiver",
+                        "Sharktooth Arrow Quiver",
+                        "Blunt Arrow Quiver",
+                        "Penetrating Arrow Quiver",
+                        "Heavy Quiver",
+                        "Cured Quiver",
+                        "Light Quiver",
+                        "Conductive Quiver",
+                        "Rugged Quiver"
+                    ],
+                    // db.getCollection('stashes').distinct( "typeLine", { frameType: { $ne: 4 }, typeLine: { $all: [/^(?!Superior|<<).+ Ring/] }})
+                    "ring": [
+                        "Gold Ring",
+                        "Sapphire Ring",
+                        "Diamond Ring",
+                        "Iron Ring",
+                        "Two-Stone Ring",
+                        "Loricated Ringmail",
+                        "Unset Ring",
+                        "Coral Ring",
+                        "Topaz Ring",
+                        "Amethyst Ring",
+                        "Ruby Ring",
+                        "Moonstone Ring",
+                        "Paua Ring",
+                        "Prismatic Ring",
+                        "Elegant Ringmail",
+                        "Ornate Ringmail",
+                        "Latticed Ringmail",
+                        "Full Ringmail",
+                        "Opal Ring",
+                        "Steel Ring"
+                    ],
+                    "map-fragments": []
+                };
+                var leagueRates  = {
+                    alch: 0.3655772464721796,
+                    alt: 0.10982493904715883,
+                    armour: 0.017393724344256595,
+                    aug: 0.03528681120144535,
+                    bauble:0.20452825557850815,
+                    bless:0.7427213309566251,
+                    chance:0.30819490245631337,
+                    chaos:1,
+                    chisel:0.47952431188261246,
+                    chrome:0.1860153648691382,
+                    divine:30.030030030030026,
+                    exa:77.51937984496124,
+                    fuse:0.8206138191367143,
+                    jew:0.18509606485766114,
+                    portal:0.013979503252331433,
+                    prism:2.0815986677768525,
+                    regal:1.6207455429497568,
+                    regret:2.2696323195642307,
+                    scouring:1.1482374555057986,
+                    stone:0.03330824112501915,
+                    trans:0.02465963538263123,
+                    vaal:1.9770660340055357,
+                    wisdom:0.007426159836208619
+                };
+                var baseCurrency = "chaos";
+                var dbHandler;
+                var myChart;
+                // var config       = require( 'node-cfg' );
+                // var address      = config.db.address;
+                // var port         = config.db.port;
+                // var database     = config.db.db;
+                var address      = "localhost";
+                // var address      = "server.local";
+                var port         = 27017;
+                var database     = "POE_price";
+                var script_name  = "index.html";
+                var queryLimit   = 10000;
+
+                /**
+                 * Query DB by character
+                 *
+                 * @params MongoDB handler, the name of the object, a callback 
+                 * the results will be sent to
+                 * @return DB results matching the criteria
+                */
+                function queryDBByCharacter( db, criteria, league, callback ) {
+                    var entries = [];
+                    console.log( "Querying by character" );
+                    console.log( criteria );
+                    var start  = new Date();
+                    var rarity = parseInt( $( "#rarity" ).val());
+                    var type   = $( "#item-subtype" ).val();
+                    if ( !type || type === "any" ) {
+                        type = / /;
+                    }
+                    
+                    if ( !rarity ) {
+                        var cursor = db.collection('stashes').find({
+                            "lastCharacterName": criteria,
+                            "league": league, 
+                            "typeLine": type },{
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    } else {
+                        var cursor = db.collection('stashes').find({
+                            "lastCharacterName": criteria,
+                            "league": league, 
+                            "frameType": rarity,
+                            "typeLine": type },{
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    }
+                    
+                    if ( cursor !== undefined ) {
+                        logger.log( "Gathering results", script_name );
+                        cursor.each( function( err, doc ) {
+                            if ( doc !== null ) {
+                                entries.push( doc );
+                            } else {
+                                logger.log( "Found " + entries.length + " entries (" + 
+                                            ( new Date() - start ) + "ms)", script_name );
+                                cursor.close();
+                                db.close();
+                                callback( entries, averagePrice );
+                            }
+                        });
+                    } else {
+                        logger.log( "No items found with these criterias", 
+                                    script_name, "e" );
+                        db.close();
+                        // process.exit( 0 );
+                    }
+                }
+
+                /**
+                 * Query DB by account
+                 *
+                 * @params MongoDB handler, the name of the object, a callback 
+                 * the results will be sent to
+                 * @return DB results matching the criteria
+                */
+                function queryDBByAccount( db, criteria, league, callback ) {
+                    var entries = [];
+                    console.log( "Querying by account" );
+                    console.log( criteria );
+                    var start  = new Date();
+                    var rarity = parseInt( $( "#rarity" ).val());
+                    var type   = $( "#item-subtype" ).val();
+                    if ( !type || type === "any" ) {
+                        type = / /;
+                    }
+                    
+                    if ( !rarity ) {
+                        var cursor = db.collection('stashes').find({
+                            "accountName": criteria,
+                            "league": league, 
+                            "typeLine": type },{
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    } else {
+                        var cursor = db.collection('stashes').find({
+                            "accountName": criteria,
+                            "league": league, 
+                            "frameType": rarity,
+                            "typeLine": type },{
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    }
+                    
+                    if ( cursor !== undefined ) {
+                        logger.log( "Gathering results", script_name );
+                        cursor.each( function( err, doc ) {
+                            if ( doc !== null ) {
+                                entries.push( doc );
+                            } else {
+                                logger.log( "Found " + entries.length + " entries (" + 
+                                            ( new Date() - start ) + "ms)", script_name );
+                                cursor.close();
+                                db.close();
+                                callback( entries, averagePrice );
+                            }
+                        });
+                    } else {
+                        logger.log( "No items found with these criterias", 
+                                    script_name, "e" );
+                        db.close();
+                        // process.exit( 0 );
+                    }
+                }
+
+                /**
+                 * Query DB by object name
+                 *
+                 * @params MongoDB handler, the name of the object, a callback 
+                 * the results will be sent to
+                 * @return DB results matching the criteria
+                */
+                function queryDBByName( db, criteria, league, callback ) {
+                    var entries = [];
+                    console.log( "Querying by name" );
+                    console.log( criteria );
+                    var start  = new Date();
+                    var rarity = parseInt( $( "#rarity" ).val());
+                    var type   = $( "#item-subtype" ).val();
+                    if ( !type || type === "any" ) {
+                        type = / /;
+                    }
+                    
+                    if ( !rarity ) {
+                        var cursor = db.collection('stashes').find({
+                            "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
+                            "league": league, 
+                            "typeLine": type },{
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    } else {
+                        var cursor = db.collection('stashes').find({
+                            "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
+                            "league": league, 
+                            "frameType": rarity,
+                            "typeLine": type },{
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    }
+                    
+                    if ( cursor !== undefined ) {
+                        logger.log( "Gathering results", script_name );
+                        cursor.each( function( err, doc ) {
+                            if ( doc !== null ) {
+                                entries.push( doc );
+                            } else {
+                                logger.log( "Found " + entries.length + " entries (" + 
+                                            ( new Date() - start ) + "ms)", script_name );
+                                cursor.close();
+                                db.close();
+                                callback( entries, averagePrice );
+                            }
+                        });
+                    } else {
+                        logger.log( "No items found with these criterias", 
+                                    script_name, "e" );
+                        db.close();
+                        // process.exit( 0 );
+                    }
+                }
+
+
+
+                /**
+                 * Query DB by mod list
+                 *
+                 * @params MongoDB handler, list of mods with values, a callback 
+                 * the results will be sent to
+                 * @return return
+                 */
+                function queryDBByMod( db, criteria, league, callback ) {
+                    var entries = [];
+                    console.log( criteria );
+                    var start   = new Date();
+                    var rarity  = parseInt( $( "#rarity" ).val());
+                    var type    = $( "#item-subtype" ).val();
+                    if ( !type || type === "any" ) {
+                        type = / /;
+                    }
+                    if ( !rarity ) {
+                        var cursor  = db.collection('stashes').find({
+                            $or: [
+                                {"explicitMods": { 
+                                    $all: criteria
+                                }},
+                                {"implicitMods": { 
+                                    $all: criteria
+                                }},
+                                {"craftedMods": { 
+                                    $all: criteria
+                                }},
+                                {"enchantMods": { 
+                                    $all: criteria
+                                }}, 
+                            ], 
+                            "league": league, 
+                            "typeLine": type }, {
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    } else {
+                        var cursor = db.collection('stashes').find({
+                            $or: [
+                                {"explicitMods": { 
+                                    $all: criteria
+                                }},
+                                {"implicitMods": { 
+                                    $all: criteria
+                                }},
+                                {"craftedMods": { 
+                                    $all: criteria
+                                }},
+                                {"enchantMods": { 
+                                    $all: criteria
+                                }}, 
+                            ],
+                            "league": league, 
+                            "typeLine": type,
+                            "rarity": rarity }, {
+                                "name": 1,
+                                "typeLine": 1,
+                                "implicitMods": 1,
+                                "explicitMods": 1,
+                                "craftedMods": 1,
+                                "enchantMods": 1,
+                                "flavourText": 1,
+                                "icon": 1,
+                                "note": 1,
+                                "stashName": 1,
+                                "properties": 1,
+                                "frameType": 1,
+                                "corrupted": 1,
+                                "identified": 1,
+                                "sockets": 1,
+                                "lastCharacterName": 1
+                            }).limit(queryLimit);
+                    }
+                    
+                    if ( cursor !== undefined ) {
+                        logger.log( "Gathering results", script_name );
+                        cursor.each( function( err, doc ) {
+                            if ( doc !== null ) {
+                                entries.push( doc );
+                            } else {
+                                logger.log( "Found " + entries.length + " entries (" + 
+                                            ( new Date() - start ) + "ms)", script_name );
+                                cursor.close();
+                                db.close();
+                                callback( entries, averagePrice );
+                            }
+                        });
+                    } else {
+                        logger.log( "No items found with these criterias", 
+                                    script_name, "e" );
+                        // process.exit( 0 );
+                        db.close();
+                    }
+                }
+
+                /**
+                 * Connect to MongoDB. If successfull, run provided callback function
+                 * 
+                 * @params Callback function
+                 * @return None
+                 */
+                function connectToDB( callback ) {
+                    // Connect to the db
+                    mongo_client.connect( "mongodb://" + address + ":" + port + "/" + database, 
+                                        function( err, db ) {
+                        if ( err !== null ) {
+                            logger.log( err, script_name, "e" );
+                            logger.log( "Make sure MongoDB has been started", 
+                                        script_name, "e" );
+                            $( "#search .loading" ).fadeOut( 'fast' );
+                        }
+                        logger.log( "Connected to MongoDB.", script_name );
+                        
+                        callback( db );
+                    });
+                }
+
+                /**
+                 * Filter list of items to only keep valid price expression
+                 *
+                 * For each item in the list, check if it matches the price
+                 * regexp. If it does, store its price with the currency it is
+                 * in.
+                 * @params a list of item, a callback to send the list to
+                 * @return nothing
+                 */
+                function filterValidPrice( items, callback ) {
+                    var priceReg        = /[^0-9]*([0-9]+|[0-9.]+[0-9]+)\s*(chaos|exa|alch|alt|fuse|divine|chance|jew)/g;
+                    var results         = [];
+                    
+                    for ( var i = 0 ; i < items.length ; i++ ) {
+                        var item = items[i];
+                        var price;
+                        if ( item.note ) {
+                            price = item.note;
+                        } else {
+                            price = item.stashName;
+                        }
+                        var match = priceReg.exec( price );
+                        // Check if we have a valid poe price (exemple: ~b/o 2 chaos)
+                        if ( match != null && match[1] != "0" ) {
+                            item.price    = match[1];
+                            item.currency = match[2];
+                            results.push( item );
+                        } else {
+                            console.log( "Discarding " + match );
+                        }
+                    }
+                    logger.log( "Kept " + results.length + " items", script_name );
+                    $( "#kept-items" ).text( results.length );
+                    $( "#total-items" ).text( items.length );
+                    updateInterface( results );
+                    callback( results );
+                }
+
+                /**
+                 * Returns the median value of an array
+                 *
+                 * Sort array, then return its median
+                 * @params array
+                 * @return median value
+                 */
+                var median = function( values ) {
+                    values.sort();
+                    if ( values.length % 2 === 1 ) {
+                        return values[( values.length - 1 ) / 2];
+                    } else {
+                        return ( values[( values.length / 2 - 1 )] + 
+                                values[values.length / 2]) / 2;
+                    }
+                }
+
+                /**
+                 * Return average and median prices of a set of items
+                 * 
+                 * For each item of the set, sum its price in chaos to a global sum and
+                 * divide by the number of items. Then sort the prices and extract the 
+                 * median value. Print the average and median prices.
+                 * @params sets of items
+                 * @return nothing 
+                 */
+                var averagePrice = function( results ) {
+                    var shouldNotify = true;
+                    var sum          = 0;
+                    var medians      = [];
+                    var modes        = {};
+                    var unit         = "chaos";
+                    var unitAverage  = "chaos";
+                    var unitMedian   = "chaos";
+                    var unitMode     = "chaos";
+                    results.sort( function( a, b ) {
+                        return a.price * leagueRates[a.currency] - 
+                               b.price * leagueRates[b.currency];
+                    })
+                    for ( var i = 0 ; i < results.length ; i++ ) {
+                        // console.log( results[i].price + " : " + results[i].currency + " -> " + 
+                                    //  parseFloat( results[i].price ) + " * " + leagueRates[results[i].currency] );
+                        var price = parseFloat( results[i].price ) * leagueRates[results[i].currency];
+                        sum += price;
+                        medians.push( price );
+                        if ( modes["" + price + ""]) {
+                            modes["" + price + ""]++;
+                        } else {
+                            modes["" + price + ""] = 1;
+                        }
+                    }
+                    // Computes the median
+                    var med = median( medians );
+                    var avg = sum / results.length;
+                    var medProportion = 0;
+                    for ( var i = 0 ; i < medians.length ; i++ ) {
+                        if ( medians[i] <= med ) {
+                            medProportion++;
+                        }
+                    }
+                    medProportion = medProportion * 100 / medians.length;
+                    // Computes the mode
+                    var mode    = { "amount": 0, "value": 0 };
+                    var values  = [];
+                    var amounts = [];
+                    // sort modes
+                    var keys    = [];
+                    for ( var val in modes ) {
+                        if ( modes.hasOwnProperty( val )) {
+                            keys.push( val );
+                        }
+                    }
+                    keys.sort( function( a, b ) {
+                        return a - b;
+                    });
+                    console.log( keys );
+                    // var modesSorted = {};
+                    for ( var i = 0 ; i < keys.length ; i++ ) {
+                        // modesSorted["" + keys[i] + ""] = modes[keys[i]];
+                        console.log( modes[keys[i]] );
+                        values.push( keys[i]);
+                        amounts.push( modes[keys[i]]);
+                    }
+                    // console.log( modesSorted );
+                    for ( var val in modes ) {
+                        if ( modes.hasOwnProperty( val )) {
+                            if ( modes[val] > mode.amount ) {
+                                mode.value = val;
+                                mode.amount = modes[val];
+                            }
+                        }
+                    }
+                    var chartParam = { 
+                        "values": values, 
+                        "amounts": amounts, 
+                        "currency": "chaos"
+                    };
+                    if ( avg > leagueRates.exa ) {
+                        avg /= leagueRates.exa;
+                        unitAverage = "exalt";
+                    }
+                    if ( med > leagueRates.exa ) {
+                        med /= leagueRates.exa;
+                        unitMedian = "exalt";
+                    }
+                    if ( mode.value > leagueRates.exa ) {
+                        mode.value /= leagueRates.exa;
+                        unitMode = "exalt";
+                        values = values.map( function( e ) {
+                            return e / leagueRates.exa;
+                        });
+                        chartParam.currency = "exa";
+                        chartParam.values   = values;
+                    }
+
+                    $( "#avg-price" ).text( Math.round( avg * 100 ) / 100 + " " + unitAverage );
+                    $( "#median-price" ).text( Math.round( med * 100 ) / 100 + " " + unitMedian );
+                    $( "#mode-price" ).text( Math.round( mode.value * 100 ) / 100 + " " + unitMode );
+                    logger.log( "Average price is " + Math.round( avg * 100 ) / 100 + " " + unitAverage, 
+                                script_name );
+                    logger.log( "Median price is " + Math.round( med * 100 ) / 100 + " " + unitMedian +
+                                " ( " + Math.round( medProportion * 100 ) / 100 + " % items)", 
+                                script_name );
+                    logger.log( "Mode price is " + Math.round( mode.value * 100 ) / 100 + " " + unitMode, 
+                                script_name );
+                    if ( shouldNotify ) {
+                        notifier.notify({
+                            'title': 'Price based on ' + results.length + " items",
+                            'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + ".\n" + 
+                                    "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + ".\n" +
+                                    "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode,
+                        });
+                    }
+                    drawChart( chartParam );
+                    // process.exit( 0 );
+                }
+
+                function updateInterface( results ) {
+                    $( "#search .loading" ).fadeOut( 'fast' );
+                    $( "#results table" ).empty();
+                    itemPreview( results[0]);
+                    // sort results by price
+                    results.sort( function( a, b ) {
+                        // console.log( leagueRates[a.currency] );
+                        return a.price * leagueRates[a.currency] - 
+                               b.price * leagueRates[b.currency];
+                    });
+                    var counter = 0;
+                    async.each( results, function( result, callbackUpdate ) {
+                        var color = "white";
+                        switch ( result.frameType ) {
+                            case 1:
+                                color = "rgba(135, 135, 254, 1)";
+                                break;
+                            case 2:
+                                color = "rgba(243, 243, 113, 1)";
+                                break;
+                            case 3:
+                                color = "rgba(175, 96, 37, 1)";
+                                break;
+                            case 4:
+                                color = "green";
+                            default:
+                        }
+                        if ( result.corrupted ) {
+                            color = "rgba(143, 23, 22, 1)";
+                        }
+                        counter++;
+                        if ( result.frameType === 0 || result.frameType > 3 ) {
+                            $( "#results table" ).append(
+                                "<tr>" +
+                                    "<td id='" + counter + "' style='color: " + color + 
+                                    "'>" + 
+                                    result.typeLine + 
+                                    " (" + result.price + 
+                                    " <img class='currency-result' src='./media/" + 
+                                    result.currency + ".png'>)" +
+                                    "</td>" +
+                                "</tr>"
+                            );
+                        } else {
+                            $( "#results table" ).append(
+                                "<tr>" +
+                                    "<td id='" + counter + "' style='color: " + color + 
+                                    "'>" + 
+                                    result.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                    " (" + result.price + 
+                                    " <img class='currency-result' src='./media/" + 
+                                    result.currency + ".png'>)" +
+                                    "</td>" +
+                                "</tr>"
+                            );
+                        }
+                        $( "table td#" + counter ).data( "data-item" , result );
+                        callbackUpdate();
+                    }, function( err ) {
+                        bindPreviewOnClick();
+                        bindContactOnClick();
+                    });
+                }
+
+                // Grab market prices for currencies
+                function updateMarketRates( callback ) {
+                    $( "#market-rates .title" ).html( "Market rates<span> (Updating...)</span>" );
+                    $( "#market-rates .loading" ).fadeIn( 'fast' );
+                    currency.getAllRates( baseCurrency, function( rates ) {
+                        $( "#market-rates .loading" ).fadeOut( 'fast' );
+                        leagueRates = rates;
+                        console.log( rates );
+                        $( "#alt .rate" ).text( Math.round( rates.alt * 100 ) / 100 );
+                        $( "#fuse .rate" ).text( Math.round( rates.fuse * 100 ) / 100 );
+                        $( "#alch .rate" ).text( Math.round( rates.alch * 100 ) / 100 );
+                        $( "#chaos .rate" ).text( Math.round( rates.chaos * 100 ) / 100 );
+                        $( "#prism .rate" ).text( Math.round( rates.prism * 100 ) / 100 );
+                        $( "#exa .rate" ).text( Math.round( rates.exa * 100 ) / 100 );
+                        $( "#chrome .rate" ).text( Math.round( rates.chrome * 100 ) / 100 );
+                        $( "#jew .rate" ).text( Math.round( rates.jew * 100 ) / 100 );
+                        $( "#chance .rate" ).text( Math.round( rates.chance * 100 ) / 100 );
+                        $( "#chisel .rate" ).text( Math.round( rates.chisel * 100 ) / 100 );
+                        $( "#scouring .rate" ).text( Math.round( rates.scouring * 100 ) / 100 );
+                        $( "#bless .rate" ).text( Math.round( rates.bless * 100 ) / 100 );
+                        $( "#regret .rate" ).text( Math.round( rates.regret * 100 ) / 100 );
+                        $( "#regal .rate" ).text( Math.round( rates.regal * 100 ) / 100 );
+                        $( "#divine .rate" ).text( Math.round( rates.divine * 100 ) / 100 );
+                        $( "#vaal .rate" ).text( Math.round( rates.vaal * 100 ) / 100 );
+                        $( "#wisdom .rate" ).text( Math.round( rates.wisdom * 100 ) / 100 );
+                        $( "#portal .rate" ).text( Math.round( rates.portal * 100 ) / 100 );
+                        $( "#scrap .rate" ).text( Math.round( rates.scrap * 100 ) / 100 );
+                        $( "#stone .rate" ).text( Math.round( rates.stone * 100 ) / 100 );
+                        $( "#bauble .rate" ).text( Math.round( rates.bauble * 100 ) / 100 );
+                        $( "#trans .rate" ).text( Math.round( rates.trans * 100 ) / 100 );
+                        $( "#aug .rate" ).text( Math.round( rates.aug * 100 ) / 100 );
+                        $( "#eternal .rate" ).text( Math.round( rates.eternal * 100 ) / 100 );
+                        $( "#mirror .rate" ).text( Math.round( rates.mirror * 100 ) / 100 );
+                        var date = new Date();
+                        var dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                        $( "#market-rates .title" ).html( "Market rates</span> (" + dateString + ")</span>" );
+                        callback();
+                    });
+                }
+
+                function itemPreview( item ) {
+                    $( "#price" ).empty();
+                    $( "#price" ).html(
+                        item.price + "<img src='./media/" + item.currency + ".png'>"
+                    );
+                    $( "#item-picture" ).attr( "src", item.icon );
+                    $( "#item-name" ).text( item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
+                    var color = "white";
+                    switch ( item.frameType ) {
+                        case 1:
+                            color = "rgba(135, 135, 254, 1)";
+                            break;
+                        case 2:
+                            color = "rgba(243, 243, 113, 1)";
+                            break;
+                        case 3:
+                            color = "rgba(175, 96, 37, 1)";
+                            break;
+                        case 4:
+                            color = "green";
+                            break;
+                        default:
+                    }
+                    $( "#item-name" ).css( "color", color );
+                    $( "#item-type-prev" ).text( item.typeLine );
+                    $( "#item-enchant-mods" ).empty();
+                    if ( item.enchantMods ) {
+                        for ( var i = 0 ; i < item.enchantMods.length; i++ ) {
+                            var mod = item.enchantMods[i];
+                            $( "#item-enchant-mods" ).append(
+                                "<span>" + mod + "</span>"
+                            );
+                            if ( i !== item.enchantMods.length - 1 ) {
+                                $( "#item-enchant-mods" ).append( "<br>" );
+                            }
+                        }
+                        $( "#item-enchant-mods" ).show();
+                    } else {
+                        $( "#item-enchant-mods" ).hide();
+                    }
+                    
+                    $( "#item-properties" ).empty();
+                    if ( item.properties ) {
+                        for ( var i = 0 ; i < item.properties.length; i++ ) {
+                            var property = item.properties[i];
+                            // if ( i !== 0 ) {
+                                if ( property.values.length > 0 ) {
+                                    $( "#item-properties" ).append(
+                                        "<span class='item-property'>" + property.name + ": </span>" +
+                                        "<span class='item-value'>" + property.values[0][0] + "</span>"
+                                    );
+                                } else {
+                                    $( "#item-properties" ).append(
+                                        "<span class='item-property'>" + property.name + "</span>"
+                                    );
+                                }
+                                
+                            // } else {
+                                // $( "#item-properties" ).append(
+                                    // "<span class='item-property'>" + property.name + "</span>"
+                                // );
+                            // }
+                            if ( i !== item.properties.length - 1 ) {
+                                $( "#item-properties" ).append( "<br>" );
+                            }
+                        }
+                    }
+                    $( "#item-implicit-mods" ).empty();
+                    if ( item.implicitMods ) {
+                        for ( var i = 0 ; i < item.implicitMods.length; i++ ) {
+                            var mod = item.implicitMods[i];
+                            $( "#item-implicit-mods" ).append(
+                                "<span>" + mod + "</span>"
+                            );
+                            if ( i !== item.implicitMods.length - 1 ) {
+                                $( "#item-implicit-mods" ).append( "<br>" );
+                            }
+                        }
+                    }
+                    $( "#item-explicit-mods" ).empty();
+                    if ( item.explicitMods ) {
+                        for ( var i = 0 ; i < item.explicitMods.length; i++ ) {
+                            var mod = item.explicitMods[i];
+                            $( "#item-explicit-mods" ).append(
+                                "<span>" + mod + "</span>"
+                            );
+                            if ( i !== item.explicitMods.length - 1 ) {
+                                $( "#item-explicit-mods" ).append( "<br>" );
+                            }
+                        }
+                    }
+                    // Crafted Mods
+                    $( "#item-crafted-mods" ).empty();
+                    if ( item.craftedMods ) {
+                        for ( var i = 0 ; i < item.craftedMods.length; i++ ) {
+                            var mod = item.craftedMods[i];
+                            $( "#item-crafted-mods" ).append(
+                                "<span>" + mod + "</span>"
+                            );
+                            if ( i !== item.craftedMods.length - 1 ) {
+                                $( "#item-crafted-mods" ).append( "<br>" );
+                            }
+                        }
+                        $( "#item-crafted-mods" ).show();
+                    } else {
+                        $( "#item-crafted-mods" ).hide();
+                    }
+                    // Corrupted
+                    if ( item.corrupted ) {
+                        $( "#item-corrupted" ).show();
+                    } else {
+                        $( "#item-corrupted" ).hide();
+                    }
+                    // Item sockets
+                    $( ".socket" ).hide();
+                    $( ".link" ).hide();
+                    var currentSocketGroup = 0;
+                    var lastSocketGroup = 0;
+                    if ( item.sockets ) {
+                        for ( var i = 0 ; i < item.sockets.length ; i++ ) {
+                            var socketImg;
+                            switch ( item.sockets[i].attr ) {
+                                case "D":
+                                    socketImg = "./media/socket_dex.png";
+                                    break;
+                                case "I":
+                                    socketImg = "./media/socket_int.png";
+                                    break;
+                                case "S":
+                                    socketImg = "./media/socket_str.png";
+                                    break;
+                                case "G":
+                                    socketImg = "./media/socket_white.png";
+                                    break;
+                                default:
+                                    socketImg = "./media/socket_white.png";
+                            }
+                            $( "#socket" + ( i + 1 )).attr( "src", socketImg );
+                            $( "#socket" + ( i + 1 )).show();
+                            currentSocketGroup = item.sockets[i].group;
+                            if ( i > 0 && currentSocketGroup == lastSocketGroup ) {
+                                $( "#link" + i ).show();
+                            } else if ( i > 0 && currentSocketGroup != lastSocketGroup ) {
+                            }
+                            lastSocketGroup = currentSocketGroup;
+                        }
+                    }
+                    // Item flavor
+                    $( "#item-flavor" ).empty();
+                    if ( item.flavourText ) {
+                        for ( var i = 0 ; i < item.flavourText.length; i++ ) {
+                            var line = item.flavourText[i];
+                            $( "#item-flavor" ).append(
+                                "<span>" + line + "</span>"
+                            );
+                        }
+                    }
+                }
+
+                function bindPreviewOnClick() {
+                    $( "#results table td" ).mouseenter( function() {
+                        var item = $( this ).data().dataItem;
+                        // console.log( item );
+                        itemPreview( item );
+                    });
+                }
+
+                function bindContactOnClick() {
+                    // When clicking on item in results
+                    $( "#results table td" ).click( function() {
+                        var item = $( this ).data().dataItem;
+                        var str = "@" + item.lastCharacterName + " Hi " + 
+                            item.lastCharacterName + ", I would like to buy your '" + 
+                            item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                            "' for '" + item.price + " " + item.currency + 
+                            "'. This item is in stash '" + item.stashName + "'. Thank you :)";
+                        // import copy from 'copy-to-clipboard';
+                        ncp.copy( str, function() {
+                            console.log( "copied to clipboard" );
+                        });
+                    })
+                }
+
+                function drawChart( items ) {
+                    // console.log( items );
+                    var ctx = $( "#myChart" );
+                    var background = [];
+                    var border     = [];
+                    for ( var i = 0 ; i < items.values.length ; i++ ) {
+                        background.push( 'rgba(75, 192, 192, 0.4)' );
+                        border.push( 'rgba(75, 192, 192, 1)' );
+                        items.values[i] = Math.round( items.values[i] * 100 ) / 100;
+                    }
+                    if ( myChart ) {
+                        myChart.destroy();
+                        delete myChart;
+                    }
+                    myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: items.values,
+                            datasets: [{
+                                label: 'Price distribution in ' + items.currency,
+                                data: items.amounts,
+                                backgroundColor: background,
+                                borderColor: border,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero:true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                }
+
+                // drawChart();
+
+                // GUI binding
+                // Update market prices when clicked
+                $( "#update-market" ).click( function() {
+                    baseCurrency = $( "#base-currency" ).val();
+                    updateMarketRates( function() {});
+                });
+
+                // Update league value when changed
+                $( "#league" ).change( function() {
+                    league = $( this ).val();
+                    console.log( league );
+                });
+
+                $( "#search-item" ).click( function() {
+                    var text  = $( "textarea" ).val();
+                    var lines = text.split( "\n" );
+                    var searchBy = $( "#search-by" ).val();
+                    // if ( searchBy === "mods" ) {
+                    //     for ( var i = 0 ; i < lines.length ; i++ ) {
+                    //         console.log( lines[i] );
+                    //         var splitted = lines[i].split( " " );
+                    //         for ( var j = 0 ; j < splitted.length ; j++ ) {
+                    //             var char     = splitted[j].charAt(0);
+                    //             var charCode = splitted[j].charCodeAt(0);
+                    //             var newChar;
+                    //             var newCharCode;
+                    //             if ( charCode > 90 ) {
+                    //                 // We need to fetch the upper case char
+                    //                 newCharCode = charCode - 32;
+                    //             } else {
+                    //                 // We fetch the lower case char
+                    //                 newCharCode = charCode + 32;
+                    //             }
+                    //             newChar = String.fromCharCode( newCharCode );
+                    //             splitted[j] = "[" + char + newChar + "]" + splitted[j].substr( 1, splitted[j].length - 1 );
+                    //         }
+                    //         var str = splitted.join( " " );
+                    //         console.log( str );
+                    //         lines[i] = new RegExp( str );
+                    //     }
+                    // }
+                    $( "#search .loading" ).fadeIn( 'fast' );
+                    if ( searchBy === "name" ) {
+                        connectToDB( function( db ) {
+                            queryDBByName( db, lines[0], league, filterValidPrice );
+                        });
+                    } else if ( searchBy === "lastCharacterName" ) {
+                        connectToDB( function( db ) {
+                            queryDBByCharacter( db, lines[0], league, filterValidPrice );
+                        });
+                    } else if ( searchBy === "accountName" ) {
+                        connectToDB( function( db ) {
+                            queryDBByAccount( db, lines[0], league, filterValidPrice );
+                        });
+                    } else {
+                        connectToDB( function( db ) {
+                            queryDBByMod( db, lines, league, filterValidPrice );
+                        });
+                    }
+                    
+                });
+
+                $( "#item-type" ).change( function() {
+                    $( "#item-subtype" ).empty();
+                    var types = itemTypes[$( this ).val()];
+                    types.sort();
+                    for ( var i = 0 ; i < types.length ; i++ ) {
+                        $( "#item-subtype" ).append(
+                            "<option value='" + types[i] + "'>" + types[i] +" </option>"
+                        );
+                    }
+                })
+
+                process.on('SIGINT', cleanup );
+                process.on('SIGTERM', cleanup );
+
+                function cleanup() {
+                    dbHandler.close();
+                }
+
+            });
+        </script>
+    </body>
+</html>
