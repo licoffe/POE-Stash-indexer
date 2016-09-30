@@ -454,6 +454,7 @@
                 </tr>
                 <tr>
                     <td>
+                        <input type="checkbox" id="auto-refresh">Auto-refreesh<br><br>
                         <input type="button" id="search-item" value="Search">
                         <img class="loading" src="./media/loading.gif" alt="">
                     </td>
@@ -550,6 +551,7 @@
                     "sockets": 1,
                     "lastCharacterName": 1
                 };
+                var autorefreshInterval;
 
                 /**
                  * Query DB by character
@@ -1323,8 +1325,6 @@
                     });
                 }
 
-                // drawChart();
-
                 // GUI binding
                 // Update market prices when clicked
                 $( "#update-market" ).click( function() {
@@ -1338,51 +1338,63 @@
                     console.log( league );
                 });
 
+                // WHen clicking on search button
                 $( "#search-item" ).click( function() {
-                    var text  = $( "textarea" ).val();
-                    var lines = text.split( "\n" );
-                    var searchBy = $( "#search-by" ).val();
-                    // if ( searchBy === "mods" ) {
-                    //     for ( var i = 0 ; i < lines.length ; i++ ) {
-                    //         console.log( lines[i] );
-                    //         var splitted = lines[i].split( " " );
-                    //         for ( var j = 0 ; j < splitted.length ; j++ ) {
-                    //             var char     = splitted[j].charAt(0);
-                    //             var charCode = splitted[j].charCodeAt(0);
-                    //             var newChar;
-                    //             var newCharCode;
-                    //             if ( charCode > 90 ) {
-                    //                 // We need to fetch the upper case char
-                    //                 newCharCode = charCode - 32;
-                    //             } else {
-                    //                 // We fetch the lower case char
-                    //                 newCharCode = charCode + 32;
-                    //             }
-                    //             newChar = String.fromCharCode( newCharCode );
-                    //             splitted[j] = "[" + char + newChar + "]" + splitted[j].substr( 1, splitted[j].length - 1 );
-                    //         }
-                    //         var str = splitted.join( " " );
-                    //         console.log( str );
-                    //         lines[i] = new RegExp( str );
-                    //     }
-                    // }
-                    $( "#search .loading" ).fadeIn( 'fast' );
-                    if ( searchBy === "name" ) {
-                        connectToDB( function( db ) {
-                            queryDBByName( db, lines[0], league, filterValidPrice );
-                        });
-                    } else if ( searchBy === "lastCharacterName" ) {
-                        connectToDB( function( db ) {
-                            queryDBByCharacter( db, lines[0], league, filterValidPrice );
-                        });
-                    } else if ( searchBy === "accountName" ) {
-                        connectToDB( function( db ) {
-                            queryDBByAccount( db, lines[0], league, filterValidPrice );
-                        });
+                    var searchDelay = 10000;
+                    var search = function() {
+                        var text  = $( "textarea" ).val();
+                        var lines = text.split( "\n" );
+                        var searchBy = $( "#search-by" ).val();
+                        
+                        // if ( searchBy === "mods" ) {
+                        //     for ( var i = 0 ; i < lines.length ; i++ ) {
+                        //         console.log( lines[i] );
+                        //         var splitted = lines[i].split( " " );
+                        //         for ( var j = 0 ; j < splitted.length ; j++ ) {
+                        //             var char     = splitted[j].charAt(0);
+                        //             var charCode = splitted[j].charCodeAt(0);
+                        //             var newChar;
+                        //             var newCharCode;
+                        //             if ( charCode > 90 ) {
+                        //                 // We need to fetch the upper case char
+                        //                 newCharCode = charCode - 32;
+                        //             } else {
+                        //                 // We fetch the lower case char
+                        //                 newCharCode = charCode + 32;
+                        //             }
+                        //             newChar = String.fromCharCode( newCharCode );
+                        //             splitted[j] = "[" + char + newChar + "]" + splitted[j].substr( 1, splitted[j].length - 1 );
+                        //         }
+                        //         var str = splitted.join( " " );
+                        //         console.log( str );
+                        //         lines[i] = new RegExp( str );
+                        //     }
+                        // }
+                        $( "#search .loading" ).fadeIn( 'fast' );
+                        if ( searchBy === "name" ) {
+                            connectToDB( function( db ) {
+                                queryDBByName( db, lines[0], league, filterValidPrice );
+                            });
+                        } else if ( searchBy === "lastCharacterName" ) {
+                            connectToDB( function( db ) {
+                                queryDBByCharacter( db, lines[0], league, filterValidPrice );
+                            });
+                        } else if ( searchBy === "accountName" ) {
+                            connectToDB( function( db ) {
+                                queryDBByAccount( db, lines[0], league, filterValidPrice );
+                            });
+                        } else {
+                            connectToDB( function( db ) {
+                                queryDBByMod( db, lines, league, filterValidPrice );
+                            });
+                        }
+                    }
+                    search();
+                    if ( $( "#auto-refresh" ).is( ':checked' )) {
+                        clearInterval( autorefreshInterval );
+                        autorefreshInterval = setInterval( search, searchDelay );
                     } else {
-                        connectToDB( function( db ) {
-                            queryDBByMod( db, lines, league, filterValidPrice );
-                        });
+                        clearInterval( autorefreshInterval );
                     }
                     
                 });
@@ -1393,7 +1405,7 @@
                     types.sort();
                     for ( var i = 0 ; i < types.length ; i++ ) {
                         $( "#item-subtype" ).append(
-                            "<option value='" + types[i] + "'>" + types[i] +" </option>"
+                            "<option value='" + types[i] + "'>" + types[i] + " </option>"
                         );
                     }
                 })
