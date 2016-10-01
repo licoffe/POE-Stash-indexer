@@ -78,7 +78,170 @@ var getStashByID = function( db, stashID, callback ) {
  */
 var downloadChunk = function( chunkID, collection, db, callback ) {
 
-    var done = function( data ) {
+    var download = function( chunkID ) {
+        logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
+        // Download compressed gzip data
+        exec( "wget --header='accept-encoding: gzip' " + page + "?id=" + chunkID + 
+          " -O ./data/data_" + chunkID + ".gzip", 
+          ( error, stdout, stderr ) => {
+            if ( error ) {
+                logger.log( "Error occured, retrying", script_name, "e" );
+                console.error( `exec error: ${error}` );
+                setTimeout(download, downloadInterval, chunkID );
+            } else {
+                logger.log( "Downloaded", script_name );
+                // Extract data
+                logger.log( "Extracting data", script_name );
+                extract( chunkID );
+            }
+        });
+    }
+
+    var extract = function( chunkID ) {
+        exec( "gunzip -S '' --force -c ./data/data_" + chunkID + 
+                ".gzip > ./data/data_" + chunkID + ".json",
+            ( error, stdout, stderr ) => {
+            if ( error ) {
+                logger.log( "Error occured, retrying", script_name, "e" );
+                // console.error( `exec error: ${error}` );
+                setTimeout(download, downloadInterval, chunkID );
+            } else {
+                logger.log( "Extracted, loading data", script_name );
+                var data;
+                try {
+                    data = JSON.parse( fs.readFileSync( 
+                        "./data/data_" + chunkID + ".json", 'utf8' ));
+                    logger.log( "Data loaded", script_name );
+                    parseData( data, chunkID );
+                } catch ( e ) {
+                    logger.log( e, script_name, "e" );
+                    process.exit(0);
+                }
+            }
+        });
+    }
+
+    var parseData = function( data, chunkID ) {
+        // Store last chunk ID
+        db.createCollection( 'chunk_id', function( err, chunk_collection ) {
+            if ( err !== null ) {
+                logger.log( "There was an error creating the collection: " + err, script_name, "e" );
+            } else {
+                logger.log( "Adding chunk ID to DB", script_name );
+                chunk_collection.insert( { "next_chunk_id" : data.next_change_id }, { w : 1 }, function( err, result ) {
+                    if ( err !== null ) {
+                        logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                    }
+                    logger.log( "Reading data file", script_name );
+                    console.time( "Loading data into DB" );
+                    // For each stashes in the new data file
+                    async.each( data.stashes, function( stash, callbackStash ) {
+                        // Get previously stored stash contents
+                        getStashByID( db, stash.id, function( results ) {
+                            // If the stash does not exist
+                            if ( results.length === 0 ) {
+                                // logger.log( "Stash " + stash.id + " does not exist, creating it", script_name );
+                                async.each( stash.items, function( item, cb ) {
+                                    item.accountName = stash.accountName;
+                                    item.lastCharacterName = stash.lastCharacterName;
+                                    item.stashID     = stash.id;
+                                    item.stashName   = stash.stash;
+                                    item.stashType   = stash.stashType;
+                                    item.publicStash = stash.public;
+                                    item._id         = item.id;
+                                    item.available   = true;
+                                    // Store this item
+                                    collection.save( item, function( err, result ) {
+                                        if ( err !== null ) {
+                                            logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                        }
+                                        // logger.log( "Adding item to " + stash.id, script_name );
+                                        cb();
+                                    });
+                                }, function( err ) {
+                                    if ( err !== null ) {
+                                        logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                    }
+                                    callbackStash();
+                                });
+                            } else {
+                                // If there are less items in new stash then 
+                                // there used to be
+                                if ( results.length > stash.items.length ) {
+                                    logger.log(
+                                        ( results.length - stash.items.length ) + 
+                                        " items out of " + results.length + " were removed from stash " + 
+                                        stash.id, script_name );
+                                }
+
+                                // Find missing item and change its
+                                // available status to false
+                                // For each item in the old stash
+                                async.each( results, function( oldItem, presence ) {
+                                    var currentID = oldItem.id;
+                                    var found     = false;
+                                    // For each item in the new stash
+                                    async.each( stash.items, function( item, cb ) {
+                                        // If the old item is found in the new items
+                                        // set its status to available
+                                        if ( item.id === currentID ) {
+                                            found = true;
+                                            item.accountName = stash.accountName;
+                                            item.lastCharacterName = stash.lastCharacterName;
+                                            item.stashID     = stash.id;
+                                            item.stashName   = stash.stash;
+                                            item.stashType   = stash.stashType;
+                                            item.publicStash = stash.public;
+                                            item._id         = item.id;
+                                            item.available   = true;
+                                            // Store this item
+                                            collection.save( item, function( err, result ) {
+                                                if ( err !== null ) {
+                                                    logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                                }
+                                                cb();
+                                            });
+                                        } else {
+                                            cb();
+                                        }
+                                    }, function( err ) {
+                                        if ( err ) {
+                                            logger.log( err, script_name, "e" );
+                                        }
+                                        // If item was not found, update its status in db
+                                        if ( !found ) {
+                                            oldItem.available = false;
+                                            // logger.log( "Item " + oldItem.id + " no longer available", script_name );
+                                            collection.save( oldItem, function( err, result ) {
+                                                if ( err !== null ) {
+                                                    logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                                }
+                                            });
+                                        }
+                                        // Go to next item
+                                        presence();
+                                    });
+                                }, function( err ) {
+                                    if ( err ) {
+                                        logger.log( err, script_name, "e" );
+                                    }
+                                    callbackStash();
+                                });
+                            }
+                        });
+                    }, function( err ) {
+                        if ( err ) {
+                            logger.log( err, script_name, "e" );
+                        }
+                        console.timeEnd( "Loading data into DB" );
+                        done( data, chunkID );
+                    });
+                });
+            }
+        });
+    }
+
+    var done = function( data, chunkID ) {
         var nextID = data.next_change_id;
         logger.log( "Next ID: " + nextID, script_name );
         // Cleanup by removing downloaded archive
@@ -93,160 +256,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                     nextID, collection, db, callback );
     }
     
-    logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
-    // Download compressed gzip data
-    try {
-        exec( "wget --header='accept-encoding: gzip' " + page + "?id=" + chunkID + 
-          " -O ./data/data_" + chunkID + ".gzip", 
-          ( error, stdout, stderr ) => {
-            if ( error ) {
-                logger.log( "Error occured, retrying", script_name, "e" );
-                console.error( `exec error: ${error}` );
-            }
-            logger.log( "Downloaded", script_name );
-            // Extract data
-            logger.log( "Extracting data", script_name );
-            exec( "gunzip -S '' --force -c ./data/data_" + chunkID + 
-                ".gzip > ./data/data_" + chunkID + ".json",
-                ( error, stdout, stderr ) => {
-                if ( error ) {
-                    logger.log( "Error occured, retrying", script_name, "e" );
-                    console.error( `exec error: ${error}` );
-                }
-                logger.log( "Extracted, loading data", script_name );
-                var data;
-                try {
-                    data = JSON.parse( fs.readFileSync( 
-                        "./data/data_" + chunkID + ".json", 'utf8' ));
-                    logger.log( "Data loaded", script_name );
-                } catch ( e ) {
-                    logger.log( e, script_name, "e" );
-                    process.exit(0);
-                }
-                
-                // Store last chunk ID
-                db.createCollection( 'chunk_id', function( err, chunk_collection ) {
-                    if ( err !== null ) {
-                        logger.log( "There was an error creating the collection: " + err, script_name, "e" );
-                    } else {
-                        logger.log( "Adding chunk ID to DB", script_name );
-                        chunk_collection.insert( { "next_chunk_id" : data.next_change_id }, { w : 1 }, function( err, result ) {
-                            if ( err !== null ) {
-                                logger.log( "There was an error inserting value: " + err, script_name, "w" );
-                            }
-                            logger.log( "Reading data file", script_name );
-                            console.time( "Loading data into DB" );
-                            // For each stashes in the new data file
-                            async.each( data.stashes, function( stash, callbackStash ) {
-                                // Get previously stored stash contents
-                                getStashByID( db, stash.id, function( results ) {
-                                    // If the stash does not exist
-                                    if ( results.length === 0 ) {
-                                        // logger.log( "Stash " + stash.id + " does not exist, creating it", script_name );
-                                        async.each( stash.items, function( item, cb ) {
-                                            item.accountName = stash.accountName;
-                                            item.lastCharacterName = stash.lastCharacterName;
-                                            item.stashID     = stash.id;
-                                            item.stashName   = stash.stash;
-                                            item.stashType   = stash.stashType;
-                                            item.publicStash = stash.public;
-                                            item._id         = item.id;
-                                            item.available   = true;
-                                            // Store this item
-                                            collection.save( item, function( err, result ) {
-                                                if ( err !== null ) {
-                                                    logger.log( "There was an error inserting value: " + err, script_name, "w" );
-                                                }
-                                                // logger.log( "Adding item to " + stash.id, script_name );
-                                                cb();
-                                            });
-                                        }, function( err ) {
-                                            if ( err !== null ) {
-                                                logger.log( "There was an error inserting value: " + err, script_name, "w" );
-                                            }
-                                            callbackStash();
-                                        });
-                                    } else {
-                                        // If there are less items in new stash then 
-                                        // there used to be
-                                        if ( results.length > stash.items.length ) {
-                                            logger.log(
-                                                ( results.length - stash.items.length ) + 
-                                                " items out of " + results.length + " were removed from stash " + 
-                                                stash.id, script_name );
-                                        }
-
-                                        // Find missing item and change its
-                                        // available status to false
-                                        // For each item in the old stash
-                                        async.each( results, function( oldItem, presence ) {
-                                            var currentID = oldItem.id;
-                                            var found     = false;
-                                            // For each item in the new stash
-                                            async.each( stash.items, function( item, cb ) {
-                                                // If the old item is found in the new items
-                                                // set its status to available
-                                                if ( item.id === currentID ) {
-                                                    found = true;
-                                                    item.accountName = stash.accountName;
-                                                    item.lastCharacterName = stash.lastCharacterName;
-                                                    item.stashID     = stash.id;
-                                                    item.stashName   = stash.stash;
-                                                    item.stashType   = stash.stashType;
-                                                    item.publicStash = stash.public;
-                                                    item._id         = item.id;
-                                                    item.available   = true;
-                                                    // Store this item
-                                                    collection.save( item, function( err, result ) {
-                                                        if ( err !== null ) {
-                                                            logger.log( "There was an error inserting value: " + err, script_name, "w" );
-                                                        }
-                                                        cb();
-                                                    });
-                                                } else {
-                                                    cb();
-                                                }
-                                            }, function( err ) {
-                                                if ( err ) {
-                                                    logger.log( err, script_name, "e" );
-                                                }
-                                                // If item was not found, update its status in db
-                                                if ( !found ) {
-                                                    oldItem.available = false;
-                                                    // logger.log( "Item " + oldItem.id + " no longer available", script_name );
-                                                    collection.save( oldItem, function( err, result ) {
-                                                        if ( err !== null ) {
-                                                            logger.log( "There was an error inserting value: " + err, script_name, "w" );
-                                                        }
-                                                    });
-                                                }
-                                                // Go to next item
-                                                presence();
-                                            });
-                                        }, function( err ) {
-                                            if ( err ) {
-                                                logger.log( err, script_name, "e" );
-                                            }
-                                            callbackStash();
-                                        });
-                                    }
-                                });
-                            }, function( err ) {
-                                if ( err ) {
-                                    logger.log( err, script_name, "e" );
-                                }
-                                console.timeEnd( "Loading data into DB" );
-                                done( data );
-                            });
-                        });
-                    }
-                });
-            });
-        });
-    } catch (e) {
-        setTimeout( callback, downloadInterval, 
-                    chunkID, collection, db, callback );
-    }
+    download( chunkID );
 }
 
 /**
