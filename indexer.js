@@ -17,6 +17,7 @@ var address          = "localhost";
 var port             = 27017;
 var database         = "POE_price";
 var script_name      = "Indexer";
+var interrupt        = false;
 
 
 /**
@@ -249,11 +250,15 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         fs.unlinkSync( "./data/data_" + chunkID + ".gzip" );
         fs.unlinkSync( "./data/data_" + chunkID + ".json" );
     
-        // Sleep 10 seconds and call the script on the 
-        // next chunk ID
-        logger.log( "Sleeping " + downloadInterval + "ms", script_name );
-        setTimeout( callback, downloadInterval, 
-                    nextID, collection, db, callback );
+        if ( interrupt ) {
+            process.exit( 0 );
+        } else {
+            // Sleep 10 seconds and call the script on the 
+            // next chunk ID
+            logger.log( "Sleeping " + downloadInterval + "ms", script_name );
+            setTimeout( callback, downloadInterval, 
+                        nextID, collection, db, callback );
+        }
     }
     
     download( chunkID );
@@ -305,5 +310,10 @@ function main() {
         });
     });
 }
+
+process.on('SIGINT', function() {
+    logger.log( "Caught interrupt signal, exiting gracefully", script_name, "e" );
+    interrupt = true;
+});
 
 main();
