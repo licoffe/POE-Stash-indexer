@@ -595,15 +595,27 @@
                     }
 
                     if ( queryBy === "name" ) {
-                        cursor = db.collection('stashes').find({
-                            "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
-                            "league": league, 
-                            "frameType": { $in: rarity },
-                            "typeLine": type,
-                            "available": true,
-                            "corrupted": { $in: corrupted },
-                            "identified": { $in: identified }
-                        }, fields).limit(queryLimit);
+                        if ( name === "" ) {
+                            cursor = db.collection('stashes').find({
+                                "league": league, 
+                                "frameType": { $in: rarity },
+                                "typeLine": type,
+                                "available": true,
+                                "corrupted": { $in: corrupted },
+                                "identified": { $in: identified }
+                            }, fields).limit(queryLimit);
+                        } else {
+                            cursor = db.collection('stashes').find({
+                                "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
+                                "league": league, 
+                                "frameType": { $in: rarity },
+                                "typeLine": type,
+                                "available": true,
+                                "corrupted": { $in: corrupted },
+                                "identified": { $in: identified }
+                            }, fields).limit(queryLimit);
+                        }
+                        
                     } else if ( queryBy === "lastCharacterName" ) {
                         cursor = db.collection('stashes').find({
                             "lastCharacterName": criteria,
