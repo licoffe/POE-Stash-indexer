@@ -267,8 +267,8 @@
                         <label>
                             <select id="corrupted">
                                 <option value="either" selected>Either</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
                             </select>
                         </label>
                     </td>
@@ -289,13 +289,13 @@
                         <label>
                             <select id="identified">
                                 <option value="either" selected>Either</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
                             </select>
                         </label>
                     </td>
                     <td>
-                        <input type="checkbox" id="verified" value="">Verified
+                        <input type="checkbox" id="verified" checked="true">Verified
                     </td>
                 </tr>
             </table>
@@ -554,213 +554,78 @@
                 var autorefreshInterval;
 
                 /**
-                 * Query DB by character
+                 * Query DB
                  *
-                 * @params MongoDB handler, the name of the object, a callback 
+                 * @params MongoDB handler, criteria, league, the type, a callback 
                  * the results will be sent to
                  * @return DB results matching the criteria
                 */
-                function queryDBByCharacter( db, criteria, league, callback ) {
+                function queryDB( db, criteria, league, queryBy, callback ) {
                     var entries = [];
-                    console.log( "Querying by character" );
+                    console.log( "Querying by " + queryBy );
                     console.log( criteria );
-                    var start  = new Date();
-                    var rarity = parseInt( $( "#rarity" ).val());
-                    var type   = $( "#item-subtype" ).val();
+                    var start      = new Date();
+                    var rarity     = $( "#rarity" ).val();
+                    var type       = $( "#item-subtype" ).val();
+                    var identified = $( "#identified" ).val();
+                    var corrupted  = $( "#corrupted" ).val();
+                    var cursor;
+                    if ( identified !== "either" ) {
+                        var bool   = (identified === "true");
+                        identified = [bool];
+                        logger.log( "identified: " + identified, script_name );
+                    } else {
+                        identified = [true, false];
+                    }
+                    if ( corrupted !== "either" ) {
+                        var bool  = (corrupted === "true");
+                        corrupted = [bool];
+                        logger.log( "corrupted: " + corrupted, script_name );
+                    } else {
+                        corrupted = [true, false];
+                    }
                     if ( !type || type === "any" ) {
                         type = / /;
                     }
-                    
-                    if ( !rarity ) {
-                        var cursor = db.collection('stashes').find({
-                            "lastCharacterName": criteria,
-                            "league": league, 
-                            "typeLine": type,
-                            "available": true
-                        }, fields ).limit(queryLimit);
+                    if ( rarity === "any" ) {
+                        rarity = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+                        console.log( "any" );
                     } else {
-                        var cursor = db.collection('stashes').find({
-                            "lastCharacterName": criteria,
-                            "league": league, 
-                            "frameType": rarity,
-                            "typeLine": type,
-                            "available": true 
-                        }, fields ).limit(queryLimit);
+                        rarity = [parseInt( rarity)];
                     }
-                    
-                    if ( cursor !== undefined ) {
-                        logger.log( "Gathering results", script_name );
-                        cursor.each( function( err, doc ) {
-                            if ( doc !== null ) {
-                                entries.push( doc );
-                            } else {
-                                logger.log( "Found " + entries.length + " entries (" + 
-                                            ( new Date() - start ) + "ms)", script_name );
-                                cursor.close();
-                                db.close();
-                                callback( entries, averagePrice );
-                            }
-                        });
-                    } else {
-                        logger.log( "No items found with these criterias", 
-                                    script_name, "e" );
-                        db.close();
-                        // process.exit( 0 );
-                    }
-                }
 
-                /**
-                 * Query DB by account
-                 *
-                 * @params MongoDB handler, the name of the object, a callback 
-                 * the results will be sent to
-                 * @return DB results matching the criteria
-                */
-                function queryDBByAccount( db, criteria, league, callback ) {
-                    var entries = [];
-                    console.log( "Querying by account" );
-                    console.log( criteria );
-                    var start  = new Date();
-                    var rarity = parseInt( $( "#rarity" ).val());
-                    var type   = $( "#item-subtype" ).val();
-                    if ( !type || type === "any" ) {
-                        type = / /;
-                    }
-                    
-                    if ( !rarity ) {
-                        var cursor = db.collection('stashes').find({
-                            "accountName": criteria,
-                            "league": league, 
-                            "typeLine": type,
-                            "available": true
-                        }, fields).limit(queryLimit);
-                    } else {
-                        var cursor = db.collection('stashes').find({
-                            "accountName": criteria,
-                            "league": league, 
-                            "frameType": rarity,
-                            "typeLine": type,
-                            "available": true
-                        }, fields).limit(queryLimit);
-                    }
-                    
-                    if ( cursor !== undefined ) {
-                        logger.log( "Gathering results", script_name );
-                        cursor.each( function( err, doc ) {
-                            if ( doc !== null ) {
-                                entries.push( doc );
-                            } else {
-                                logger.log( "Found " + entries.length + " entries (" + 
-                                            ( new Date() - start ) + "ms)", script_name );
-                                cursor.close();
-                                db.close();
-                                callback( entries, averagePrice );
-                            }
-                        });
-                    } else {
-                        logger.log( "No items found with these criterias", 
-                                    script_name, "e" );
-                        db.close();
-                        // process.exit( 0 );
-                    }
-                }
-
-                /**
-                 * Query DB by object name
-                 *
-                 * @params MongoDB handler, the name of the object, a callback 
-                 * the results will be sent to
-                 * @return DB results matching the criteria
-                */
-                function queryDBByName( db, criteria, league, callback ) {
-                    var entries = [];
-                    console.log( "Querying by name" );
-                    console.log( criteria );
-                    var start  = new Date();
-                    var rarity = parseInt( $( "#rarity" ).val());
-                    var type   = $( "#item-subtype" ).val();
-                    if ( !type || type === "any" ) {
-                        type = / /;
-                    }
-                    
-                    if ( !rarity ) {
-                        var cursor = db.collection('stashes').find({
+                    if ( queryBy === "name" ) {
+                        cursor = db.collection('stashes').find({
                             "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
                             "league": league, 
+                            "frameType": { $in: rarity },
                             "typeLine": type,
-                            "available": true
+                            "available": true,
+                            "corrupted": { $in: corrupted },
+                            "identified": { $in: identified }
                         }, fields).limit(queryLimit);
-                    } else {
-                        var cursor = db.collection('stashes').find({
-                            "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
+                    } else if ( queryBy === "lastCharacterName" ) {
+                        cursor = db.collection('stashes').find({
+                            "lastCharacterName": criteria,
                             "league": league, 
-                            "frameType": rarity,
+                            "frameType": { $in: rarity },
                             "typeLine": type,
-                            "available": true
-                        }, fields).limit(queryLimit);
-                    }
-                    
-                    if ( cursor !== undefined ) {
-                        logger.log( "Gathering results", script_name );
-                        cursor.each( function( err, doc ) {
-                            if ( doc !== null ) {
-                                entries.push( doc );
-                            } else {
-                                logger.log( "Found " + entries.length + " entries (" + 
-                                            ( new Date() - start ) + "ms)", script_name );
-                                cursor.close();
-                                db.close();
-                                callback( entries, averagePrice );
-                            }
-                        });
-                    } else {
-                        logger.log( "No items found with these criterias", 
-                                    script_name, "e" );
-                        db.close();
-                        // process.exit( 0 );
-                    }
-                }
-
-
-
-                /**
-                 * Query DB by mod list
-                 *
-                 * @params MongoDB handler, list of mods with values, a callback 
-                 * the results will be sent to
-                 * @return return
-                 */
-                function queryDBByMod( db, criteria, league, callback ) {
-                    var entries = [];
-                    console.log( criteria );
-                    var start   = new Date();
-                    var rarity  = parseInt( $( "#rarity" ).val());
-                    var type    = $( "#item-subtype" ).val();
-                    if ( !type || type === "any" ) {
-                        type = / /;
-                    }
-                    if ( !rarity ) {
-                        var cursor  = db.collection('stashes').find({
-                            $or: [
-                                {"explicitMods": { 
-                                    $all: criteria
-                                }},
-                                {"implicitMods": { 
-                                    $all: criteria
-                                }},
-                                {"craftedMods": { 
-                                    $all: criteria
-                                }},
-                                {"enchantMods": { 
-                                    $all: criteria
-                                }}, 
-                            ], 
+                            "available": true,
+                            "corrupted": { $in: corrupted },
+                            "identified": { $in: identified }
+                        }, fields ).limit(queryLimit);
+                    } else if ( queryBy === "accountName" ) {
+                        cursor = db.collection('stashes').find({
+                            "accountName": criteria,
                             "league": league, 
+                            "frameType": { $in: rarity },
                             "typeLine": type,
-                            "available": true
+                            "available": true,
+                            "corrupted": { $in: corrupted },
+                            "identified": { $in: identified }
                         }, fields).limit(queryLimit);
-                    } else {
-                        var cursor = db.collection('stashes').find({
+                    } else if ( queryBy === "mods" ) {
+                        cursor = db.collection('stashes').find({
                             $or: [
                                 {"explicitMods": { 
                                     $all: criteria
@@ -776,12 +641,16 @@
                                 }}, 
                             ],
                             "league": league, 
+                            "frameType": { $in: rarity },
                             "typeLine": type,
-                            "rarity": rarity,
-                            "available": true
+                            "available": true,
+                            "corrupted": { $in: corrupted },
+                            "identified": { $in: identified }
                         }, fields).limit(queryLimit);
+                    } else {
+                        logger.log( "unrecognised query type " + queryBy, script_name, "e" );
                     }
-                    
+
                     if ( cursor !== undefined ) {
                         logger.log( "Gathering results", script_name );
                         cursor.each( function( err, doc ) {
@@ -798,7 +667,6 @@
                     } else {
                         logger.log( "No items found with these criterias", 
                                     script_name, "e" );
-                        // process.exit( 0 );
                         db.close();
                     }
                 }
@@ -1373,19 +1241,19 @@
                         $( "#search .loading" ).fadeIn( 'fast' );
                         if ( searchBy === "name" ) {
                             connectToDB( function( db ) {
-                                queryDBByName( db, lines[0], league, filterValidPrice );
+                                queryDB( db, lines[0], league, searchBy, filterValidPrice );
                             });
                         } else if ( searchBy === "lastCharacterName" ) {
                             connectToDB( function( db ) {
-                                queryDBByCharacter( db, lines[0], league, filterValidPrice );
+                                queryDB( db, lines[0], league, searchBy, filterValidPrice );
                             });
                         } else if ( searchBy === "accountName" ) {
                             connectToDB( function( db ) {
-                                queryDBByAccount( db, lines[0], league, filterValidPrice );
+                                queryDB( db, lines[0], league, searchBy, filterValidPrice );
                             });
                         } else {
                             connectToDB( function( db ) {
-                                queryDBByMod( db, lines, league, filterValidPrice );
+                                queryDB( db, lines, league, searchBy, filterValidPrice );
                             });
                         }
                     }
