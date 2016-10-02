@@ -1,6 +1,6 @@
 {
   "name": "POE-price-helper",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "Interface for poe stash api indexer",
   "main": "main.js",
   "scripts": {
