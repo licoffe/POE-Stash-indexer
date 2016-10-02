@@ -80,6 +80,13 @@ var getStashByID = function( db, stashID, callback ) {
 var downloadChunk = function( chunkID, collection, db, callback ) {
 
     var download = function( chunkID ) {
+        // Check if data folder exists, create if it doesn't
+        try {
+            fs.accessSync( "./data", fs.F_OK );
+        } catch ( e ) {
+            logger.log( "Data folder does not exist, creating", script_name );
+            fs.mkdirSync( "./data" );
+        }
         logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
         // Download compressed gzip data
         exec( "wget --header='accept-encoding: gzip' " + page + "?id=" + chunkID + 
@@ -99,13 +106,14 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
     }
 
     var extract = function( chunkID ) {
-        exec( "gunzip -S '' --force -c ./data/data_" + chunkID + 
+        exec( "gunzip --force -c ./data/data_" + chunkID + 
                 ".gzip > ./data/data_" + chunkID + ".json",
             ( error, stdout, stderr ) => {
+            // If there is an error with extraction, redownload
             if ( error ) {
                 logger.log( "Error occured, retrying", script_name, "e" );
                 // console.error( `exec error: ${error}` );
-                setTimeout(download, downloadInterval, chunkID );
+                setTimeout( download, downloadInterval, chunkID );
             } else {
                 logger.log( "Extracted, loading data", script_name );
                 var data;
@@ -253,7 +261,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         if ( interrupt ) {
             process.exit( 0 );
         } else {
-            // Sleep 10 seconds and call the script on the 
+            // Sleep n seconds and call the script on the 
             // next chunk ID
             logger.log( "Sleeping " + downloadInterval + "ms", script_name );
             setTimeout( callback, downloadInterval, 
