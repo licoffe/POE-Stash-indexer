@@ -7,7 +7,7 @@ var async            = require("async");
 var Logger           = require( "./modules/logger.js" );
 var logger           = new Logger();
 logger.set_use_timestamp( true );
-logger.set_file_path( "log.txt" );
+logger.set_file_path( "./log.txt" );
 var page             = "http://www.pathofexile.com/api/public-stash-tabs";
 // Variables that can be tweaked
 var downloadInterval = 2000; // Time between downloads in seconds
@@ -18,7 +18,7 @@ var port             = 27017;
 var database         = "POE_price";
 var script_name      = "Indexer";
 var interrupt        = false;
-
+var debug            = false;
 
 /**
  * Return the next chunk ID to download from last downloaded chunk file
@@ -32,7 +32,7 @@ var lastDownloadedChunk = function( db, callback ) {
     if ( cursor !== undefined ) {
         logger.log( "Last chunk ID found", script_name );
         cursor.each( function( err, doc ) {
-            if ( doc !== null ) {
+            if ( doc ) {
                 entries.push( doc );
             } else {
                 logger.log( "Found " + entries.length + " entries", script_name );
@@ -56,7 +56,7 @@ var getStashByID = function( db, stashID, callback ) {
     var cursor = db.collection('stashes').find({ "stashID": stashID });
     if ( cursor !== undefined ) {
         cursor.each( function( err, doc ) {
-            if ( doc !== null ) {
+            if ( doc ) {
                 entries.push( doc );
             } else {
                 callback( entries );
@@ -133,13 +133,13 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
     var parseData = function( data, chunkID ) {
         // Store last chunk ID
         db.createCollection( 'chunk_id', function( err, chunk_collection ) {
-            if ( err !== null ) {
+            if ( err ) {
                 logger.log( "There was an error creating the collection: " + err, script_name, "e" );
             } else {
                 logger.log( "Adding chunk ID to DB", script_name );
                 chunk_collection.insert( { "next_chunk_id" : data.next_change_id }, { w : 1 }, function( err, result ) {
-                    if ( err !== null ) {
-                        logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                    if ( err ) {
+                        logger.log( "There was an error inserting chunk_id value: " + err, script_name, "w" );
                     }
                     logger.log( "Reading data file", script_name );
                     console.time( "Loading data into DB" );
@@ -149,7 +149,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                         getStashByID( db, stash.id, function( results ) {
                             // If the stash does not exist
                             if ( results.length === 0 ) {
-                                // logger.log( "Stash " + stash.id + " does not exist, creating it", script_name );
+                                logger.log( "Stash " + stash.id + " does not exist, creating it", script_name, "", true );
                                 async.each( stash.items, function( item, cb ) {
                                     item.accountName = stash.accountName;
                                     item.lastCharacterName = stash.lastCharacterName;
@@ -161,15 +161,26 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     item.available   = true;
                                     // Store this item
                                     collection.save( item, function( err, result ) {
-                                        if ( err !== null ) {
-                                            logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                        if ( err ) {
+                                            logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
                                         }
-                                        // logger.log( "Adding item to " + stash.id, script_name );
+                                        if ( !item.name ) {
+                                            logger.log( 
+                                                "Adding new item \x1b[35m" + 
+                                                item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                "\x1b[0m to " + stash.id, script_name, "", true );
+                                        } else {
+                                            logger.log( 
+                                                "Adding new item \x1b[35m" + 
+                                                item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                "\x1b[0m to " + stash.id, script_name, "", true );
+                                        }
+                                        
                                         cb();
                                     });
                                 }, function( err ) {
-                                    if ( err !== null ) {
-                                        logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                    if ( err ) {
+                                        logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
                                     }
                                     callbackStash();
                                 });
@@ -180,12 +191,18 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     logger.log(
                                         ( results.length - stash.items.length ) + 
                                         " items out of " + results.length + " were removed from stash " + 
-                                        stash.id, script_name );
+                                        stash.id, script_name, "", true );
+                                } else if ( results.length < stash.items.length ) {
+                                    logger.log(
+                                        ( stash.items.length - results.length ) + 
+                                        " items were added to the stash " + 
+                                        stash.id, script_name, "", true );
                                 }
 
                                 // Find missing item and change its
                                 // available status to false
                                 // For each item in the old stash
+                                logger.log( "Updating existing stash " + stash.id, script_name, "", true );
                                 async.each( results, function( oldItem, presence ) {
                                     var currentID = oldItem.id;
                                     var found     = false;
@@ -204,9 +221,22 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             item._id         = item.id;
                                             item.available   = true;
                                             // Store this item
+                                            if ( !item.name ) {
+                                                logger.log( 
+                                                    "Updating item \x1b[35m" + 
+                                                    item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                    "\x1b[0m from " + stash.id, script_name, "", true );
+                                            } else {
+                                                logger.log( 
+                                                    "Updating item \x1b[35m" + 
+                                                    item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                    "\x1b[0m from " + stash.id, script_name, "", true );
+                                            }
                                             collection.save( item, function( err, result ) {
-                                                if ( err !== null ) {
-                                                    logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                                if ( err ) {
+                                                    logger.log( 
+                                                        "Stash update: There was an error inserting value: " + err, 
+                                                        script_name, "w", true );
                                                 }
                                                 cb();
                                             });
@@ -220,10 +250,22 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         // If item was not found, update its status in db
                                         if ( !found ) {
                                             oldItem.available = false;
-                                            // logger.log( "Item " + oldItem.id + " no longer available", script_name );
+                                            if ( !oldItem.name ) {
+                                                logger.log( 
+                                                    "Item \x1b[35m" + 
+                                                    oldItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                    "\x1b[0m from " + stash.id + " no longer available", script_name, "", true );
+                                            } else {
+                                                logger.log( 
+                                                    "Item \x1b[35m" + 
+                                                    oldItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                    "\x1b[0m from " + stash.id + " no longer available", script_name, "", true );
+                                            }
                                             collection.save( oldItem, function( err, result ) {
-                                                if ( err !== null ) {
-                                                    logger.log( "There was an error inserting value: " + err, script_name, "w" );
+                                                if ( err ) {
+                                                    logger.log( 
+                                                        "Stash update: There was an error inserting value: " + err, 
+                                                        script_name, "w" );
                                                 }
                                             });
                                         }
@@ -282,7 +324,7 @@ function connectToDB( callback ) {
     // Connect to the db
     mongo_client.connect( "mongodb://" + address + ":" + port + "/" + database, 
                          function( err, db ) {
-        if ( err !== null ) {
+        if ( err ) {
             logger.log( err, script_name, "e" );
             logger.log( "Make sure MongoDB has been started", script_name, "e" );
         }
@@ -294,10 +336,23 @@ function connectToDB( callback ) {
 
 // Main loop
 function main() {
+
+    // Parse argv
+    process.argv.forEach(( val, index ) => {
+        if ( val === "-d" ) {
+            logger.log( "Activating debug", script_name, "e" );
+            debug = true;
+        }
+    });
+
+    if ( debug ) {
+        // write to log.txt
+        logger.set_use_file( true );
+    }
     connectToDB( function( db ) {
         logger.log( "Attempting to create or reuse POE_price collection", script_name );
         db.createCollection( 'stashes', function( err, collection ) {
-            if ( err !== null ) {
+            if ( err ) {
                 logger.log( "There was an error creating the collection: " + err, script_name, "e" );
             } else {
                 // Check last downloaded chunk ID
@@ -320,7 +375,7 @@ function main() {
 }
 
 process.on('SIGINT', function() {
-    logger.log( "Caught interrupt signal, exiting gracefully", script_name, "e" );
+    logger.log( "\rCaught interrupt signal, exiting gracefully", script_name, "e" );
     interrupt = true;
 });
 

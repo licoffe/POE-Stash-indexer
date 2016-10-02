@@ -60,7 +60,7 @@ function Logger() {
      * @params Message
      * @return None
      */
-    Logger.prototype.log = function( message, dispatcher, error_code ) {
+    Logger.prototype.log = function( message, dispatcher, error_code, fileOnly ) {
         // If we have an error code
         if ( error_code === "w" ) { // warning code
             message = colors.yellow + message + colors.reset;
@@ -83,24 +83,16 @@ function Logger() {
                 console.log( "No file to log to specified" );
                 return;
             }
-            console.log( this.file_path );
             // Check file access: should be writable and visible
-            fs.open( this.file_path, "a", function( err, fd ) {
-                fs.access( this.file_path, fs.F_OK | fs.W_OK, function( err ) {
-                    if ( err ) {
-                        console.log( err );
-                    } else {
-                        fs.appendFile( this.file_path, message + "\n", "utf8", function ( err ) {
-                            if ( err ) { 
-                                throw err;
-                            };
-                            fs.close( fd );
-                        });
-                    };
-                });
-            });
-        // or on the console
-        } else {
+            try {
+                fs.accessSync( this.file_path, fs.F_OK );
+                fs.appendFileSync( this.file_path, message + "\n", "utf8" );
+            } catch ( e ) {
+                fs.closeSync(fs.openSync( this.file_path, 'w' ));
+            }
+        }
+        // If not file only, write to console
+        if ( !fileOnly ) {
             console.log( message );
         }
     }
