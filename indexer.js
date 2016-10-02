@@ -1,5 +1,3 @@
-#!/usr/local/bin/node
-
 // Requirements
 var exec             = require( "child_process" ).exec;
 var fs               = require( "fs" );
@@ -327,6 +325,7 @@ function connectToDB( callback ) {
         if ( err ) {
             logger.log( err, script_name, "e" );
             logger.log( "Make sure MongoDB has been started", script_name, "e" );
+            process.exit(0);
         }
         logger.log( "Connected to MongoDB.", script_name );
         
