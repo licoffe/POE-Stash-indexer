@@ -571,7 +571,13 @@
                     var identified = $( "#identified" ).val();
                     var corrupted  = $( "#corrupted" ).val();
                     var level      = $( "#item-level" ).val();
+                    var available  = $( "#verified" ).is( ":checked" );
                     var cursor;
+                    if ( !available ) {
+                        available = [true, false];
+                    } else {
+                        available = [true];
+                    }
                     if ( level === "" ) {
                         level = 0;
                     } else {
@@ -607,7 +613,7 @@
                                 "league": league, 
                                 "frameType": { $in: rarity },
                                 "typeLine": type,
-                                "available": true,
+                                "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level }
@@ -618,7 +624,7 @@
                                 "league": league, 
                                 "frameType": { $in: rarity },
                                 "typeLine": type,
-                                "available": true,
+                                "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level }
@@ -631,7 +637,7 @@
                             "league": league, 
                             "frameType": { $in: rarity },
                             "typeLine": type,
-                            "available": true,
+                            "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
@@ -642,7 +648,7 @@
                             "league": league, 
                             "frameType": { $in: rarity },
                             "typeLine": type,
-                            "available": true,
+                            "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
@@ -666,7 +672,7 @@
                             "league": league, 
                             "frameType": { $in: rarity },
                             "typeLine": type,
-                            "available": true,
+                            "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
