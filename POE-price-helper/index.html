@@ -595,7 +595,7 @@
                     }
 
                     if ( queryBy === "name" ) {
-                        if ( name === "" ) {
+                        if ( criteria === "" ) {
                             cursor = db.collection('stashes').find({
                                 "league": league, 
                                 "frameType": { $in: rarity },
@@ -733,7 +733,7 @@
                             item.currency = match[2];
                             results.push( item );
                         } else {
-                            console.log( "Discarding " + match );
+                            // console.log( "Discarding " + match );
                         }
                     }
                     logger.log( "Kept " + results.length + " items", script_name );
@@ -818,11 +818,11 @@
                     keys.sort( function( a, b ) {
                         return a - b;
                     });
-                    console.log( keys );
+                    // console.log( keys );
                     // var modesSorted = {};
                     for ( var i = 0 ; i < keys.length ; i++ ) {
                         // modesSorted["" + keys[i] + ""] = modes[keys[i]];
-                        console.log( modes[keys[i]] );
+                        // console.log( modes[keys[i]] );
                         values.push( keys[i]);
                         amounts.push( modes[keys[i]]);
                     }
