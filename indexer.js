@@ -352,6 +352,7 @@ function main() {
         logger.log( "Attempting to create or reuse POE_price collection", script_name );
         db.createCollection( 'stashes', function( err, collection ) {
             // MongoDB index pyramid of doom
+            logger.log( "Checking indexes have been generated", script_name );
             collection.createIndex({ "name": 1 }, function () {
                 collection.createIndex({ "explicitMods": 1 }, function () {
                     collection.createIndex({ "accountName": 1 }, function () {
@@ -369,24 +370,26 @@ function main() {
                                                                     collection.createIndex({ "enchantMods": 1 }, function () {
                                                                         collection.createIndex({ "stashID": 1 }, function () {
                                                                             collection.createIndex({ "available": 1 }, function () {
-                                                                                if ( err ) {
-                                                                                    logger.log( "There was an error creating the collection: " + err, script_name, "e" );
-                                                                                } else {
-                                                                                    // Check last downloaded chunk ID
-                                                                                    lastDownloadedChunk( db, function( entry ) {
-                                                                                        try {
-                                                                                            logger.log( "Next chunk ID: " + entry[0].next_chunk_id, 
-                                                                                                        script_name );
-                                                                                            downloadChunk( entry[0].next_chunk_id, collection, db, 
-                                                                                                        downloadChunk );
-                                                                                        } catch ( e ) {
-                                                                                            logger.log( "Starting new indexation", 
-                                                                                                        script_name, "w" );
-                                                                                            // Should create indexes here
-                                                                                            downloadChunk( "", collection, db, downloadChunk );
-                                                                                        }
-                                                                                    });
-                                                                                }
+                                                                                collection.createIndex({ "ilvl": 1 }, function () {
+                                                                                    if ( err ) {
+                                                                                        logger.log( "There was an error creating the collection: " + err, script_name, "e" );
+                                                                                    } else {
+                                                                                        // Check last downloaded chunk ID
+                                                                                        lastDownloadedChunk( db, function( entry ) {
+                                                                                            try {
+                                                                                                logger.log( "Next chunk ID: " + entry[0].next_chunk_id, 
+                                                                                                            script_name );
+                                                                                                downloadChunk( entry[0].next_chunk_id, collection, db, 
+                                                                                                            downloadChunk );
+                                                                                            } catch ( e ) {
+                                                                                                logger.log( "Starting new indexation", 
+                                                                                                            script_name, "w" );
+                                                                                                // Should create indexes here
+                                                                                                downloadChunk( "", collection, db, downloadChunk );
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                })
                                                                             })
                                                                         })
                                                                     })

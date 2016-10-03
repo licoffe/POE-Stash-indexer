@@ -275,7 +275,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="text" id="item-level" placeholder="Item level" value="">
+                        <input type="text" id="item-level" placeholder="Item level">
                     </td>
                     <td>
                         <span>Item subtype</span>&nbsp;
@@ -549,7 +549,8 @@
                     "corrupted": 1,
                     "identified": 1,
                     "sockets": 1,
-                    "lastCharacterName": 1
+                    "lastCharacterName": 1,
+                    "ilvl": 1
                 };
                 var autorefreshInterval;
 
@@ -569,7 +570,13 @@
                     var type       = $( "#item-subtype" ).val();
                     var identified = $( "#identified" ).val();
                     var corrupted  = $( "#corrupted" ).val();
+                    var level      = $( "#item-level" ).val();
                     var cursor;
+                    if ( level === "" ) {
+                        level = 0;
+                    } else {
+                        level = parseInt( level );
+                    }
                     if ( identified !== "either" ) {
                         var bool   = (identified === "true");
                         identified = [bool];
@@ -602,7 +609,8 @@
                                 "typeLine": type,
                                 "available": true,
                                 "corrupted": { $in: corrupted },
-                                "identified": { $in: identified }
+                                "identified": { $in: identified },
+                                "ilvl": { $gte: level }
                             }, fields).limit(queryLimit);
                         } else {
                             cursor = db.collection('stashes').find({
@@ -612,7 +620,8 @@
                                 "typeLine": type,
                                 "available": true,
                                 "corrupted": { $in: corrupted },
-                                "identified": { $in: identified }
+                                "identified": { $in: identified },
+                                "ilvl": { $gte: level }
                             }, fields).limit(queryLimit);
                         }
                         
@@ -624,7 +633,8 @@
                             "typeLine": type,
                             "available": true,
                             "corrupted": { $in: corrupted },
-                            "identified": { $in: identified }
+                            "identified": { $in: identified },
+                            "ilvl": { $gte: level }
                         }, fields ).limit(queryLimit);
                     } else if ( queryBy === "accountName" ) {
                         cursor = db.collection('stashes').find({
@@ -634,7 +644,8 @@
                             "typeLine": type,
                             "available": true,
                             "corrupted": { $in: corrupted },
-                            "identified": { $in: identified }
+                            "identified": { $in: identified },
+                            "ilvl": { $gte: level }
                         }, fields).limit(queryLimit);
                     } else if ( queryBy === "mods" ) {
                         cursor = db.collection('stashes').find({
@@ -657,7 +668,8 @@
                             "typeLine": type,
                             "available": true,
                             "corrupted": { $in: corrupted },
-                            "identified": { $in: identified }
+                            "identified": { $in: identified },
+                            "ilvl": { $gte: level }
                         }, fields).limit(queryLimit);
                     } else {
                         logger.log( "unrecognised query type " + queryBy, script_name, "e" );
