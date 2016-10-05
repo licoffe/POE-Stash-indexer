@@ -510,7 +510,8 @@
                     "identified": 1,
                     "sockets": 1,
                     "lastCharacterName": 1,
-                    "ilvl": 1
+                    "ilvl": 1,
+                    "w": 1
                 };
                 var autorefreshInterval;
 
@@ -967,6 +968,12 @@
                     $( "#price" ).html(
                         item.price + "<img src='./media/" + item.currency + ".png'>"
                     );
+                    // Depending on the item width, change the left offset
+                    if ( item.w === 1 ) {
+                        $( "#item-picture" ).css( "left", "40%" );
+                    } else {
+                        $( "#item-picture" ).css( "left", "30%" );
+                    }
                     $( "#item-picture" ).attr( "src", item.icon );
                     $( "#item-name" ).empty();
                     if ( item.frameType <= 1 || item.frameType > 3 ) {

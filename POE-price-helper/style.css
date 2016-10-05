@@ -300,15 +300,15 @@ input[type="button"] {
     top: 408px;
 }
 #socket-vert-1 {
-    left: 90px;
+    left: 110px;
     top: 300px;
 }
 #socket-vert-2 {
-    left: 90px;
+    left: 110px;
     top: 354px;
 }
 #socket-vert-3 {
-    left: 90px;
+    left: 110px;
     top: 408px;
 }
 #sockets .link {
@@ -337,11 +337,11 @@ input[type="button"] {
     top: 423px;
 }
 #link-vert-1 {
-    left: 105px;
+    left: 125px;
     top: 332px;
 }
 #link-vert-2 {
-    left: 105px;
+    left: 125px;
     top: 332px;
 }
 #search-by {
