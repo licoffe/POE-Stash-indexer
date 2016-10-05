@@ -388,11 +388,16 @@
                             <img class="socket" id="socket4" src="./media/socket_dex.png" alt="">
                             <img class="socket" id="socket5" src="./media/socket_dex.png" alt="">
                             <img class="socket" id="socket6" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket-vert-1" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket-vert-2" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket-vert-3" src="./media/socket_dex.png" alt="">
                             <img class="link" id="link1" src="./media/socket_link_horiz.png" alt="">
                             <img class="link" id="link2" src="./media/socket_link_vert.png" alt="">
                             <img class="link" id="link3" src="./media/socket_link_horiz.png" alt="">
                             <img class="link" id="link4" src="./media/socket_link_vert.png" alt="">
                             <img class="link" id="link5" src="./media/socket_link_horiz.png" alt="">
+                            <img class="link" id="link-vert-1" src="./media/socket_link_vert.png" alt="">
+                            <img class="link" id="link-vert-2" src="./media/socket_link_vert.png" alt="">
                         </div>
                         <img id="item-picture" src="http://web.poecdn.com/image/Art/2DItems/Weapons/TwoHandWeapons/Bows/SarkhamsReach.png?scale=1&w=2&h=4&v=f333c2e4005ee20a84270731baa5fa6a3" alt="">
                     </td>
@@ -1084,32 +1089,66 @@
                     var currentSocketGroup = 0;
                     var lastSocketGroup = 0;
                     if ( item.sockets ) {
-                        for ( var i = 0 ; i < item.sockets.length ; i++ ) {
-                            var socketImg;
-                            switch ( item.sockets[i].attr ) {
-                                case "D":
-                                    socketImg = "./media/socket_dex.png";
-                                    break;
-                                case "I":
-                                    socketImg = "./media/socket_int.png";
-                                    break;
-                                case "S":
-                                    socketImg = "./media/socket_str.png";
-                                    break;
-                                case "G":
-                                    socketImg = "./media/socket_white.png";
-                                    break;
-                                default:
-                                    socketImg = "./media/socket_white.png";
+                        if ( item.properties ) {
+                            if ( item.properties[0].name !== "Wand" && 
+                                 item.properties[0].name !== "Dagger" ) {
+                                for ( var i = 0 ; i < item.sockets.length ; i++ ) {
+                                    var socketImg;
+                                    switch ( item.sockets[i].attr ) {
+                                        case "D":
+                                            socketImg = "./media/socket_dex.png";
+                                            break;
+                                        case "I":
+                                            socketImg = "./media/socket_int.png";
+                                            break;
+                                        case "S":
+                                            socketImg = "./media/socket_str.png";
+                                            break;
+                                        case "G":
+                                            socketImg = "./media/socket_white.png";
+                                            break;
+                                        default:
+                                            socketImg = "./media/socket_white.png";
+                                    }
+                                    $( "#socket" + ( i + 1 )).attr( "src", socketImg );
+                                    $( "#socket" + ( i + 1 )).show();
+                                    currentSocketGroup = item.sockets[i].group;
+                                    if ( i > 0 && currentSocketGroup == lastSocketGroup ) {
+                                        $( "#link" + i ).show();
+                                    } else if ( i > 0 && currentSocketGroup != lastSocketGroup ) {
+                                    }
+                                    lastSocketGroup = currentSocketGroup;
+                                }
+                            // Wands and daggers
+                            } else {
+                                for ( var i = 0 ; i < item.sockets.length ; i++ ) {
+                                    var socketImg;
+                                    switch ( item.sockets[i].attr ) {
+                                        case "D":
+                                            socketImg = "./media/socket_dex.png";
+                                            break;
+                                        case "I":
+                                            socketImg = "./media/socket_int.png";
+                                            break;
+                                        case "S":
+                                            socketImg = "./media/socket_str.png";
+                                            break;
+                                        case "G":
+                                            socketImg = "./media/socket_white.png";
+                                            break;
+                                        default:
+                                            socketImg = "./media/socket_white.png";
+                                    }
+                                    $( "#socket-vert-" + ( i + 1 )).attr( "src", socketImg );
+                                    $( "#socket-vert-" + ( i + 1 )).show();
+                                    currentSocketGroup = item.sockets[i].group;
+                                    if ( i > 0 && currentSocketGroup == lastSocketGroup ) {
+                                        $( "#link-vert-" + i ).show();
+                                    } else if ( i > 0 && currentSocketGroup != lastSocketGroup ) {
+                                    }
+                                    lastSocketGroup = currentSocketGroup;
+                                }
                             }
-                            $( "#socket" + ( i + 1 )).attr( "src", socketImg );
-                            $( "#socket" + ( i + 1 )).show();
-                            currentSocketGroup = item.sockets[i].group;
-                            if ( i > 0 && currentSocketGroup == lastSocketGroup ) {
-                                $( "#link" + i ).show();
-                            } else if ( i > 0 && currentSocketGroup != lastSocketGroup ) {
-                            }
-                            lastSocketGroup = currentSocketGroup;
                         }
                     }
                     // Item flavor

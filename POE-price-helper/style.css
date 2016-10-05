@@ -273,6 +273,7 @@ input[type="button"] {
 #sockets .socket {
     position: absolute;
     z-index: 9999;
+    display: none;
 }
 #socket1 {
     right: 72px;
@@ -298,9 +299,22 @@ input[type="button"] {
     right: 20px;
     top: 408px;
 }
+#socket-vert-1 {
+    left: 90px;
+    top: 300px;
+}
+#socket-vert-2 {
+    left: 90px;
+    top: 354px;
+}
+#socket-vert-3 {
+    left: 90px;
+    top: 408px;
+}
 #sockets .link {
     position: absolute;
     z-index: 10000;
+    display: none;
 }
 #link1 {
     right: 50px;
@@ -321,6 +335,14 @@ input[type="button"] {
 #link5 {
     right: 50px;
     top: 423px;
+}
+#link-vert-1 {
+    left: 105px;
+    top: 332px;
+}
+#link-vert-2 {
+    left: 105px;
+    top: 332px;
 }
 #search-by {
     width: 100%;
