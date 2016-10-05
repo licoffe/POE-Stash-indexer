@@ -335,51 +335,6 @@
                     <td rowspan="3">
                         <div id="results">
                             <table>
-                                <tr>
-                                    <td>Roth's Reach</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2</td>
-                                </tr>
                             </table>
                         </div>
                     </td>
@@ -929,12 +884,12 @@
                             color = "rgba(143, 23, 22, 1)";
                         }
                         counter++;
-                        if ( result.frameType === 0 || result.frameType > 3 ) {
+                        if ( result.frameType <= 1 || result.frameType > 3 ) {
                             $( "#results table" ).append(
                                 "<tr>" +
                                     "<td id='" + counter + "' style='color: " + color + 
                                     "'>" + 
-                                    result.typeLine + 
+                                    result.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
                                     " (" + result.price + 
                                     " <img class='currency-result' src='./media/" + 
                                     result.currency + ".png'>)" +
@@ -1008,7 +963,12 @@
                         item.price + "<img src='./media/" + item.currency + ".png'>"
                     );
                     $( "#item-picture" ).attr( "src", item.icon );
-                    $( "#item-name" ).text( item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
+                    $( "#item-name" ).empty();
+                    if ( item.frameType <= 1 || item.frameType > 3 ) {
+                        $( "#item-name" ).text( item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
+                    } else {
+                        $( "#item-name" ).text( item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
+                    }
                     var color = "white";
                     switch ( item.frameType ) {
                         case 1:
@@ -1026,7 +986,10 @@
                         default:
                     }
                     $( "#item-name" ).css( "color", color );
-                    $( "#item-type-prev" ).text( item.typeLine );
+                    $( "#item-type-prev" ).empty();
+                    if ( item.frameType !== 1 && item.frameType !== 4 ) {
+                        $( "#item-type-prev" ).text( item.typeLine );
+                    }
                     $( "#item-enchant-mods" ).empty();
                     if ( item.enchantMods ) {
                         for ( var i = 0 ; i < item.enchantMods.length; i++ ) {
