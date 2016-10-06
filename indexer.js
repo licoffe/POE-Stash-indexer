@@ -1,7 +1,7 @@
 // Requirements
-var exec             = require( "child_process" ).exec;
 var fs               = require( "fs" );
 var async            = require("async");
+var request          = require( "request" );
 var Logger           = require( "./modules/logger.js" );
 var logger           = new Logger();
 logger.set_use_timestamp( true );
@@ -85,47 +85,31 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
             logger.log( "Data folder does not exist, creating", script_name );
             fs.mkdirSync( "./data" );
         }
-        logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
+        
         // Download compressed gzip data
-        exec( "wget --header='accept-encoding: gzip' " + page + "?id=" + chunkID + 
-          " -O ./data/data_" + chunkID + ".gzip", 
-          ( error, stdout, stderr ) => {
-            if ( error ) {
-                logger.log( "Error occured, retrying", script_name, "e" );
-                console.error( `exec error: ${error}` );
-                setTimeout(download, downloadInterval, chunkID );
-            } else {
-                logger.log( "Downloaded", script_name );
-                // Extract data
-                logger.log( "Extracting data", script_name );
-                extract( chunkID );
-            }
-        });
-    }
-
-    var extract = function( chunkID ) {
-        exec( "gunzip --force -c ./data/data_" + chunkID + 
-                ".gzip > ./data/data_" + chunkID + ".json",
-            ( error, stdout, stderr ) => {
-            // If there is an error with extraction, redownload
-            if ( error ) {
-                logger.log( "Error occured, retrying", script_name, "e" );
-                // console.error( `exec error: ${error}` );
-                setTimeout( download, downloadInterval, chunkID );
-            } else {
-                logger.log( "Extracted, loading data", script_name );
-                var data;
-                try {
-                    data = JSON.parse( fs.readFileSync( 
-                        "./data/data_" + chunkID + ".json", 'utf8' ));
-                    logger.log( "Data loaded", script_name );
-                    parseData( data, chunkID );
-                } catch ( e ) {
-                    logger.log( e, script_name, "e" );
-                    process.exit(0);
+        logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
+        request({ "url": page + "?id=" + chunkID, "gzip": true }, 
+            function( error, response, body ) {
+                if ( error ) {
+                    logger.log( "Error occured, retrying: " + error, script_name, "e" );
+                    setTimeout(download, downloadInterval, chunkID );
+                } else {
+                    logger.log( "Downloaded and extracted", script_name );
+                    extract( body ); 
                 }
             }
-        });
+        );
+    }
+
+    var extract = function( data ) {
+        try {
+            data = JSON.parse( data, 'utf8' );
+            logger.log( "Data loaded", script_name );
+            parseData( data, chunkID );
+        } catch ( e ) {
+            logger.log( e, script_name, "e" );
+            process.exit(0);
+        }
     }
 
     var parseData = function( data, chunkID ) {
@@ -145,7 +129,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                     async.each( data.stashes, function( stash, callbackStash ) {
                         // Get previously stored stash contents
                         getStashByID( db, stash.id, function( results ) {
-                            // If the stash does not exist
+                            // If the stash does not exist, store all items
                             if ( results.length === 0 ) {
                                 logger.log( "Stash " + stash.id + " does not exist, creating it", script_name, "", true );
                                 async.each( stash.items, function( item, cb ) {
@@ -182,6 +166,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     }
                                     callbackStash();
                                 });
+                            // If the stash already exists
                             } else {
                                 // If there are less items in new stash then 
                                 // there used to be
@@ -283,20 +268,16 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                             logger.log( err, script_name, "e" );
                         }
                         console.timeEnd( "Loading data into DB" );
-                        done( data, chunkID );
+                        done( data );
                     });
                 });
             }
         });
     }
 
-    var done = function( data, chunkID ) {
+    var done = function( data ) {
         var nextID = data.next_change_id;
         logger.log( "Next ID: " + nextID, script_name );
-        // Cleanup by removing downloaded archive
-        logger.log( "Cleaning up", script_name );
-        fs.unlinkSync( "./data/data_" + chunkID + ".gzip" );
-        fs.unlinkSync( "./data/data_" + chunkID + ".json" );
     
         if ( interrupt ) {
             process.exit( 0 );
