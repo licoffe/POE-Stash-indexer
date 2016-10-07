@@ -444,11 +444,11 @@
             $( document ).ready( function() {
                 var league   = "Standard";
                 var Chart    = require('./node_modules/chart.js/src/chart.js')
-                var Currency = require( "../modules/currency" );
+                var Currency = require( "./modules/currency" );
                 var currency = new Currency( league );
                 var mongo_client = require( "mongodb" ).MongoClient;
                 const notifier   = require('node-notifier');
-                var Logger       = require( "../modules/logger.js" );
+                var Logger       = require( "./modules/logger.js" );
                 var logger       = new Logger();
                 logger.set_use_timestamp( true );
                 logger.set_file_path( "log.txt" );

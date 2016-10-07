@@ -1,6 +1,6 @@
 {
   "name": "poe-price",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fetch and query poe item prices through Stash API",
   "main": "indexer.js",
   "scripts": {
