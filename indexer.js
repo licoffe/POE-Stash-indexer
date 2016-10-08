@@ -141,6 +141,8 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     item.publicStash = stash.public;
                                     item._id         = item.id;
                                     item.available   = true;
+                                    item.addedTs     = Date.now();
+                                    item.updatedTs   = Date.now();
                                     // Store this item
                                     collection.save( item, function( err, result ) {
                                         if ( err ) {
@@ -182,9 +184,8 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         stash.id, script_name, "", true );
                                 }
 
-                                // Find missing item and change its
-                                // available status to false
                                 // For each item in the old stash
+                                // set its status to unavailable
                                 logger.log( "Updating existing stash " + stash.id, script_name, "", true );
                                 async.each( results, function( oldItem, presence ) {
                                     oldItem.available = false;
@@ -201,6 +202,9 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         logger.log( err, script_name, "e" );
                                     }
                                     // For each item in the new stash
+                                    // Set the status to available
+                                    // Items which are no longer in the stash update
+                                    // remain unavailable
                                     async.each( stash.items, function( item, cb ) {
                                         // If the old item is found in the new items
                                         // set its status to available
@@ -330,24 +334,26 @@ function main() {
                                                                         collection.createIndex({ "stashID": 1 }, function () {
                                                                             collection.createIndex({ "available": 1 }, function () {
                                                                                 collection.createIndex({ "ilvl": 1 }, function () {
-                                                                                    if ( err ) {
-                                                                                        logger.log( "There was an error creating the collection: " + err, script_name, "e" );
-                                                                                    } else {
-                                                                                        // Check last downloaded chunk ID
-                                                                                        lastDownloadedChunk( db, function( entry ) {
-                                                                                            try {
-                                                                                                logger.log( "Next chunk ID: " + entry[0].next_chunk_id, 
-                                                                                                            script_name );
-                                                                                                downloadChunk( entry[0].next_chunk_id, collection, db, 
-                                                                                                            downloadChunk );
-                                                                                            } catch ( e ) {
-                                                                                                logger.log( "Starting new indexation", 
-                                                                                                            script_name, "w" );
-                                                                                                // Should create indexes here
-                                                                                                downloadChunk( "", collection, db, downloadChunk );
-                                                                                            }
-                                                                                        });
-                                                                                    }
+                                                                                    collection.createIndex({ "addedTs": 1 }, function () {
+                                                                                        if ( err ) {
+                                                                                            logger.log( "There was an error creating the collection: " + err, script_name, "e" );
+                                                                                        } else {
+                                                                                            // Check last downloaded chunk ID
+                                                                                            lastDownloadedChunk( db, function( entry ) {
+                                                                                                try {
+                                                                                                    logger.log( "Next chunk ID: " + entry[0].next_chunk_id, 
+                                                                                                                script_name );
+                                                                                                    downloadChunk( entry[0].next_chunk_id, collection, db, 
+                                                                                                                downloadChunk );
+                                                                                                } catch ( e ) {
+                                                                                                    logger.log( "Starting new indexation", 
+                                                                                                                script_name, "w" );
+                                                                                                    // Should create indexes here
+                                                                                                    downloadChunk( "", collection, db, downloadChunk );
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    })
                                                                                 })
                                                                             })
                                                                         })

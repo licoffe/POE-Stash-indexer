@@ -399,6 +399,7 @@
                             <img class="link" id="link-vert-1" src="./media/socket_link_vert.png" alt="">
                             <img class="link" id="link-vert-2" src="./media/socket_link_vert.png" alt="">
                         </div>
+                        <!--<img class="loading" src="./media/loading.gif" alt="">-->
                         <img id="item-picture" src="http://web.poecdn.com/image/Art/2DItems/Weapons/TwoHandWeapons/Bows/SarkhamsReach.png?scale=1&w=2&h=4&v=f333c2e4005ee20a84270731baa5fa6a3" alt="">
                     </td>
                 </tr>
@@ -969,12 +970,14 @@
                         item.price + "<img src='./media/" + item.currency + ".png'>"
                     );
                     // Depending on the item width, change the left offset
+                    $( "td#preview img.loading" ).show();
                     if ( item.w === 1 ) {
                         $( "#item-picture" ).css( "left", "40%" );
                     } else {
                         $( "#item-picture" ).css( "left", "30%" );
                     }
                     $( "#item-picture" ).attr( "src", item.icon );
+                    $( "td#preview img.loading" ).hide();
                     $( "#item-name" ).empty();
                     if ( item.frameType <= 1 || item.frameType > 3 ) {
                         $( "#item-name" ).text( item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));

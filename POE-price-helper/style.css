@@ -246,6 +246,15 @@ input[type="button"] {
     left: 10px;
     display: none;
 }
+td#preview img.loading {
+    width: 10%;
+    left: 45%;
+    top: 100px;
+    display: block;
+}
+td#preview {
+    height: 450px;
+}
 #price {
     position: absolute;
     top: 40px;
