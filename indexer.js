@@ -187,79 +187,57 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 // For each item in the old stash
                                 logger.log( "Updating existing stash " + stash.id, script_name, "", true );
                                 async.each( results, function( oldItem, presence ) {
-                                    var currentID = oldItem.id;
-                                    var found     = false;
-                                    // For each item in the new stash
-                                    async.each( stash.items, function( item, cb ) {
-                                        // If the old item is found in the new items
-                                        // set its status to available
-                                        if ( item.id === currentID ) {
-                                            found = true;
-                                            item.accountName = stash.accountName;
-                                            item.lastCharacterName = stash.lastCharacterName;
-                                            item.stashID     = stash.id;
-                                            item.stashName   = stash.stash;
-                                            item.stashType   = stash.stashType;
-                                            item.publicStash = stash.public;
-                                            item._id         = item.id;
-                                            item.available   = true;
-                                            // Store this item
-                                            if ( !item.name ) {
-                                                logger.log( 
-                                                    "Updating item \x1b[35m" + 
-                                                    item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
-                                                    "\x1b[0m from " + stash.id, script_name, "", true );
-                                            } else {
-                                                logger.log( 
-                                                    "Updating item \x1b[35m" + 
-                                                    item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
-                                                    "\x1b[0m from " + stash.id, script_name, "", true );
-                                            }
-                                            collection.save( item, function( err, result ) {
-                                                if ( err ) {
-                                                    logger.log( 
-                                                        "Stash update: There was an error inserting value: " + err, 
-                                                        script_name, "w", true );
-                                                }
-                                                cb();
-                                            });
-                                        } else {
-                                            cb();
-                                        }
-                                    }, function( err ) {
+                                    oldItem.available = false;
+                                    collection.save( oldItem, function( err, result ) {
                                         if ( err ) {
-                                            logger.log( err, script_name, "e" );
+                                            logger.log( 
+                                                "Stash update: There was an error inserting value: " + err, 
+                                                script_name, "w" );
                                         }
-                                        // If item was not found, update its status in db
-                                        if ( !found ) {
-                                            oldItem.available = false;
-                                            if ( !oldItem.name ) {
-                                                logger.log( 
-                                                    "Item \x1b[35m" + 
-                                                    oldItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
-                                                    "\x1b[0m from " + stash.id + " no longer available", script_name, "", true );
-                                            } else {
-                                                logger.log( 
-                                                    "Item \x1b[35m" + 
-                                                    oldItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
-                                                    "\x1b[0m from " + stash.id + " no longer available", script_name, "", true );
-                                            }
-                                            collection.save( oldItem, function( err, result ) {
-                                                if ( err ) {
-                                                    logger.log( 
-                                                        "Stash update: There was an error inserting value: " + err, 
-                                                        script_name, "w" );
-                                                }
-                                            });
-                                        }
-                                        // Go to next item
                                         presence();
                                     });
                                 }, function( err ) {
                                     if ( err ) {
                                         logger.log( err, script_name, "e" );
                                     }
-                                    callbackStash();
+                                    // For each item in the new stash
+                                    async.each( stash.items, function( item, cb ) {
+                                        // If the old item is found in the new items
+                                        // set its status to available
+                                        item.accountName = stash.accountName;
+                                        item.lastCharacterName = stash.lastCharacterName;
+                                        item.stashID     = stash.id;
+                                        item.stashName   = stash.stash;
+                                        item.stashType   = stash.stashType;
+                                        item.publicStash = stash.public;
+                                        item._id         = item.id;
+                                        item.available   = true;
+                                        // Store this item
+                                        if ( !item.name ) {
+                                            logger.log( 
+                                                "Updating item \x1b[35m" + 
+                                                item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                "\x1b[0m from " + stash.id, script_name, "", true );
+                                        } else {
+                                            logger.log( 
+                                                "Updating item \x1b[35m" + 
+                                                item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                "\x1b[0m from " + stash.id, script_name, "", true );
+                                        }
+                                        collection.save( item, function( err, result ) {
+                                            if ( err ) {
+                                                logger.log( 
+                                                    "Stash update: There was an error inserting value: " + err, 
+                                                    script_name, "w", true );
+                                            }
+                                            cb();
+                                        });
+                                    }, function( err ) {
+                                        if ( err ) {
+                                            logger.log( err, script_name, "e" );
+                                        }
+                                        callbackStash();
+                                    });
                                 });
                             }
                         });
