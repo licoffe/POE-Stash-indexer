@@ -237,6 +237,7 @@
                                 <option disabled>Misc</option>
                                 <option value="amulet">Amulet</option>
                                 <option value="belt">Belt</option>
+                                <option value="currency">Currency</option>
                                 <option value="divination-card">Divination Card</option>
                                 <option value="flask">Flask</option>
                                 <option value="gem">Gem</option>
@@ -246,6 +247,7 @@
                                 <option value="quiver">Quiver</option>
                                 <option value="ring">Ring</option>
                                 <option value="map-fragments">Map</option>
+                                <option value="fragment">Fragment</option>
                             </select>
                         </label>
                     </td>
@@ -346,6 +348,7 @@
                             </div>
                             <span id="item-name">Roth's Reach</span><br>
                             <span id="item-type-prev">Recurve Bow</span><br>
+                            <span id="item-prophecy-text"></span><br>
                             <div id="item-properties">
                                 <span class="item-property">Bow</span><br>
                                 <span class="item-property">Quality</span>
@@ -513,7 +516,10 @@
                     "lastCharacterName": 1,
                     "ilvl": 1,
                     "w": 1,
-                    "addedTs": 1
+                    "addedTs": 1,
+                    "available": 1,
+                    "prophecyText": 1,
+                    "prophecyDiffText": 1
                 };
                 var autorefreshInterval;
 
@@ -570,8 +576,13 @@
                         rarity = [parseInt( rarity)];
                     }
 
+                    var fragment = ( itemTypes.fragment.types.indexOf( criteria ) !== -1 );
                     if ( queryBy === "name" ) {
-                        if ( criteria === "" ) {
+                        if ( criteria === "" || fragment ) {
+                            console.log( "Fragment" );
+                            if ( fragment ) {
+                                type = criteria;
+                            }
                             cursor = db.collection('stashes').find({
                                 "league": league, 
                                 "frameType": { $in: rarity },
@@ -914,23 +925,35 @@
                     });
                     var counter = 0;
                     async.each( results, function( result, callbackUpdate ) {
-                        var color = "white";
+                        var opacity = 1;
+                        if ( !result.available ) {
+                            opacity = 0.3;
+                            console.log( result );
+                        }
+                        var color = "rgba(255, 255, 255, " + opacity + ")";
                         switch ( result.frameType ) {
                             case 1:
-                                color = "rgba(135, 135, 254, 1)";
+                                color = "rgba(135, 135, 254, " + opacity + ")";
                                 break;
                             case 2:
-                                color = "rgba(243, 243, 113, 1)";
+                                color = "rgba(243, 243, 113, " + opacity + ")";
                                 break;
                             case 3:
-                                color = "rgba(175, 96, 37, 1)";
+                                color = "rgba(175, 96, 37, " + opacity + ")";
                                 break;
                             case 4:
-                                color = "green";
+                                color = "rgba(0, 255, 0, " + opacity + ")";
+                                break;
+                            case 5:
+                                color = "rgba(170, 158, 130, " + opacity + ")";
+                                break;
+                            case 8:
+                                color = "rgba(181, 75, 255, " + opacity + ")";
+                                break;
                             default:
                         }
                         if ( result.corrupted ) {
-                            color = "rgba(143, 23, 22, 1)";
+                            color = "rgba(255, 0, 0, " + opacity + ")";
                         }
                         counter++;
                         var time = "";
@@ -1034,7 +1057,7 @@
                     } else {
                         $( "#item-name" ).text( item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
                     }
-                    var color = "white";
+                    var color = "rgba(255, 255, 255, 1)";
                     switch ( item.frameType ) {
                         case 1:
                             color = "rgba(135, 135, 254, 1)";
@@ -1046,14 +1069,28 @@
                             color = "rgba(175, 96, 37, 1)";
                             break;
                         case 4:
-                            color = "green";
+                            color = "rgba(0, 255, 0, 1)";
+                            break;
+                        case 5:
+                            color = "rgba(170, 158, 130, 1)";
+                            break;
+                        case 8:
+                            color = "rgba(181, 75, 255, 1)";
                             break;
                         default:
                     }
+                    if ( item.frameType !== 8 ) {
+                        $( "#item-prophecy-text" ).hide();
+                    } else {
+                        $( "#item-prophecy-text" ).text( item.prophecyText );
+                        $( "#item-prophecy-text" ).show();
+                    }
                     $( "#item-name" ).css( "color", color );
                     $( "#item-type-prev" ).empty();
-                    if ( item.frameType !== 1 && item.frameType !== 4 ) {
+                    if ( item.frameType !== 1 && item.frameType !== 4 && 
+                         item.frameType !== 5 && item.frameType !== 8 ) {
                         $( "#item-type-prev" ).text( item.typeLine );
+                        console.log( item.frameType );
                     }
                     $( "#item-enchant-mods" ).empty();
                     if ( item.enchantMods ) {
