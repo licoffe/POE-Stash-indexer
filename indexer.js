@@ -8,7 +8,7 @@ logger.set_use_timestamp( true );
 logger.set_file_path( "./log.txt" );
 var page             = "http://www.pathofexile.com/api/public-stash-tabs";
 // Variables that can be tweaked
-var downloadInterval = 2000; // Time between downloads in seconds
+var downloadInterval = 0; // Time between downloads in seconds
 var mongo_client     = require( "mongodb" ).MongoClient;
 // MongoDB vars
 var address          = "localhost";
@@ -88,6 +88,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         
         // Download compressed gzip data
         logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
+        console.time( "Downloading JSON" );
         request({ "url": page + "?id=" + chunkID, "gzip": true }, 
             function( error, response, body ) {
                 if ( error ) {
@@ -95,7 +96,8 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                     setTimeout(download, downloadInterval, chunkID );
                 } else {
                     logger.log( "Downloaded and extracted", script_name );
-                    extract( body ); 
+                    console.timeEnd( "Downloading JSON" );
+                    extract( body );
                 }
             }
         );
@@ -103,7 +105,9 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
 
     var extract = function( data ) {
         try {
+            console.time( "Parsing JSON" );
             data = JSON.parse( data, 'utf8' );
+            console.timeEnd( "Parsing JSON" );
             logger.log( "Data loaded", script_name );
             parseData( data, chunkID );
         } catch ( e ) {
@@ -114,6 +118,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
 
     var parseData = function( data, chunkID ) {
         // Store last chunk ID
+        console.time( "Parsing data" );
         db.createCollection( 'chunk_id', function( err, chunk_collection ) {
             if ( err ) {
                 logger.log( "There was an error creating the collection: " + err, script_name, "e" );
@@ -250,6 +255,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                             logger.log( err, script_name, "e" );
                         }
                         console.timeEnd( "Loading data into DB" );
+                        console.timeEnd( "Parsing data" );
                         done( data );
                     });
                 });

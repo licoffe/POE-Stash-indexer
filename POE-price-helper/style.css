@@ -359,3 +359,8 @@ td#preview {
 #search-item {
     width: 80%;
 }
+.ago {
+    position: relative;
+    left: 10px;
+    color: rgba(100, 100, 100, 1);
+}

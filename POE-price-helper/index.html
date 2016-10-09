@@ -512,7 +512,8 @@
                     "sockets": 1,
                     "lastCharacterName": 1,
                     "ilvl": 1,
-                    "w": 1
+                    "w": 1,
+                    "addedTs": 1
                 };
                 var autorefreshInterval;
 
@@ -731,7 +732,7 @@
                  * @return median value
                  */
                 var median = function( values ) {
-                    values.sort();
+                    values.sort( function( a, b ) { return a - b });
                     if ( values.length % 2 === 1 ) {
                         return values[( values.length - 1 ) / 2];
                     } else {
@@ -774,6 +775,7 @@
                             modes["" + price + ""] = 1;
                         }
                     }
+                    console.log( sum );
                     // Computes the median
                     var med = median( medians );
                     var avg = sum / results.length;
@@ -860,7 +862,47 @@
                     // process.exit( 0 );
                 }
 
+                /***
+                 * secToNsec
+                 * Converts a second amount to a higer unit (min, hour, day...) if possible.
+                 * @param Second amount to convert
+                 * @return JSON object with the converted value and corresponding unit
+                 */
+                function secToNsec( secAmount ) {
+                    var units = [ "ms", "sec", "min", "hour", "day", "week", "month", "year" ];
+                    var counter = 0;
+                    if ( secAmount > 1000 ) {
+                        secAmount /= 1000; // sec
+                        counter++;
+                        if ( secAmount > 60 ) {
+                            secAmount /= 60; // minutes
+                            counter++;
+                            if ( secAmount > 60 ) {
+                                secAmount /= 60; // hours
+                                counter++;
+                                if ( secAmount > 24 ) {
+                                    secAmount /= 24; // days
+                                    counter++;
+                                    if ( secAmount > 365 ) {
+                                        secAmount /= 365; // years
+                                        counter = 6;
+                                    } else if ( secAmount > 30 ) {
+                                        secAmount /= 30; // month
+                                        counter = 5;
+                                    } else if ( secAmount > 7 ) {
+                                        secAmount /= 7; // weeks
+                                        counter++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    return { "amount": secAmount, "unit": units[counter]};
+                }
+
                 function updateInterface( results ) {
+                    var current = Date.now();
                     $( "#search .loading" ).fadeOut( 'fast' );
                     $( "#results table" ).empty();
                     itemPreview( results[0]);
@@ -891,6 +933,12 @@
                             color = "rgba(143, 23, 22, 1)";
                         }
                         counter++;
+                        var time = "";
+                        if ( result.addedTs ) {
+                            var conv = secToNsec( current - result.addedTs );
+                            time = Math.round( conv.amount ) + " " + conv.unit;
+                        }
+
                         if ( result.frameType <= 1 || result.frameType > 3 ) {
                             $( "#results table" ).append(
                                 "<tr>" +
@@ -899,7 +947,8 @@
                                     result.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
                                     " (" + result.price + 
                                     " <img class='currency-result' src='./media/" + 
-                                    result.currency + ".png'>)" +
+                                    result.currency + ".png'>)" + 
+                                    "<span class='ago'>" + time + "</span>" +
                                     "</td>" +
                                 "</tr>"
                             );
@@ -912,6 +961,7 @@
                                     " (" + result.price + 
                                     " <img class='currency-result' src='./media/" + 
                                     result.currency + ".png'>)" +
+                                    "<span class='ago'>" + time + "</span>" +
                                     "</td>" +
                                 "</tr>"
                             );
