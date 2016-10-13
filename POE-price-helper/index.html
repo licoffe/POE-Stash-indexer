@@ -517,6 +517,7 @@
                     "ilvl": 1,
                     "w": 1,
                     "addedTs": 1,
+                    "updatedTs": 1,
                     "available": 1,
                     "prophecyText": 1,
                     "prophecyDiffText": 1
@@ -576,13 +577,14 @@
                         rarity = [parseInt( rarity)];
                     }
 
-                    var fragment = ( itemTypes.fragment.types.indexOf( criteria ) !== -1 );
+                    // var fragment = ( itemTypes.fragment.types.indexOf( criteria ) !== -1 );
                     if ( queryBy === "name" ) {
-                        if ( criteria === "" || fragment ) {
+                        if ( criteria === "" ) {
+                        // if ( criteria === "" || fragment ) {
                             console.log( "Fragment" );
-                            if ( fragment ) {
-                                type = criteria;
-                            }
+                            // if ( fragment ) {
+                            //     type = criteria;
+                            // }
                             cursor = db.collection('stashes').find({
                                 "league": league, 
                                 "frameType": { $in: rarity },
@@ -707,7 +709,7 @@
                  * @return nothing
                  */
                 function filterValidPrice( items, callback ) {
-                    var priceReg        = /[^0-9]*([0-9]+|[0-9.]+[0-9]+)\s*(chaos|exa|alch|alt|fuse|divine|chance|jew)/g;
+                    var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew)/;
                     var results         = [];
                     
                     for ( var i = 0 ; i < items.length ; i++ ) {
@@ -718,14 +720,16 @@
                         } else {
                             price = item.stashName;
                         }
+                        console.log( "Trying to match: " + price );
                         var match = priceReg.exec( price );
                         // Check if we have a valid poe price (exemple: ~b/o 2 chaos)
                         if ( match != null && match[1] != "0" ) {
                             item.price    = match[1];
                             item.currency = match[2];
                             results.push( item );
+                            // console.log( "Keeping " + item.name + " " + item.note + " " + item.stashName );
                         } else {
-                            // console.log( "Discarding " + match );
+                            // console.log( "Discarding " + item.name + " " + item.note + " " + item.stashName );
                         }
                     }
                     logger.log( "Kept " + results.length + " items", script_name );
@@ -957,7 +961,10 @@
                         }
                         counter++;
                         var time = "";
-                        if ( result.addedTs ) {
+                        if ( result.addedTs !== result.updatedTs ) {
+                            var conv = secToNsec( current - result.updatedTs );
+                            time = Math.round( conv.amount ) + " " + conv.unit;
+                        } else {
                             var conv = secToNsec( current - result.addedTs );
                             time = Math.round( conv.amount ) + " " + conv.unit;
                         }
@@ -1088,7 +1095,8 @@
                     $( "#item-name" ).css( "color", color );
                     $( "#item-type-prev" ).empty();
                     if ( item.frameType !== 1 && item.frameType !== 4 && 
-                         item.frameType !== 5 && item.frameType !== 8 ) {
+                         item.frameType !== 5 && item.frameType !== 8 && 
+                         item.frameType !== 0 && item.frameType !== 6 ) {
                         $( "#item-type-prev" ).text( item.typeLine );
                         console.log( item.frameType );
                     }

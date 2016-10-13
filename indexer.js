@@ -1,5 +1,4 @@
 // Requirements
-var fs               = require( "fs" );
 var async            = require("async");
 var request          = require( "request" );
 var Logger           = require( "./modules/logger.js" );
@@ -17,6 +16,12 @@ var database         = "POE_price";
 var script_name      = "Indexer";
 var interrupt        = false;
 var debug            = false;
+var stashCollection  = "stashes";
+var insertionError   = 0;
+var added            = 0;
+var updated          = 0;
+var removed          = 0;
+var startTime        = Date.now();
 
 /**
  * Return the next chunk ID to download from last downloaded chunk file
@@ -51,7 +56,7 @@ var lastDownloadedChunk = function( db, callback ) {
  */
 var getStashByID = function( db, stashID, callback ) {
     var entries = [];
-    var cursor = db.collection('stashes').find({ "stashID": stashID });
+    var cursor = db.collection(stashCollection).find({ "stashID": stashID });
     if ( cursor !== undefined ) {
         cursor.each( function( err, doc ) {
             if ( doc ) {
@@ -67,6 +72,137 @@ var getStashByID = function( db, stashID, callback ) {
 }
 
 /**
+ * Converts a second amount to a higer unit (min, hour, day...) if possible.
+ * 
+ * @param Second amount to convert
+ * @return JSON object with the converted value and corresponding unit
+ */
+function secToNsec( secAmount ) {
+    var units = [ "ms", "sec", "min", "hour", "day", "week", "month", "year" ];
+    var counter = 0;
+    if ( secAmount > 1000 ) {
+        secAmount /= 1000; // sec
+        counter++;
+        if ( secAmount > 60 ) {
+            secAmount /= 60; // minutes
+            counter++;
+            if ( secAmount > 60 ) {
+                secAmount /= 60; // hours
+                counter++;
+                if ( secAmount > 24 ) {
+                    secAmount /= 24; // days
+                    counter++;
+                    if ( secAmount > 365 ) {
+                        secAmount /= 365; // years
+                        counter = 6;
+                    } else if ( secAmount > 30 ) {
+                        secAmount /= 30; // month
+                        counter = 5;
+                    } else if ( secAmount > 7 ) {
+                        secAmount /= 7; // weeks
+                        counter++;
+                    }
+                }
+            }
+        }
+    }
+    return { "amount": secAmount, "unit": units[counter]};
+}
+
+var compareArrays2 = function( old, young, cb ) {
+    var removed = [];
+    var added   = [];
+    var common  = [];
+    var discovered = {};
+
+    async.each( old, function( itemOld, cbOld ) {
+        var found = false;
+        async.each( young, function( itemYoung, cbYoung ) {
+            if ( itemYoung.id === itemOld.id ) {
+                if ( !discovered[itemYoung.id] ) {
+                    discovered[itemYoung.id] = 1;
+                }
+                found = true;
+                cbYoung({error:"breakAlready"});
+            } else {
+                cbYoung();
+            }
+        }, function( err ) {
+            if ( found ) {
+                common.push( itemOld );
+                cbOld();
+            } else {
+                removed.push( itemOld );
+                cbOld();
+            }
+        });
+    }, function( err ) {
+        async.each( young, function( itemYoung, cbYoung ) {
+            if ( !discovered[itemYoung.id]) {
+                added.push( itemYoung );
+            }
+            cbYoung();
+        }, function( err ) {
+            cb({
+                "removed": removed,
+                "added": added,
+                "common": common
+            });
+        });
+    });
+}
+
+var compareArrays = function( old, young, cb ) {
+    var removed = [];
+    var added   = [];
+    var common  = [];
+    var discovered = {};
+
+    var compareItem = function( i1, i2 ) {
+        return i1.id === i2.id;
+    }
+
+    // logger.log( "Stored stash content", script_name, "", true );
+    // for ( var i = 0 ; i < old.length ; i++ ) {
+    //     logger.log( old[i].id, script_name, "", true );
+    // }
+    // logger.log( "New content", script_name, "", true );
+    // for ( var i = 0 ; i < young.length ; i++ ) {
+    //     logger.log( young[i].id, script_name, "", true );
+    // }
+
+    // console.time( "compareArrays" );
+    for ( var i = 0 ; i < old.length ; i++ ) {
+        var found = false;
+        for ( var j = 0 ; j < young.length ; j++ ) {
+            if ( compareItem( young[j], old[i] )) {
+                if ( !discovered[young[j].id] ) {
+                    discovered[young[j].id] = 1;
+                }
+                found = true;
+                break;
+            }
+        }
+        if ( found ) {
+            common.push( old[i]);
+        } else {
+            removed.push( old[i]);
+        }
+    }
+    for ( var j = 0 ; j < young.length ; j++ ) {
+        if ( !discovered[young[j].id]) {
+            added.push( young[j]);
+        }
+    }
+    // console.timeEnd( "compareArrays" );
+    cb({
+        "removed": removed,
+        "added": added,
+        "common": common
+    });
+}
+
+/**
  * Download all public stashes starting with input chunk ID.
  * 
  * Download chunk from POE stash API using wget command with compression.
@@ -78,15 +214,7 @@ var getStashByID = function( db, stashID, callback ) {
 var downloadChunk = function( chunkID, collection, db, callback ) {
 
     var download = function( chunkID ) {
-        // Check if data folder exists, create if it doesn't
-        try {
-            fs.accessSync( "./data", fs.F_OK );
-        } catch ( e ) {
-            logger.log( "Data folder does not exist, creating", script_name );
-            fs.mkdirSync( "./data" );
-        }
-        
-        // Download compressed gzip data
+        // Download compressed gzip data and extract it
         logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
         console.time( "Downloading JSON" );
         request({ "url": page + "?id=" + chunkID, "gzip": true }, 
@@ -97,13 +225,13 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                 } else {
                     logger.log( "Downloaded and extracted", script_name );
                     console.timeEnd( "Downloading JSON" );
-                    extract( body );
+                    loadJSON( body );
                 }
             }
         );
     }
 
-    var extract = function( data ) {
+    var loadJSON = function( data ) {
         try {
             console.time( "Parsing JSON" );
             data = JSON.parse( data, 'utf8' );
@@ -124,7 +252,8 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                 logger.log( "There was an error creating the collection: " + err, script_name, "e" );
             } else {
                 logger.log( "Adding chunk ID to DB", script_name );
-                chunk_collection.insert( { "next_chunk_id" : data.next_change_id }, { w : 1 }, function( err, result ) {
+                chunk_collection.insert( 
+                    { "next_chunk_id" : data.next_change_id }, { w : 1 }, function( err, result ) {
                     if ( err ) {
                         logger.log( "There was an error inserting chunk_id value: " + err, script_name, "w" );
                     }
@@ -137,6 +266,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                             // If the stash does not exist, store all items
                             if ( results.length === 0 ) {
                                 logger.log( "Stash " + stash.id + " does not exist, creating it", script_name, "", true );
+                                logger.log( "Stash contains " + stash.items.length + " items", script_name, "", true );
                                 async.each( stash.items, function( item, cb ) {
                                     item.accountName = stash.accountName;
                                     item.lastCharacterName = stash.lastCharacterName;
@@ -152,6 +282,9 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     collection.save( item, function( err, result ) {
                                         if ( err ) {
                                             logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
+                                            insertionError++;
+                                        } else {
+                                            added++;
                                         }
                                         if ( !item.name ) {
                                             logger.log( 
@@ -175,8 +308,8 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 });
                             // If the stash already exists
                             } else {
-                                // If there are less items in new stash then 
-                                // there used to be
+                                /* If there are less items in new stash then 
+                                   there used to be */
                                 if ( results.length > stash.items.length ) {
                                     logger.log(
                                         ( results.length - stash.items.length ) + 
@@ -189,63 +322,91 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         stash.id, script_name, "", true );
                                 }
 
-                                // For each item in the old stash
-                                // set its status to unavailable
                                 logger.log( "Updating existing stash " + stash.id, script_name, "", true );
-                                async.each( results, function( oldItem, presence ) {
-                                    oldItem.available = false;
-                                    collection.save( oldItem, function( err, result ) {
-                                        if ( err ) {
-                                            logger.log( 
-                                                "Stash update: There was an error inserting value: " + err, 
-                                                script_name, "w" );
-                                        }
-                                        presence();
-                                    });
-                                }, function( err ) {
-                                    if ( err ) {
-                                        logger.log( err, script_name, "e" );
-                                    }
-                                    // For each item in the new stash
-                                    // Set the status to available
-                                    // Items which are no longer in the stash update
-                                    // remain unavailable
-                                    async.each( stash.items, function( item, cb ) {
-                                        // If the old item is found in the new items
-                                        // set its status to available
-                                        item.accountName = stash.accountName;
-                                        item.lastCharacterName = stash.lastCharacterName;
-                                        item.stashID     = stash.id;
-                                        item.stashName   = stash.stash;
-                                        item.stashType   = stash.stashType;
-                                        item.publicStash = stash.public;
-                                        item._id         = item.id;
-                                        item.available   = true;
-                                        // Store this item
-                                        if ( !item.name ) {
-                                            logger.log( 
-                                                "Updating item \x1b[35m" + 
-                                                item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
-                                                "\x1b[0m from " + stash.id, script_name, "", true );
-                                        } else {
-                                            logger.log( 
-                                                "Updating item \x1b[35m" + 
-                                                item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
-                                                "\x1b[0m from " + stash.id, script_name, "", true );
-                                        }
-                                        collection.save( item, function( err, result ) {
+                                /* Check which item has been removed, added or 
+                                   kept */
+                                compareArrays2( results, stash.items, function( res ) {
+                                    logger.log( res.added.length + " items added", script_name, "", true );
+                                    logger.log( res.removed.length + " items removed", script_name, "", true );
+                                    logger.log( res.common.length + " items to update", script_name, "", true );
+                                    // For each removed item
+                                    async.each( res.removed, function( removedItem, cbRemoved ) {
+                                        // Set item status to unavailable
+                                        logger.log( removedItem.id + " removed", script_name, "", true );
+                                        removedItem.available = false;
+                                        // Update status in DB
+                                        collection.save( removedItem, function( err, result ) {
                                             if ( err ) {
-                                                logger.log( 
+                                                logger.log(
                                                     "Stash update: There was an error inserting value: " + err, 
-                                                    script_name, "w", true );
+                                                    script_name, "w" );
+                                                insertionError++;
+                                            } else {
+                                                removed++;
                                             }
-                                            cb();
+                                            cbRemoved();
                                         });
                                     }, function( err ) {
-                                        if ( err ) {
-                                            logger.log( err, script_name, "e" );
-                                        }
-                                        callbackStash();
+                                        // For each item added
+                                        async.each( res.added, function( addedItem, cbAdded ) {
+                                            logger.log( addedItem.id + " added", script_name, "", true );
+                                            addedItem.accountName = stash.accountName;
+                                            addedItem.stashID     = stash.id;
+                                            addedItem.stashName   = stash.stash;
+                                            addedItem.stashType   = stash.stashType;
+                                            addedItem.publicStash = stash.public;
+                                            addedItem._id         = addedItem.id;
+                                            addedItem.available   = true;
+                                            addedItem.addedTs     = Date.now();
+                                            addedItem.updatedTs   = Date.now();
+                                            addedItem.lastCharacterName = stash.lastCharacterName;
+                                            // Store this item
+                                            collection.save( addedItem, function( err, result ) {
+                                                if ( err ) {
+                                                    logger.log( "Stash update: There was an error inserting value: " + err, script_name, "w" );
+                                                    insertionError++;
+                                                } else {
+                                                    added++;
+                                                }
+                                                if ( !addedItem.name ) {
+                                                    logger.log( 
+                                                        "Adding new item \x1b[35m" + 
+                                                        addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                        "\x1b[0m to " + stash.id, script_name, "", true );
+                                                } else {
+                                                    logger.log( 
+                                                        "Adding new item \x1b[35m" + 
+                                                        addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                        "\x1b[0m to " + stash.id, script_name, "", true );
+                                                }
+                                                cbAdded();
+                                            });
+                                        }, function( err ) {
+                                            if ( err ) {
+                                                logger.log( err, script_name, "e" );
+                                            }
+                                            // For each item kept
+                                            async.each( res.common, function( commonItem, cbCommon ) {
+                                                logger.log( commonItem.id + " updated", script_name, "", true );
+                                                // Update its update timestamp
+                                                commonItem.updatedTs = Date.now();
+                                                // Store this item
+                                                collection.save( commonItem, function( err, result ) {
+                                                    if ( err ) {
+                                                        logger.log( "Stash update: There was an error inserting value: " + err, script_name, "w" );
+                                                        insertionError++;
+                                                    } else {
+                                                        updated++;
+                                                    }
+                                                    cbCommon();
+                                                });
+                                            }, function( err ) {
+                                                if ( err ) {
+                                                    logger.log( err, script_name, "e" );
+                                                }
+                                                callbackStash();
+                                            });
+                                        });
                                     });
                                 });
                             }
@@ -270,8 +431,19 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         if ( interrupt ) {
             process.exit( 0 );
         } else {
-            // Sleep n seconds and call the script on the 
-            // next chunk ID
+            /* Sleep n seconds and call the script on the 
+               next chunk ID */
+            var elapsed = secToNsec( Date.now() - startTime );
+            var speed   = ( added + removed + updated ) / 
+                          (( Date.now() - startTime ) / 1000 ); // insert per sec
+            logger.log( "Entries added: " + added + 
+                        ", removed: " + removed + 
+                        ", updated: " + updated +
+                        ", insert errors: " + insertionError +
+                        " over " + Math.round( elapsed.amount ) + 
+                        " " + elapsed.unit +
+                        " at " + Math.round( speed ) + " insert/sec" 
+                        , script_name );
             logger.log( "Sleeping " + downloadInterval + "ms", script_name );
             setTimeout( callback, downloadInterval, 
                         nextID, collection, db, callback );
@@ -319,7 +491,7 @@ function main() {
     }
     connectToDB( function( db ) {
         logger.log( "Attempting to create or reuse POE_price collection", script_name );
-        db.createCollection( 'stashes', function( err, collection ) {
+        db.createCollection( stashCollection, function( err, collection ) {
             // MongoDB index pyramid of doom
             logger.log( "Checking indexes have been generated", script_name );
             collection.createIndex({ "name": 1 }, function () {
