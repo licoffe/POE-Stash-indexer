@@ -518,8 +518,10 @@ function main() {
             function createIndexs(indexFields){
                 return indexFields.map(function (key) {
                     return new Promise(function (resolve, reject){
-                        collection.createIndex({ key: 1 }, function () {
-                            resolve(res);
+                        var keys = {};
+                        keys[key] = 1;
+                        collection.createIndex(keys, function () {
+                            resolve();
                         });
                     });
                 });
