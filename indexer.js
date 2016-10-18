@@ -492,64 +492,55 @@ function main() {
     connectToDB( function( db ) {
         logger.log( "Attempting to create or reuse POE_price collection", script_name );
         db.createCollection( stashCollection, function( err, collection ) {
-            // MongoDB index pyramid of doom
             logger.log( "Checking indexes have been generated", script_name );
-            collection.createIndex({ "name": 1 }, function () {
-                collection.createIndex({ "explicitMods": 1 }, function () {
-                    collection.createIndex({ "accountName": 1 }, function () {
-                        collection.createIndex({ "id": 1 }, function () {
-                            collection.createIndex({ "properties": 1 }, function () {
-                                collection.createIndex({ "implicitMods": 1 }, function () {
-                                    collection.createIndex({ "league": 1 }, function () {
-                                        collection.createIndex({ "typeLine": 1 }, function () {
-                                            collection.createIndex({ "identified": 1 }, function () {
-                                                collection.createIndex({ "corrupted": 1 }, function () {
-                                                    collection.createIndex({ "stashName": 1 }, function () {
-                                                        collection.createIndex({ "frameType": 1 }, function () {
-                                                            collection.createIndex({ "lastCharacterName": 1 }, function () {
-                                                                collection.createIndex({ "craftedMods": 1 }, function () {
-                                                                    collection.createIndex({ "enchantMods": 1 }, function () {
-                                                                        collection.createIndex({ "stashID": 1 }, function () {
-                                                                            collection.createIndex({ "available": 1 }, function () {
-                                                                                collection.createIndex({ "ilvl": 1 }, function () {
-                                                                                    collection.createIndex({ "addedTs": 1 }, function () {
-                                                                                        if ( err ) {
-                                                                                            logger.log( "There was an error creating the collection: " + err, script_name, "e" );
-                                                                                        } else {
-                                                                                            // Check last downloaded chunk ID
-                                                                                            lastDownloadedChunk( db, function( entry ) {
-                                                                                                try {
-                                                                                                    logger.log( "Next chunk ID: " + entry[0].next_chunk_id, 
-                                                                                                                script_name );
-                                                                                                    downloadChunk( entry[0].next_chunk_id, collection, db, 
-                                                                                                                downloadChunk );
-                                                                                                } catch ( e ) {
-                                                                                                    logger.log( "Starting new indexation", 
-                                                                                                                script_name, "w" );
-                                                                                                    // Should create indexes here
-                                                                                                    downloadChunk( "", collection, db, downloadChunk );
-                                                                                                }
-                                                                                            });
-                                                                                        }
-                                                                                    })
-                                                                                })
-                                                                            })
-                                                                        })
-                                                                    })
-                                                                })
-                                                            })
-                                                        })
-                                                    })
-                                                })
-                                            })
-                                        })
-                                    })
-                                })
-                            })
-                        })
-                    })
-                })
-            })
+            var indexFields = [
+                "name",
+                "explicitMods",
+                "accountName",
+                "id",
+                "properties",
+                "implicitMods",
+                "league",
+                "typeLine",
+                "identified",
+                "corrupted",
+                "stashName",
+                "frameType",
+                "lastCharacterName",
+                "craftedMods",
+                "enchantMods",
+                "stashID",
+                "available",
+                "ilvl",
+                "addedTs"
+            ];
+
+            function createIndexs(indexFields){
+                return indexFields.map(function (key) {
+                    return new Promise(function (resolve, reject){
+                        collection.createIndex({ key: 1 }, function () {
+                            resolve(res);
+                        });
+                    });
+                });
+            }
+            
+            // When all indexes are done
+            Promise.all(createIndexs(indexFields)).then(value => { 
+                // Check last downloaded chunk ID
+                lastDownloadedChunk( db, function( entry ) {
+                    try {
+                        logger.log( "Next chunk ID: " + entry[0].next_chunk_id, script_name );
+                        downloadChunk( entry[0].next_chunk_id, collection, db, downloadChunk );
+                    } catch ( e ) {
+                        logger.log( "Starting new indexation", script_name, "w" );
+                        // Should create indexes here
+                        downloadChunk( "", collection, db, downloadChunk );
+                   }
+                });
+            }, err => {
+                logger.log( "There was an error creating the collection: " + err, script_name, "e" );
+            });
         });
     });
 }
