@@ -1053,8 +1053,9 @@
                     // Depending on the item width, change the left offset
                     $( "td#preview img.loading" ).show();
                     if ( item.frameType === 6 ) {
-                        $( "#item-picture" ).css( "left", "0%" );
+                        $( "#item-picture" ).css({ "left": "0%", "width": "200px" });
                     } else {
+                        $( "#item-picture" ).css( "width", "initial" );
                         if ( item.w === 1 ) {
                             $( "#item-picture" ).css( "left", "40%" );
                         } else {
