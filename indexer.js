@@ -196,7 +196,6 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
 
     var parseData = function( data ) {
         // Store last chunk ID
-        console.time( "Parsing data" );
         db.createCollection( 'chunk_id', function( err, chunk_collection ) {
             if ( err ) {
                 logger.log( "There was an error creating the collection: " + err, script_name, "e" );
@@ -366,7 +365,6 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                             logger.log( err, script_name, "e" );
                         }
                         console.timeEnd( "Loading data into DB" );
-                        console.timeEnd( "Parsing data" );
                         done( data );
                     });
                 });

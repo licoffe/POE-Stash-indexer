@@ -1301,9 +1301,12 @@
                             item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
                             "' for '" + item.price + " " + item.currency + 
                             "'. This item is in stash '" + item.stashName + "'. Thank you :)";
-                        // import copy from 'copy-to-clipboard';
                         ncp.copy( str, function() {
                             console.log( "copied to clipboard" );
+                            notifier.notify({
+                                'title': 'Message copied to clipboard',
+                                'message': str,
+                            });
                         });
                     })
                 }
