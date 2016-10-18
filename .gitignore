@@ -42,3 +42,13 @@ jspm_packages
 
 # Output of 'npm pack'
 *.tgz
+
+# Personal vscode & co conf files
+.eslintrc.json
+jsconfig.json
+poll.js
+test.js
+todo.todo
+launch.json
+settings.json
+.browse.VC.db

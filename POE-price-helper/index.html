@@ -520,7 +520,8 @@
                     "updatedTs": 1,
                     "available": 1,
                     "prophecyText": 1,
-                    "prophecyDiffText": 1
+                    "prophecyDiffText": 1,
+                    "artFilename": 1
                 };
                 var autorefreshInterval;
 
@@ -1051,12 +1052,26 @@
                     );
                     // Depending on the item width, change the left offset
                     $( "td#preview img.loading" ).show();
-                    if ( item.w === 1 ) {
-                        $( "#item-picture" ).css( "left", "40%" );
+                    if ( item.frameType === 6 ) {
+                        $( "#item-picture" ).css( "left", "0%" );
                     } else {
-                        $( "#item-picture" ).css( "left", "30%" );
+                        if ( item.w === 1 ) {
+                            $( "#item-picture" ).css( "left", "40%" );
+                        } else {
+                            $( "#item-picture" ).css( "left", "30%" );
+                        }
                     }
-                    $( "#item-picture" ).attr( "src", item.icon );
+                    
+                    // If it's a divination card, show the card art
+                    if ( item.frameType === 6 ) {
+                        $( "#item-picture" ).attr( 
+                            "src", 
+                            "http://web.poecdn.com/image/gen/divination_cards/" + item.artFilename + ".png" 
+                        );
+                    } else {
+                        $( "#item-picture" ).attr( "src", item.icon );
+                    }
+                    
                     $( "td#preview img.loading" ).hide();
                     $( "#item-name" ).empty();
                     if ( item.frameType <= 1 || item.frameType > 3 ) {

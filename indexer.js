@@ -152,56 +152,6 @@ var compareArrays2 = function( old, young, cb ) {
     });
 }
 
-var compareArrays = function( old, young, cb ) {
-    var removed = [];
-    var added   = [];
-    var common  = [];
-    var discovered = {};
-
-    var compareItem = function( i1, i2 ) {
-        return i1.id === i2.id;
-    }
-
-    // logger.log( "Stored stash content", script_name, "", true );
-    // for ( var i = 0 ; i < old.length ; i++ ) {
-    //     logger.log( old[i].id, script_name, "", true );
-    // }
-    // logger.log( "New content", script_name, "", true );
-    // for ( var i = 0 ; i < young.length ; i++ ) {
-    //     logger.log( young[i].id, script_name, "", true );
-    // }
-
-    // console.time( "compareArrays" );
-    for ( var i = 0 ; i < old.length ; i++ ) {
-        var found = false;
-        for ( var j = 0 ; j < young.length ; j++ ) {
-            if ( compareItem( young[j], old[i] )) {
-                if ( !discovered[young[j].id] ) {
-                    discovered[young[j].id] = 1;
-                }
-                found = true;
-                break;
-            }
-        }
-        if ( found ) {
-            common.push( old[i]);
-        } else {
-            removed.push( old[i]);
-        }
-    }
-    for ( var j = 0 ; j < young.length ; j++ ) {
-        if ( !discovered[young[j].id]) {
-            added.push( young[j]);
-        }
-    }
-    // console.timeEnd( "compareArrays" );
-    cb({
-        "removed": removed,
-        "added": added,
-        "common": common
-    });
-}
-
 /**
  * Download all public stashes starting with input chunk ID.
  * 
@@ -244,7 +194,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         }
     }
 
-    var parseData = function( data, chunkID ) {
+    var parseData = function( data ) {
         // Store last chunk ID
         console.time( "Parsing data" );
         db.createCollection( 'chunk_id', function( err, chunk_collection ) {
