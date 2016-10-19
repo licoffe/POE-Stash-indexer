@@ -109,7 +109,14 @@ function secToNsec( secAmount ) {
     return { "amount": secAmount, "unit": units[counter]};
 }
 
-var compareArrays2 = function( old, young, cb ) {
+/**
+ * Compare two arrays (old and new) and return an object containing an array
+ * of removed, added and common elements to the second array. 
+ *
+ * @params old and new arrays + callback
+ * @return return object containing removed, added and common elements
+ */
+var compareArrays = function( old, young, cb ) {
     var removed = [];
     var added   = [];
     var common  = [];
@@ -189,8 +196,8 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
             logger.log( "Data loaded", script_name );
             parseData( data, chunkID );
         } catch ( e ) {
-            logger.log( e, script_name, "e" );
-            process.exit(0);
+            logger.log( "Error occured, retrying: " + e, script_name, "e" );
+            setTimeout(download, downloadInterval, chunkID );
         }
     }
 
@@ -274,7 +281,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 logger.log( "Updating existing stash " + stash.id, script_name, "", true );
                                 /* Check which item has been removed, added or 
                                    kept */
-                                compareArrays2( results, stash.items, function( res ) {
+                                compareArrays( results, stash.items, function( res ) {
                                     logger.log( res.added.length + " items added", script_name, "", true );
                                     logger.log( res.removed.length + " items removed", script_name, "", true );
                                     logger.log( res.common.length + " items to update", script_name, "", true );
