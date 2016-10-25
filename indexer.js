@@ -194,10 +194,16 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
             data = JSON.parse( data, 'utf8' );
             console.timeEnd( "Parsing JSON" );
             logger.log( "Data loaded", script_name );
-            parseData( data, chunkID );
+            // If we reached the top and next_change_id is null
+            if ( !data.next_change_id ) {
+                logger.log( "Top reached, waiting", script_name );
+                setTimeout( download, 2, chunkID );
+            } else {
+                parseData( data, chunkID );
+            }
         } catch ( e ) {
             logger.log( "Error occured, retrying: " + e, script_name, "e" );
-            setTimeout(download, downloadInterval, chunkID );
+            setTimeout( download, downloadInterval, chunkID );
         }
     }
 
