@@ -1,5 +1,5 @@
 // Requirements
-var async            = require("async");
+var async            = require( "async" );
 var request          = require( "request" );
 var Logger           = require( "./modules/logger.js" );
 var logger           = new Logger();
@@ -223,12 +223,30 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                     console.time( "Loading data into DB" );
                     // For each stashes in the new data file
                     async.each( data.stashes, function( stash, callbackStash ) {
+                        // If stash is updated, the account is likely to be online
+                        db.createCollection( 'online_status', function( err, onlineCollection ) {
+                            if ( err ) {
+                                logger.log( "Online collection error: " + err, script_name, "w" );
+                            }
+                            var onlineStatus = {
+                                "accountName": stash.accountName,
+                                "lastSeen": Date.now()
+                            };
+                            onlineCollection.save( onlineStatus, function( err, result ) {
+                                if ( err ) {
+                                    logger.log( "Online collection: There was an error inserting value: " + err, script_name, "w" );
+                                    insertionError++;
+                                }
+                            });
+                        });
+
                         // Get previously stored stash contents
                         getStashByID( db, stash.id, function( results ) {
                             // If the stash does not exist, store all items
                             if ( results.length === 0 ) {
                                 logger.log( "Stash " + stash.id + " does not exist, creating it", script_name, "", true );
                                 logger.log( "Stash contains " + stash.items.length + " items", script_name, "", true );
+
                                 async.each( stash.items, function( item, cb ) {
                                     item.accountName = stash.accountName;
                                     item.lastCharacterName = stash.lastCharacterName;
@@ -240,6 +258,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     item.available   = true;
                                     item.addedTs     = Date.now();
                                     item.updatedTs   = Date.now();
+
                                     // Store this item
                                     collection.save( item, function( err, result ) {
                                         if ( err ) {
