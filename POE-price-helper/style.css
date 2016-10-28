@@ -364,3 +364,69 @@ td#preview {
     left: 10px;
     color: rgba(100, 100, 100, 1);
 }
+.online {
+    width: 10px;
+    border-radius: 50%;
+    height: 10px;
+    margin: auto;
+}
+.offline {
+    width: 10px;
+    border-radius: 50%;
+    height: 10px;
+    margin: auto;
+}
+#online-res {
+    display: none;
+}
+#auto-complete {
+    display: none;
+    position: absolute;
+    top: 460px;
+    left: 170px;
+    font-size: 0.8em;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 1);
+    overflow-y: scroll;
+    max-height: 150px;
+}
+#auto-complete-arrow {
+    display: none;
+    position: absolute;
+    top: 450px;
+    left: 190px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 10px 10px 10px;
+    border-color: transparent transparent #000 transparent;
+}
+#auto-complete span {
+    /*position: relative;*/
+    /*padding-top: 20px;*/
+    /*margin-top: 50px;*/
+    padding: 5px;
+    border-radius: 3px;
+    background: rgba( 0, 0, 0, 0 );
+    transition: background 0.2s;
+}
+#auto-complete span:hover {
+    cursor: pointer;
+    background: rgba( 0, 100, 200, 0.5 );
+    transition: background 0.2s;
+}
+.search-status {
+    color: rgba( 100, 200, 100, 1 );
+    transition: color 0.2s;
+    width: 180px;
+    padding: 0;
+    margin: 0;
+}
+.search-status-hidden {
+    color: rgba( 100, 200, 100, 0 );
+    transition: color 0.2s;
+    width: 180px;
+    padding: 0;
+    margin: 0;
+}
