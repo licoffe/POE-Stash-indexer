@@ -235,7 +235,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                     console.time( "Loading data into DB" );
                     // For each stashes in the new data file
                     async.each( data.stashes, function( stash, callbackStash ) {
-                        // If stash is updated, the account is likely to be online
+                        // If stash is updated, the account is online
                         db.createCollection( 'online_status', function( err, onlineCollection ) {
                             if ( err ) {
                                 logger.log( "Online collection error: " + err, script_name, "w" );
@@ -244,7 +244,11 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 "accountName": stash.accountName,
                                 "lastSeen": Date.now()
                             };
-                            onlineCollection.save( onlineStatus, function( err, result ) {
+                            onlineCollection.update(
+                                { "accountName": stash.accountName }, 
+                                onlineStatus, 
+                                true, false, 
+                                function( err, result ) {
                                 if ( err ) {
                                     // logger.log( "Online collection: There was an error inserting value: " + err, script_name, "w" );
                                 }
