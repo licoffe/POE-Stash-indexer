@@ -59,6 +59,9 @@ var getStashByID = function( db, stashID, callback ) {
     var cursor = db.collection(stashCollection).find({ "stashID": stashID });
     if ( cursor !== undefined ) {
         cursor.each( function( err, doc ) {
+            if ( err ) {
+                logger.log( "getStashByID: " + err, script_name, "e" );
+            }
             if ( doc ) {
                 entries.push( doc );
             } else {
@@ -77,7 +80,7 @@ var getStashByID = function( db, stashID, callback ) {
  * @param Second amount to convert
  * @return JSON object with the converted value and corresponding unit
  */
-function secToNsec( secAmount ) {
+var secToNsec = function( secAmount ) {
     var units = [ "ms", "sec", "min", "hour", "day", "week", "month", "year" ];
     var counter = 0;
     if ( secAmount > 1000 ) {
@@ -135,6 +138,9 @@ var compareArrays = function( old, young, cb ) {
                 cbYoung();
             }
         }, function( err ) {
+            if ( err ) {
+                logger.log( "compareArrays: " + err, script_name, "e" );
+            }
             if ( found ) {
                 common.push( itemOld );
                 cbOld();
@@ -144,12 +150,18 @@ var compareArrays = function( old, young, cb ) {
             }
         });
     }, function( err ) {
+        if ( err ) {
+            logger.log( "compareArrays: " + err, script_name, "e" );
+        }
         async.each( young, function( itemYoung, cbYoung ) {
             if ( !discovered[itemYoung.id]) {
                 added.push( itemYoung );
             }
             cbYoung();
         }, function( err ) {
+            if ( err ) {
+                logger.log( "compareArrays: " + err, script_name, "e" );
+            }
             cb({
                 "removed": removed,
                 "added": added,
@@ -327,6 +339,9 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             cbRemoved();
                                         });
                                     }, function( err ) {
+                                        if ( err ) {
+                                            logger.log( "parseData: " + err, script_name, "e" );
+                                        }
                                         // For each item added
                                         async.each( res.added, function( addedItem, cbAdded ) {
                                             logger.log( addedItem.id + " added", script_name, "", true );
