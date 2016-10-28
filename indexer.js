@@ -408,6 +408,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         logger.log( "Next ID: " + nextID, script_name );
     
         if ( interrupt ) {
+            logger.log( "Exiting", script_name );
             process.exit( 0 );
         } else {
             /* Sleep n seconds and call the script on the 
