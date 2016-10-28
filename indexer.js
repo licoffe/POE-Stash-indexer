@@ -138,7 +138,7 @@ var compareArrays = function( old, young, cb ) {
                 cbYoung();
             }
         }, function( err ) {
-            if ( err.error !== "breakAlready" ) {
+            if ( err && err.error !== "breakAlready" ) {
                 logger.log( "compareArrays: " + err, script_name, "e" );
             }
             if ( found ) {
