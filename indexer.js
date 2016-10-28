@@ -138,8 +138,8 @@ var compareArrays = function( old, young, cb ) {
                 cbYoung();
             }
         }, function( err ) {
-            if ( err ) {
-                logger.log( "compareArrays: " + JSON.stringify( err, null, 4 ), script_name, "e" );
+            if ( err.error !== "breakAlready" ) {
+                logger.log( "compareArrays: " + err, script_name, "e" );
             }
             if ( found ) {
                 common.push( itemOld );
@@ -151,7 +151,7 @@ var compareArrays = function( old, young, cb ) {
         });
     }, function( err ) {
         if ( err ) {
-            logger.log( "compareArrays: " + JSON.stringify( err, null, 4 ), script_name, "e" );
+            logger.log( "compareArrays: " + err, script_name, "e" );
         }
         async.each( young, function( itemYoung, cbYoung ) {
             if ( !discovered[itemYoung.id]) {
@@ -160,7 +160,7 @@ var compareArrays = function( old, young, cb ) {
             cbYoung();
         }, function( err ) {
             if ( err ) {
-                logger.log( "compareArrays: " + JSON.stringify( err, null, 4 ), script_name, "e" );
+                logger.log( "compareArrays: " + err, script_name, "e" );
             }
             cb({
                 "removed": removed,
