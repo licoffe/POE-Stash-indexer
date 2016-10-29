@@ -189,6 +189,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         request({ "url": page + "?id=" + chunkID, "gzip": true }, 
             function( error, response, body ) {
                 if ( error ) {
+                    console.timeEnd( "Downloading JSON" );
                     logger.log( "Error occured, retrying: " + error, script_name, "e" );
                     setTimeout(download, downloadInterval, chunkID );
                 } else {
@@ -247,7 +248,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                             onlineCollection.update(
                                 { "accountName": stash.accountName }, 
                                 onlineStatus, 
-                                true, false, 
+                                true, false,
                                 function( err, result ) {
                                 if ( err ) {
                                     // logger.log( "Online collection: There was an error inserting value: " + err, script_name, "w" );
@@ -549,6 +550,10 @@ function main() {
 process.on('SIGINT', function() {
     logger.log( "\rCaught interrupt signal, exiting gracefully", script_name, "e" );
     interrupt = true;
+});
+
+process.on('uncaughtException', (err) => {
+    logger.log( "Caught exception: " + err, script_name, "e" );
 });
 
 main();
