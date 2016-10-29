@@ -251,7 +251,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 true, false,
                                 function( err, result ) {
                                 if ( err ) {
-                                    // logger.log( "Online collection: There was an error inserting value: " + err, script_name, "w" );
+                                    logger.log( "Online collection: There was an error inserting value: " + err, script_name, "w" );
                                 }
                             });
                         });
