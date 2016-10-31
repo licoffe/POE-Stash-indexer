@@ -211,13 +211,13 @@ input[type="button"] {
     text-align: center;
     font-family: "Fontin";
 }
-#item-implicit-mods, #item-explicit-mods, .item-value {
+#item-implicit-mods table, #item-explicit-mods table, .item-value {
     color: rgb(92, 130, 255);
 }
-#item-enchant-mods {
+#item-enchant-mods table {
     color: rgba(180, 180, 255, 1);
 }
-#item-crafted-mods {
+#item-crafted-mods table {
     color: rgba(181, 229, 250, 1);
 }
 #item-flavor {
@@ -254,6 +254,7 @@ td#preview img.loading {
 }
 td#preview {
     height: 450px;
+    width: 300px;
 }
 #price {
     position: absolute;
@@ -285,39 +286,39 @@ td#preview {
     display: none;
 }
 #socket1 {
-    right: 72px;
+    right: 125px;
     top: 300px;
 }
 #socket2 {
-    right: 20px;
+    right: 73px;
     top: 300px;
 }
 #socket3 {
-    right: 20px;
+    right: 73px;
     top: 354px;
 }
 #socket4 {
-    right: 72px;
+    right: 125px;
     top: 354px;
 }
 #socket5 {
-    right: 72px;
+    right: 125px;
     top: 408px;
 }
 #socket6 {
-    right: 20px;
+    right: 73px;
     top: 408px;
 }
 #socket-vert-1 {
-    left: 110px;
+    left: 160px;
     top: 300px;
 }
 #socket-vert-2 {
-    left: 110px;
+    left: 160px;
     top: 354px;
 }
 #socket-vert-3 {
-    left: 110px;
+    left: 160px;
     top: 408px;
 }
 #sockets .link {
@@ -326,32 +327,32 @@ td#preview {
     display: none;
 }
 #link1 {
-    right: 50px;
+    right: 103px;
     top: 315px;
 }
 #link2 {
-    right: 35px;
+    right: 88px;
     top: 332px;
 }
 #link3 {
-    right: 50px;
+    right: 103px;
     top: 369px;
 }
 #link4 {
-    right: 87px;
+    right: 140px;
     top: 386px;
 }
 #link5 {
-    right: 50px;
+    right: 103px;
     top: 423px;
 }
 #link-vert-1 {
-    left: 125px;
+    left: 175px;
     top: 332px;
 }
 #link-vert-2 {
-    left: 125px;
-    top: 332px;
+    left: 175px;
+    top: 387px;
 }
 #search-by {
     width: 100%;
@@ -389,7 +390,7 @@ td#preview {
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 1);
     overflow-y: scroll;
-    max-height: 150px;
+    max-height: 120px;
 }
 #auto-complete-arrow {
     display: none;
@@ -429,4 +430,21 @@ td#preview {
     width: 180px;
     padding: 0;
     margin: 0;
+}
+.affix {
+    color: rgb(105, 105, 105);
+}
+#item-implicit-mods table, #item-explicit-mods table, #item-crafted-mods table {
+    font-size: 1em;
+    border: none;
+    box-shadow: none;
+}
+#item-implicit-mods table td, #item-explicit-mods table td, #item-crafted-mods table td {
+    padding: 0;
+}
+.mod-max {
+    color: rgb( 0, 200, 0 );
+}
+.affix-type {
+    color: white;
 }

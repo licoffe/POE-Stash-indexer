@@ -486,6 +486,7 @@
                 var ncp          = require( "copy-paste" );
                 var itemTypes    = require( "./itemTypes.json" );
                 var uniques      = require( "./uniques.json" );
+                var affixes      = require( "./affixes.json" );
                 var leagueRates  = {
                     alch:     0.3655772464721796,
                     alt:      0.10982493904715883,
@@ -1213,10 +1214,11 @@
                             console.log( "lastUpdateStatus: " + (Date.now() - result.lastSeen.lastSeen ));
                             tooltipLastSeen = "Last seen: " + Math.round( lastUpdate.amount ) + " " + lastUpdate.unit;
                             var diffSec = ( Date.now() - result.lastSeen.lastSeen ) / 1000;
-                            if ( diffSec < 12 * 3600 ) {
-                                statusColor = "rgb( " + Math.round( diffSec * 255 / ( 12 * 3600 )) + ", 255, 0 )";
-                            } else if ( diffSec <= 24 * 3600 ) {
-                                statusColor = "rgb( 255, " + Math.round( Math.abs(( diffSec - ( 12 * 3600 )) - 12 * 3600 ) * 255 / ( 12 * 3600 ))  + ", 0 )";
+                            var maxDuration = 3600; // 1 h
+                            if ( diffSec < maxDuration / 2 ) {
+                                statusColor = "rgb( " + Math.round( diffSec * 255 / ( maxDuration / 2 )) + ", 255, 0 )";
+                            } else if ( diffSec <= maxDuration ) {
+                                statusColor = "rgb( 255, " + Math.round( Math.abs( diffSec - maxDuration ) * 255 / ( maxDuration / 2 ))  + ", 0 )";
                             } else {
                                 statusColor = "rgb( 255, 0, 0 )";
                             }
@@ -1308,6 +1310,527 @@
                 }
 
                 function itemPreview( item ) {
+                    var itemPrefixes  = [];
+                    var itemSuffixes  = [];
+                    var itemCorrupted = [];
+                    var itemSections = [
+                        "One Handed Axe", "Claw", "Dagger", "One Handed Mace",
+                        "One Handed Sword", "Wand", "Two Handed Axe", "Bow",
+                        "Fishing Rod", "Two Handed Mace", "Staff", 
+                        "Two Handed Sword"
+                    ];
+                    var utilityFlasks = [
+                        "Amethyst Flask", "Aquamarine Flask", "Basalt Flask",
+                        "Bismuth Flask", "Granite Flask", "Jade Flask",
+                        "Quartz Flask", "Quicksilver Flask", "Ruby Flask",
+                        "Sapphire Flask", "Silver Flask", "Stibnite Flask",
+                        "Sulphur Flask", "Topaz Flask"
+                    ];
+                    var boots   = {
+                        "Iron Greaves": "AR",
+                        "Steel Greaves": "AR",
+                        "Plated Greaves": "AR",
+                        "Reinforced Greaves": "AR",
+                        "Antique Greaves": "AR",
+                        "Ancient Greaves": "AR",
+                        "Goliath Greaves": "AR",
+                        "Vaal Greaves": "AR",
+                        "Titan Greaves": "AR",
+                        "Rawhide Boots": "EV",
+                        "Goathide Boots": "EV",
+                        "Deerskin Boots": "EV",
+                        "Nubuck Boots": "EV",
+                        "Eelskin Boots": "EV",
+                        "Sharkskin Boots": "EV",
+                        "Shagreen Boots": "EV",
+                        "Stealth Boots": "EV",
+                        "Slink Boots": "EV",
+                        "Wool Shoes": "ES",
+                        "Velvet Slippers": "ES",
+                        "Silk Slippers": "ES",
+                        "Scholar Boots": "ES",
+                        "Satin Slippers": "ES",
+                        "Samite Slippers": "ES",
+                        "Conjurer Boots": "ES",
+                        "Arcanist Slippers": "ES",
+                        "Sorcerer Boots": "ES",
+                        "Leatherscale Boots": "AR/EV",
+                        "Ironscale Boots": "AR/EV",
+                        "Bronzescale Boots": "AR/EV",
+                        "Steelscale Boots": "AR/EV",
+                        "Serpentscale Boots": "AR/EV",
+                        "Wyrmscale Boots": "AR/EV",
+                        "Hydrascale Boots": "AR/EV",
+                        "Dragonscale Boots": "AR/EV",
+                        "Two-Toned Boots": "AR/EV",
+                        "Chain Boots": "AR/ES",
+                        "Ringmail Boots": "AR/ES",
+                        "Mesh Boots": "AR/ES",
+                        "Riveted Boots": "AR/ES",
+                        "Zealot Boots": "AR/ES",
+                        "Soldier Boots": "AR/ES",
+                        "Legion Boots": "AR/ES",
+                        "Crusader Boots": "AR/ES",
+                        "Two-Toned Boots": "AR/ES",
+                        "Wrapped Boots": "EV/ES",
+                        "Strapped Boots": "EV/ES",
+                        "Clasped Boots": "EV/ES",
+                        "Shackled Boots": "EV/ES",
+                        "Trapper Boots": "EV/ES",
+                        "Ambush Boots": "EV/ES",
+                        "Carnal Boots": "EV/ES",
+                        "Assassin's Boots": "EV/ES",
+                        "Murder Boots": "EV/ES",
+                        "Two-Toned Boots": "EV/ES"
+                    };
+                    var helmets = {
+                        "Iron Hat": "AR",
+                        "Cone Helmet": "AR",
+                        "Barbute Helmet": "AR",
+                        "Close Helmet": "AR",
+                        "Gladiator Helmet": "AR",
+                        "Reaver Helmet": "AR",
+                        "Siege Helmet": "AR",
+                        "Samite Helmet": "AR",
+                        "Ezomyte Burgonet": "AR",
+                        "Royal Burgonet": "AR",
+                        "Eternal Burgonet": "AR",
+                        "Leather Cap": "EV",
+                        "Tricorne": "EV",
+                        "Leather Hood": "EV",
+                        "Wolf Pelt": "EV",
+                        "Hunter Hood": "EV",
+                        "Noble Tricorne": "EV",
+                        "Ursine Pelt": "EV",
+                        "Silken Hood": "EV",
+                        "Sinner Tricorne": "EV",
+                        "Lion Pelt": "EV",
+                        "Vine Circlet": "ES",
+                        "Iron Circlet": "ES",
+                        "Torture Cage": "ES",
+                        "Tribal Circlet": "ES",
+                        "Bone Circlet": "ES",
+                        "Lunaris Circlet": "ES",
+                        "Steel Circlet": "ES",
+                        "Necromancer Circlet": "ES",
+                        "Solaris Circlet": "ES",
+                        "Mind Cage": "ES",
+                        "Hubris Circlet": "ES",
+                        "Battered Helm": "AR/EV",
+                        "Sallet": "AR/EV",
+                        "Visored Sallet": "AR/EV",
+                        "Gilded Sallet": "AR/EV",
+                        "Secutor Helm": "AR/EV",
+                        "Fencer Helm": "AR/EV",
+                        "Lacquered Helmet": "AR/EV",
+                        "Fluted Bascinet": "AR/EV",
+                        "Pig-Faced Bascinet": "AR/EV",
+                        "Nightmare Bascinet": "AR/EV",
+                        "Rusted Coif": "AR/ES",
+                        "Soldier Helmet": "AR/ES",
+                        "Great Helmet": "AR/ES",
+                        "Crusader Helmet": "AR/ES",
+                        "Aventail Helmet": "AR/ES",
+                        "Zealot Helmet": "AR/ES",
+                        "Great Crown": "AR/ES",
+                        "Magistrate Crown": "AR/ES",
+                        "Prophet Crown": "AR/ES",
+                        "Praetor Crown": "AR/ES",
+                        "Bone Helmet": "AR/ES",
+                        "Scare Mask": "EV/ES",
+                        "Plague Mask": "EV/ES",
+                        "Iron Mask": "EV/ES",
+                        "Festival Mask": "EV/ES",
+                        "Golden Mask": "EV/ES",
+                        "Raven Mask": "EV/ES",
+                        "Callous Mask": "EV/ES",
+                        "Regicide Mask": "EV/ES",
+                        "Harlequin Mask": "EV/ES",
+                        "Vaal Mask": "EV/ES",
+                        "Deicide Mask": "EV/ES"
+                    };
+                    var shields = { 
+                        "Alder Spiked Shield": "EV/ES",
+                        "Alloyed Spiked Shield": "EV/ES",
+                        "Ancient Spirit Shield": "ES",
+                        "Angelic Kite Shield": "AR/ES",
+                        "Archon Kite Shield": "AR/ES",
+                        "Baroque Round Shield": "AR/EV",
+                        "Battle Buckler": "EV",
+                        "Bone Spirit Shield": "ES",
+                        "Branded Kite Shield": "AR/ES",
+                        "Brass Spirit Shield": "ES",
+                        "Bronze Tower Shield": "AR",
+                        "Buckskin Tower Shield": "AR",
+                        "Burnished Spiked Shield": "EV/ES",
+                        "Cardinal Round Shield": "AR/EV",
+                        "Cedar Tower Shield": "AR",
+                        "Ceremonial Kite Shield": "AR/ES",
+                        "Champion Kite Shield": "AR/ES",
+                        "Chiming Spirit Shield": "ES",
+                        "Colossal Tower Shield": "AR",
+                        "Compound Spiked Shield": "EV/ES",
+                        "Copper Tower Shield": "AR",
+                        "Corroded Tower Shield": "AR",
+                        "Corrugated Buckler": "EV",
+                        "Crested Tower Shield": "AR",
+                        "Crimson Round Shield": "AR/EV",
+                        "Crusader Buckler": "EV",
+                        "Driftwood Spiked Shield": "EV/ES",
+                        "Ebony Tower Shield": "AR",
+                        "Elegant Round Shield": "AR/EV",
+                        "Enameled Buckler": "EV",
+                        "Etched Kite Shield": "AR/ES",
+                        "Ezomyte Spiked Shield": "EV/ES",
+                        "Ezomyte Tower Shield": "AR",
+                        "Fir Round Shield": "AR/EV",
+                        "Fossilised Spirit Shield": "ES",
+                        "Gilded Buckler": "EV",
+                        "Girded Tower Shield": "AR",
+                        "Goathide Buckler": "EV",
+                        "Golden Buckler": "EV",
+                        "Hammered Buckler": "EV",
+                        "Harmonic Spirit Shield": "ES",
+                        "Imperial Buckler": "EV",
+                        "Ironwood Buckler": "EV",
+                        "Ivory Spirit Shield": "ES",
+                        "Jingling Spirit Shield": "ES",
+                        "Lacewood Spirit Shield": "ES",
+                        "Lacquered Buckler": "EV",
+                        "Laminated Kite Shield": "AR/ES",
+                        "Layered Kite Shield": "AR/ES",
+                        "Linden Kite Shield": "AR/ES",
+                        "Mahogany Tower Shield": "AR",
+                        "Maple Round Shield": "AR/EV",
+                        "Mirrored Spiked Shield": "EV/ES",
+                        "Mosaic Kite Shield": "AR/ES",
+                        "Oak Buckler": "EV",
+                        "Ornate Spiked Shield": "EV/ES",
+                        "Painted Buckler": "EV",
+                        "Painted Tower Shield": "AR",
+                        "Pine Buckler": "EV",
+                        "Pinnacle Tower Shield": "AR",
+                        "Plank Kite Shield": "AR/ES",
+                        "Polished Spiked Shield": "EV/ES",
+                        "Rawhide Tower Shield": "AR",
+                        "Redwood Spiked Shield": "EV/ES",
+                        "Reinforced Kite Shield": "AR/ES",
+                        "Reinforced Tower Shield": "AR",
+                        "Rotted Round Shield": "AR/EV",
+                        "Scarlet Round Shield": "AR/EV",
+                        "Shagreen Tower Shield": "AR",
+                        "Sovereign Spiked Shield": "EV/ES",
+                        "Spiked Bundle": "EV/ES",
+                        "Spiked Round Shield": "AR/EV",
+                        "Spiny Round Shield": "AR/EV",
+                        "Splendid Round Shield": "AR/EV",
+                        "Splintered Tower Shield": "AR",
+                        "Steel Kite Shield": "AR/ES",
+                        "Studded Round Shield": "AR/EV",
+                        "Supreme Spiked Shield": "EV/ES",
+                        "Tarnished Spirit Shield": "ES",
+                        "Teak Round Shield": "AR/EV",
+                        "Thorium Spirit Shield": "ES",
+                        "Titanium Spirit Shield": "ES",
+                        "Twig Spirit Shield": "ES",
+                        "Vaal Buckler": "EV",
+                        "Vaal Spirit Shield": "ES",
+                        "Walnut Spirit Shield": "ES",
+                        "War Buckler": "EV",
+                        "Yew Spirit Shield": "ES",
+                    };
+                    var gloves  = {
+                        "Iron Gauntlets": "AR",
+                        "Plated Gauntlets": "AR",
+                        "Bronze Gauntlets": "AR",
+                        "Steel Gauntlets": "AR",
+                        "Antique Gauntlets": "AR",
+                        "Ancient Gauntlets": "AR",
+                        "Goliath Gauntlets": "AR",
+                        "Vaal Gauntlets": "AR",
+                        "Titan Gauntlets": "AR",
+                        "Spiked Gloves": "AR",
+                        "Rawhide Gloves": "EV",
+                        "Goathide Gloves": "EV",
+                        "Deerskin Gloves": "EV",
+                        "Nubuck Gloves": "EV",
+                        "Eelskin Gloves": "EV",
+                        "Sharkskin Gloves": "EV",
+                        "Shagreen Gloves": "EV",
+                        "Stealth Gloves": "EV",
+                        "Slink Gloves": "EV",
+                        "Gripped Gloves": "EV",
+                        "Wool Gloves": "ES",
+                        "Velvet Gloves": "ES",
+                        "Silk Gloves": "ES",
+                        "Embroidered Gloves": "ES",
+                        "Satin Gloves": "ES",
+                        "Samite Gloves": "ES",
+                        "Conjurer Gloves": "ES",
+                        "Arcanist Gloves": "ES",
+                        "Sorcerer Gloves": "ES",
+                        "Fingerless Silk Gloves": "ES",
+                        "Fishscale Gauntlets": "AR/EV",
+                        "Ironscale Gauntlets": "AR/EV",
+                        "Bronzescale Gauntlets": "AR/EV",
+                        "Steelscale Gauntlets": "AR/EV",
+                        "Serpentscale Gauntlets": "AR/EV",
+                        "Wyrmscale Gauntlets": "AR/EV",
+                        "Hydrascale Gauntlets": "AR/EV",
+                        "Dragonscale Gauntlets": "AR/EV",
+                        "Chain Gloves": "AR/ES",
+                        "Ringmail Gloves": "AR/ES",
+                        "Mesh Gloves": "AR/ES",
+                        "Riveted Gloves": "AR/ES",
+                        "Zealot Gloves": "AR/ES",
+                        "Soldier Gloves": "AR/ES",
+                        "Legion Gloves": "AR/ES",
+                        "Crusader Gloves": "AR/ES",
+                        "Wrapped Mitts": "EV/ES",
+                        "Strapped Mitts": "EV/ES",
+                        "Clasped Mitts": "EV/ES",
+                        "Trapper Mitts": "EV/ES",
+                        "Ambush Mitts": "EV/ES",
+                        "Carnal Mitts": "EV/ES",
+                        "Assassin's Mitts": "EV/ES",
+                        "Murder Mitts": "EV/ES"
+                    };
+                    var armors  = {
+                        "Plate Vest": "AR",
+                        "Chestplate": "AR",
+                        "Copper Plate": "AR",
+                        "War Plate": "AR",
+                        "Full Plate": "AR",
+                        "Arena Plate": "AR",
+                        "Lordly Plate": "AR",
+                        "Bronze Plate": "AR",
+                        "Battle Plate": "AR",
+                        "Sun Plate": "AR",
+                        "Colosseum Plate": "AR",
+                        "Majestic Plate": "AR",
+                        "Golden Plate": "AR",
+                        "Crusader Plate": "AR",
+                        "Astral Plate": "AR",
+                        "Gladiator Plate": "AR",
+                        "Glorious Plate": "AR",
+                        "Shabby Jerkin": "EV",
+                        "Strapped Leather": "EV",
+                        "Buckskin Tunic": "EV",
+                        "Wild Leather": "EV",
+                        "Full Leather": "EV",
+                        "Sun Leather": "EV",
+                        "Thief's Garb": "EV",
+                        "Eelskin Tunic": "EV",
+                        "Frontier Leather": "EV",
+                        "Glorious Leather": "EV",
+                        "Coronal Leather": "EV",
+                        "Cutthroat's Garb": "EV",
+                        "Sharkskin Tunic": "EV",
+                        "Destiny Leather": "EV",
+                        "Exquisite Leather": "EV",
+                        "Zodiac Leather": "EV",
+                        "Assassin's Garb": "EV",
+                        "Simple Robe": "ES",
+                        "Silken Vest": "ES",
+                        "Scholar's Robe": "ES",
+                        "Silken Garb": "ES",
+                        "Mage's Vestment": "ES",
+                        "Silk Robe": "ES",
+                        "Cabalist Regalia": "ES",
+                        "Sage's Robe": "ES",
+                        "Silken Wrap": "ES",
+                        "Conjurer's Vestment": "ES",
+                        "Spidersilk Robe": "ES",
+                        "Destroyer Regalia": "ES",
+                        "Savant's Robe": "ES",
+                        "Necromancer Silks": "ES",
+                        "Occultist's Vestment": "ES",
+                        "Widowsilk Robe": "ES",
+                        "Vaal Regalia": "ES",
+                        "Scale Vest": "AR/EV",
+                        "Light Brigandine": "AR/EV",
+                        "Scale Doublet": "AR/EV",
+                        "Infantry Brigandine": "AR/EV",
+                        "Full Scale Armour": "AR/EV",
+                        "Soldier's Brigandine": "AR/EV",
+                        "Field Lamellar": "AR/EV",
+                        "Wyrmscale Doublet": "AR/EV",
+                        "Hussar Brigandine": "AR/EV",
+                        "Full Wyrmscale": "AR/EV",
+                        "Commander's Brigandine": "AR/EV",
+                        "Battle Lamellar": "AR/EV",
+                        "Dragonscale Doublet": "AR/EV",
+                        "Desert Brigandine": "AR/EV",
+                        "Full Dragonscale": "AR/EV",
+                        "General's Brigandine": "AR/EV",
+                        "Triumphant Lamellar": "AR/EV",
+                        "Chainmail Vest": "AR/ES",
+                        "Chainmail Tunic": "AR/ES",
+                        "Ringmail Coat": "AR/ES",
+                        "Chainmail Doublet": "AR/ES",
+                        "Full Ringmail": "AR/ES",
+                        "Full Chainmail": "AR/ES",
+                        "Holy Chainmail": "AR/ES",
+                        "Latticed Ringmail": "AR/ES",
+                        "Crusader Chainmail": "AR/ES",
+                        "Ornate Ringmail": "AR/ES",
+                        "Chain Hauberk": "AR/ES",
+                        "Devout Chainmail": "AR/ES",
+                        "Loricated Ringmail": "AR/ES",
+                        "Conquest Chainmail": "AR/ES",
+                        "Elegant Ringmail": "AR/ES",
+                        "Saint's Hauberk": "AR/ES",
+                        "Saintly Chainmail": "AR/ES",
+                        "Padded Vest": "EV/ES",
+                        "Oiled Vest": "EV/ES",
+                        "Padded Jacket": "EV/ES",
+                        "Oiled Coat": "EV/ES",
+                        "Scarlet Raiment": "EV/ES",
+                        "Waxed Garb": "EV/ES",
+                        "Bone Armour": "EV/ES",
+                        "Quilted Jacket": "EV/ES",
+                        "Sleek Coat": "EV/ES",
+                        "Crimson Raiment": "EV/ES",
+                        "Lacquered Garb": "EV/ES",
+                        "Crypt Armour": "EV/ES",
+                        "Sentinel Jacket": "EV/ES",
+                        "Varnished Coat": "EV/ES",
+                        "Blood Raiment": "EV/ES",
+                        "Sadist Garb": "EV/ES",
+                        "Carnal Armour": "EV/ES",
+                        "Sacrificial Garb": "AR/EV/ES"
+                    };
+
+                    console.log( "Item type: " + item.typeLine );
+
+                   /* Setup item prefix, suffix and corrupt affixes */
+                    // Scepter
+                    if ( item.typeLine.match( /(?!Superior|<<).+ (?:Sceptre|Fetish|Sekhem)/ )) {
+                        console.log( "Scepter" );
+                        itemPrefixes  = affixes["Scepter"].prefix;
+                        itemSuffixes  = affixes["Scepter"].suffix;
+                        itemCorrupted = affixes["Scepter"].corrupted;
+                    // Shields
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Shield|Buckler)/ )) {
+                        var type = shields[item.typeLine];
+                        console.log( "Shield - " + type );
+                        itemPrefixes  = affixes["Shield"][type].prefix;
+                        itemSuffixes  = affixes["Shield"][type].suffix;
+                        itemCorrupted = affixes["Shield"][type].corrupted;
+                    // Helmets
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Helmet|Helm|Circlet|Mask|BurgonetBascinet|Sallet|Crown|Wreath|Hood|Hat|Cap|Pelt|Cage|Tricorne|Coif)/ )) {
+                        var type = helmets[item.typeLine];
+                        console.log( "Helmet - " + type );
+                        itemPrefixes  = affixes["Helmet"][type].prefix;
+                        itemSuffixes  = affixes["Helmet"][type].suffix;
+                        itemCorrupted = affixes["Helmet"][type].corrupted;
+                    // Boots
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Boots|Greaves|Slippers|Caligae|Shoes)/ )) {
+                        var type = boots[item.typeLine];
+                        console.log( "Boots - " + type );
+                        itemPrefixes  = affixes["Boots"][type].prefix;
+                        itemSuffixes  = affixes["Boots"][type].suffix;
+                        itemCorrupted = affixes["Boots"][type].corrupted;
+                    // Gloves
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Mitts|Gauntlets|Gloves|Bracers)/ )) {
+                        var type = gloves[item.typeLine];
+                        console.log( "Gloves - " + type );
+                        itemPrefixes  = affixes["Gloves"][type].prefix;
+                        itemSuffixes  = affixes["Gloves"][type].suffix;
+                        itemCorrupted = affixes["Gloves"][type].corrupted;
+                    // Armor
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Plate|Garb|Lamellar|Raiment|Armour|Tunic|Regalia|Hauberk|Doublet|Vest|Chestplate|Brigandine|Vestment|Chainmail|Leather|Ringmail|Dragonscale|Wyrmscale|Mantle|Silks|Coat|Jacket|Robe|Jerkin|Wrap)/ )) {
+                        var type = armors[item.typeLine];
+                        console.log( "Armor - " + type );
+                        itemPrefixes  = affixes["Armor"][type].prefix;
+                        itemSuffixes  = affixes["Armor"][type].suffix;
+                        itemCorrupted = affixes["Armor"][type].corrupted;
+                    // Amulets
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ Amulet/ )) {
+                        console.log( "Amulet" );
+                        itemPrefixes  = affixes["Amulet"].prefix;
+                        itemSuffixes  = affixes["Amulet"].suffix;
+                        itemCorrupted = affixes["Amulet"].corrupted;
+                    // Belts
+                    } else if ( item.typeLine.match( /^(?!Superior|<<).+ (?:Belt|Obi|Sash)/ )) {
+                        console.log( "Belt" );
+                        itemPrefixes  = affixes["Belt"].prefix;
+                        itemSuffixes  = affixes["Belt"].suffix;
+                        itemCorrupted = affixes["Belt"].corrupted;
+                    // Quivers
+                    } else if ( itemTypes["quiver"].types.indexOf( item.typeLine ) !== -1 ) {
+                        console.log( "Quiver" );
+                        itemPrefixes  = affixes["Quiver"].prefix;
+                        itemSuffixes  = affixes["Quiver"].suffix;
+                        itemCorrupted = affixes["Quiver"].corrupted;
+                    // Rings
+                    } else if ( item.typeLine.match( new RegExp( itemTypes["ring"].types.join( "|" )))) {
+                        console.log( "Ring" );
+                        itemPrefixes  = affixes["Ring"].prefix;
+                        itemSuffixes  = affixes["Ring"].suffix;
+                        itemCorrupted = affixes["Ring"].corrupted;
+                    // Life flasks
+                    } else if ( item.typeLine.match( /Life Flask/ )) {
+                        console.log( "Life Flask" );
+                        itemPrefixes  = affixes["Life"].prefix;
+                        itemSuffixes  = affixes["Life"].suffix;
+                        itemCorrupted = affixes["Life"].corrupted;
+                    // Mana flasks
+                    } else if ( item.typeLine.match( /Mana Flask/ )) {
+                        console.log( "Mana Flask" );
+                        itemPrefixes  = affixes["Mana"].prefix;
+                        itemSuffixes  = affixes["Mana"].suffix;
+                        itemCorrupted = affixes["Mana"].corrupted;
+                    // Hybrid flasks
+                    } else if ( item.typeLine.match( /Hybrid Flask/ )) {
+                        console.log( "Hybrid Flask" );
+                        itemPrefixes  = affixes["Hybrid"].prefix;
+                        itemSuffixes  = affixes["Hybrid"].suffix;
+                        itemCorrupted = affixes["Hybrid"].corrupted;
+                    // Utility flasks
+                    } else if ( utilityFlasks.indexOf( item.typeLine ) !== -1 ) {
+                        console.log( "Utility Flask" );
+                        itemPrefixes  = affixes["Utility"].prefix;
+                        itemSuffixes  = affixes["Utility"].suffix;
+                        itemCorrupted = affixes["Utility"].corrupted;
+                    // Critical Utility flasks
+                    } else if ( item.typeLine.indexOf( "Diamond Flask" ) !== -1 ) {
+                        console.log( "Diamond Flask" );
+                        itemPrefixes  = affixes["Utility"].prefix;
+                        itemSuffixes  = affixes["Utility"].suffix;
+                        itemCorrupted = affixes["Utility"].corrupted;
+                    // Cobalt
+                    } else if ( item.typeLine.indexOf( "Cobalt Jewel" ) !== -1 ) {
+                        console.log( "Cobalt Jewel" );
+                        itemPrefixes  = affixes["Cobalt"].prefix;
+                        itemSuffixes  = affixes["Cobalt"].suffix;
+                        itemCorrupted = affixes["Cobalt"].corrupted;
+                    // Crimson
+                    } else if ( item.typeLine.indexOf( "Crimson Jewel" ) !== -1 ) {
+                        console.log( "Crimson Jewel" );
+                        itemPrefixes  = affixes["Crimson"].prefix;
+                        itemSuffixes  = affixes["Crimson"].suffix;
+                        itemCorrupted = affixes["Crimson"].corrupted;
+                    // Veridian
+                    } else if ( item.typeLine.indexOf( "Veridian Jewel" ) !== -1 ) {
+                        console.log( "Veridian Jewel" );
+                        itemPrefixes  = affixes["Veridian"].prefix;
+                        itemSuffixes  = affixes["Veridian"].suffix;
+                        itemCorrupted = affixes["Veridian"].corrupted;
+                    // Prismatic
+                    } else if ( item.typeLine.indexOf( "Prismatic Jewel" ) !== -1 ) {
+                        console.log( "Prismatic Jewel" );
+                        itemPrefixes  = affixes["Prismatic"].prefix;
+                        itemSuffixes  = affixes["Prismatic"].suffix;
+                        itemCorrupted = affixes["Prismatic"].corrupted;
+                    } else if ( item.properties && 
+                                itemSections.indexOf( item.properties[0].name ) !== -1 ) {
+                        console.log( item.properties[0].name );
+                        itemPrefixes  = affixes[item.properties[0].name].prefix;
+                        itemSuffixes  = affixes[item.properties[0].name].suffix;
+                        itemCorrupted = affixes[item.properties[0].name].corrupted;
+                    }
+                    
                     $( "#price" ).empty();
                     $( "#price" ).html(
                         item.price + "<img src='./media/" + item.currency + ".png'>"
@@ -1378,6 +1901,7 @@
                         $( "#item-type-prev" ).text( item.typeLine );
                         // console.log( item.frameType );
                     }
+                    // Item enchant mods
                     $( "#item-enchant-mods" ).empty();
                     if ( item.enchantMods ) {
                         for ( var i = 0 ; i < item.enchantMods.length; i++ ) {
@@ -1393,7 +1917,7 @@
                     } else {
                         $( "#item-enchant-mods" ).hide();
                     }
-                    
+                    // Item properties
                     $( "#item-properties" ).empty();
                     if ( item.properties ) {
                         for ( var i = 0 ; i < item.properties.length; i++ ) {
@@ -1420,46 +1944,197 @@
                             }
                         }
                     }
+                    // Implicit mods
                     $( "#item-implicit-mods" ).empty();
                     if ( item.implicitMods ) {
-                        for ( var i = 0 ; i < item.implicitMods.length; i++ ) {
-                            var mod = item.implicitMods[i];
-                            $( "#item-implicit-mods" ).append(
-                                "<span>" + mod + "</span>"
-                            );
-                            if ( i !== item.implicitMods.length - 1 ) {
-                                $( "#item-implicit-mods" ).append( "<br>" );
+                        console.log( item.implicitMods );
+                        $( "#item-implicit-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.implicitMods, function( mod, cbMod ) {
+                            var reg = /([0-9]+)/g;
+                            var match = mod.replace( /([0-9]+)/g, "#" );
+                            // console.log( match );
+                            var extract = reg.exec( mod );
+                            var val = extract[1];
+                            var affix   = "";
+                            var affRank = 0;
+                            var counter = 0;
+                            /* For implicit mods, check if the affix is a 
+                               corrupted one */ 
+                            if ( itemCorrupted[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                async.each( itemCorrupted[match], function( aff, cbAff ) {
+                                    counter++;
+                                    if ( val >= aff.min && val <= aff.max ) {
+                                        affRank = counter;
+                                    }
+                                    cbAff();
+                                }, function( err ) {
+                                    var val = Math.round( affRank 
+                                              * 100 / itemCorrupted[match].length + 100 );
+                                    affix = "<span class='affix'><span class='affix-type'>C</span>[" + 
+                                            "<span style='color: rgb(0, " + 
+                                            val + ", 0 )'>" + affRank + 
+                                            "</span>/<span class='mod-max'>" +
+                                            itemCorrupted[match].length + 
+                                            "</span>]</span>";
+                                })
                             }
-                        }
+                            $( "#item-implicit-mods table" ).append(
+                                "<tr><td>" +
+                                mod + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function ( err ) {
+                            $( "#item-implicit-mods" ).append(
+                                "</table>"
+                            );
+                        });
                     }
+
+                    // Explicit mods
                     $( "#item-explicit-mods" ).empty();
                     if ( item.explicitMods ) {
-                        for ( var i = 0 ; i < item.explicitMods.length; i++ ) {
-                            var mod = item.explicitMods[i];
-                            $( "#item-explicit-mods" ).append(
-                                "<span>" + mod + "</span>"
-                            );
-                            if ( i !== item.explicitMods.length - 1 ) {
-                                $( "#item-explicit-mods" ).append( "<br>" );
+                        $( "#item-explicit-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.explicitMods, function( mod, cbMod ) {
+                            var reg = /([0-9]+)/g;
+                            var match = mod.replace( /([0-9]+)/g, "#" );
+                            var affix   = "";
+                            if (( item.frameType ===  1 || item.frameType === 2 )) {
+                                affix   = "<span class='affix'>Legacy?</span>";
                             }
-                        }
+                            // console.log( match );
+                            var extract = reg.exec( mod );
+                            if ( extract && extract.length > 1 ) {
+                                var val = extract[1];
+                                var affRank = 0;
+                                var counter = 0;
+                                /* For explicit mods, check if the affix
+                                    is prefix or suffix */
+                                if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemPrefixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemPrefixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemPrefixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemSuffixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemSuffixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemSuffixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                }
+                            } else {
+                                console.log( mod );
+                            }
+                            $( "#item-explicit-mods table" ).append(
+                                "<tr><td>" +
+                                mod + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function( err ) {
+                            $( "#item-explicit-mods" ).append(
+                                "</table>"
+                            );
+                        });
                     }
                     // Crafted Mods
                     $( "#item-crafted-mods" ).empty();
                     if ( item.craftedMods ) {
-                        for ( var i = 0 ; i < item.craftedMods.length; i++ ) {
-                            var mod = item.craftedMods[i];
-                            $( "#item-crafted-mods" ).append(
-                                "<span>" + mod + "</span>"
-                            );
-                            if ( i !== item.craftedMods.length - 1 ) {
-                                $( "#item-crafted-mods" ).append( "<br>" );
+                        $( "#item-crafted-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.craftedMods, function( mod, cbMod ) {
+                            var reg = /([0-9]+)/g;
+                            var match = mod.replace( /([0-9]+)/g, "#" );
+                            // console.log( match );
+                            var extract = reg.exec( mod );
+                            var val = extract[1];
+                            var affix   = "";
+                            if (( item.frameType ===  1 || item.frameType === 2 )) {
+                                affix   = "<span class='affix'>Legacy?</span>";
                             }
-                        }
+                            var affRank = 0;
+                            var counter = 0;
+                            /* For crafted mods, check if the affix
+                            is prefix or suffix */
+                            if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                async.each( itemPrefixes[match], function( aff, cbAff ) {
+                                    counter++;
+                                    if ( val >= aff.min && val <= aff.max ) {
+                                        affRank = counter;
+                                    }
+                                    cbAff();
+                                }, function( err ) {
+                                    var val = Math.round( affRank 
+                                                * 100 / itemPrefixes[match].length + 100 );
+                                    affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
+                                            "<span style='color: rgb(0, " + 
+                                            val + ", 0 )'>" + affRank + 
+                                            "</span>/<span class='mod-max'>" +
+                                            itemPrefixes[match].length + 
+                                            "</span>]</span>";
+                                })
+                            } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                async.each( itemSuffixes[match], function( aff, cbAff ) {
+                                    counter++;
+                                    if ( val >= aff.min && val <= aff.max ) {
+                                        affRank = counter;
+                                    }
+                                    cbAff();
+                                }, function( err ) {
+                                    var val = Math.round( affRank 
+                                                * 100 / itemSuffixes[match].length + 100 );
+                                    affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
+                                            "<span style='color: rgb(0, " + 
+                                            val + ", 0 )'>" + affRank + 
+                                            "</span>/<span class='mod-max'>" +
+                                            itemSuffixes[match].length + 
+                                            "</span>]</span>";
+                                })
+                            }
+                            $( "#item-crafted-mods table" ).append(
+                                "<tr><td>" +
+                                mod + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function( err ) {
+                            $( "#item-crafted-mods" ).append(
+                                "</table>"
+                            );
+                        });
                         $( "#item-crafted-mods" ).show();
                     } else {
                         $( "#item-crafted-mods" ).hide();
                     }
+                    
                     // Corrupted
                     if ( item.corrupted ) {
                         $( "#item-corrupted" ).show();
@@ -1638,8 +2313,8 @@
                         $( "#auto-complete" ).fadeOut( "fast" );
                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
                         
-                        // if ( searchBy === "mods" ) {
-                        //     for ( var i = 0 ; i < lines.length ; i++ ) {
+                        if ( searchBy === "mods" ) {
+                             for ( var i = 0 ; i < lines.length ; i++ ) {
                         //         console.log( lines[i] );
                         //         var splitted = lines[i].split( " " );
                         //         for ( var j = 0 ; j < splitted.length ; j++ ) {
@@ -1659,9 +2334,9 @@
                         //         }
                         //         var str = splitted.join( " " );
                         //         console.log( str );
-                        //         lines[i] = new RegExp( str );
-                        //     }
-                        // }
+                                 lines[i] = new RegExp( lines[i] );
+                             }
+                         }
                         $( "#search .loading" ).fadeIn( 'fast' );
                         if ( searchBy === "name" ) {
                             connectToDB( function( db ) {
