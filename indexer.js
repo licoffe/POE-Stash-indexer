@@ -1,6 +1,8 @@
 // Requirements
 var async            = require( "async" );
 var request          = require( "request" );
+var http             = require( "http" ).createServer().listen( 3000, '127.0.0.1' );
+var io               = require( "socket.io" ).listen( http );
 var Logger           = require( "./modules/logger.js" );
 var logger           = new Logger();
 logger.set_use_timestamp( true );
@@ -23,9 +25,14 @@ var updated          = 0;
 var removed          = 0;
 var startTime        = Date.now();
 
+io.on( 'connection', function( socket ) {
+    logger.log( "Received connection", script_name, "e" );
+    socket.emit( 'an event', { some: 'data' });
+});
+
 /**
  * Return the next chunk ID to download from last downloaded chunk file
- * 
+ *
  * @params Mongo database handler
  * @return Next chunk ID
  */
@@ -43,10 +50,10 @@ var lastDownloadedChunk = function( db, callback ) {
             }
         });
     } else {
-        logger.log( "There was an issue while querying for last chunk ID", 
+        logger.log( "There was an issue while querying for last chunk ID",
                     script_name, "e" );
     }
-}
+};
 
 /**
  * Return items associated to input stash ID
@@ -69,14 +76,14 @@ var getStashByID = function( db, stashID, callback ) {
             }
         });
     } else {
-        logger.log( "No such stash ID: " + stashID, 
+        logger.log( "No such stash ID: " + stashID,
                     script_name, "e" );
     }
-}
+};
 
 /**
  * Converts a second amount to a higer unit (min, hour, day...) if possible.
- * 
+ *
  * @param Second amount to convert
  * @return JSON object with the converted value and corresponding unit
  */
@@ -110,11 +117,11 @@ var secToNsec = function( secAmount ) {
         }
     }
     return { "amount": secAmount, "unit": units[counter]};
-}
+};
 
 /**
  * Compare two arrays (old and new) and return an object containing an array
- * of removed, added and common elements to the second array. 
+ * of removed, added and common elements to the second array.
  *
  * @params old and new arrays + callback
  * @return return object containing removed, added and common elements
@@ -169,11 +176,11 @@ var compareArrays = function( old, young, cb ) {
             });
         });
     });
-}
+};
 
 /**
  * Download all public stashes starting with input chunk ID.
- * 
+ *
  * Download chunk from POE stash API using wget command with compression.
  * Extract downloaded data and check if next chunk is available. If yes,
  * recurse with next chunk ID.
@@ -186,7 +193,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         // Download compressed gzip data and extract it
         logger.log( "Downloading compressed data[" + chunkID + "]", script_name );
         console.time( "Downloading JSON" );
-        request({ "url": page + "?id=" + chunkID, "gzip": true }, 
+        request({ "url": page + "?id=" + chunkID, "gzip": true },
             function( error, response, body ) {
                 if ( error ) {
                     console.timeEnd( "Downloading JSON" );
@@ -199,7 +206,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                 }
             }
         );
-    }
+    };
 
     var loadJSON = function( data ) {
         try {
@@ -218,7 +225,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
             logger.log( "Error occured, retrying: " + e, script_name, "e" );
             setTimeout( download, downloadInterval, chunkID );
         }
-    }
+    };
 
     var parseData = function( data ) {
         // Store last chunk ID
@@ -227,7 +234,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                 logger.log( "There was an error creating the collection: " + err, script_name, "e" );
             } else {
                 logger.log( "Adding chunk ID to DB", script_name );
-                chunk_collection.insert( 
+                chunk_collection.insert(
                     { "next_chunk_id" : data.next_change_id }, { w : 1 }, function( err, result ) {
                     if ( err ) {
                         logger.log( "There was an error inserting chunk_id value: " + err, script_name, "w" );
@@ -246,7 +253,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 "lastSeen": Date.now()
                             };
                             onlineCollection.update(
-                                { "accountName": stash.accountName }, 
+                                { "accountName": stash.accountName },
                                 onlineStatus,
                                 { "upsert": true, "multi": false },
                                 function( err, result ) {
@@ -285,17 +292,17 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             added++;
                                         }
                                         if ( !item.name ) {
-                                            logger.log( 
-                                                "Adding new item \x1b[35m" + 
-                                                item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                            logger.log(
+                                                "Adding new item \x1b[35m" +
+                                                item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
                                                 "\x1b[0m to " + stash.id, script_name, "", true );
                                         } else {
-                                            logger.log( 
-                                                "Adding new item \x1b[35m" + 
-                                                item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                            logger.log(
+                                                "Adding new item \x1b[35m" +
+                                                item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
                                                 "\x1b[0m to " + stash.id, script_name, "", true );
                                         }
-                                        
+
                                         cb();
                                     });
                                 }, function( err ) {
@@ -306,22 +313,22 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 });
                             // If the stash already exists
                             } else {
-                                /* If there are less items in new stash then 
+                                /* If there are less items in new stash then
                                    there used to be */
                                 if ( results.length > stash.items.length ) {
                                     logger.log(
-                                        ( results.length - stash.items.length ) + 
-                                        " items out of " + results.length + " were removed from stash " + 
+                                        ( results.length - stash.items.length ) +
+                                        " items out of " + results.length + " were removed from stash " +
                                         stash.id, script_name, "", true );
                                 } else if ( results.length < stash.items.length ) {
                                     logger.log(
-                                        ( stash.items.length - results.length ) + 
-                                        " items were added to the stash " + 
+                                        ( stash.items.length - results.length ) +
+                                        " items were added to the stash " +
                                         stash.id, script_name, "", true );
                                 }
 
                                 logger.log( "Updating existing stash " + stash.id, script_name, "", true );
-                                /* Check which item has been removed, added or 
+                                /* Check which item has been removed, added or
                                    kept */
                                 compareArrays( results, stash.items, function( res ) {
                                     logger.log( res.added.length + " items added", script_name, "", true );
@@ -336,7 +343,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         collection.save( removedItem, function( err, result ) {
                                             if ( err ) {
                                                 logger.log(
-                                                    "Stash update: There was an error inserting value: " + err, 
+                                                    "Stash update: There was an error inserting value: " + err,
                                                     script_name, "w" );
                                                 insertionError++;
                                             } else {
@@ -370,14 +377,14 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                                     added++;
                                                 }
                                                 if ( !addedItem.name ) {
-                                                    logger.log( 
-                                                        "Adding new item \x1b[35m" + 
-                                                        addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                    logger.log(
+                                                        "Adding new item \x1b[35m" +
+                                                        addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
                                                         "\x1b[0m to " + stash.id, script_name, "", true );
                                                 } else {
-                                                    logger.log( 
-                                                        "Adding new item \x1b[35m" + 
-                                                        addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                                    logger.log(
+                                                        "Adding new item \x1b[35m" +
+                                                        addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
                                                         "\x1b[0m to " + stash.id, script_name, "", true );
                                                 }
                                                 cbAdded();
@@ -422,47 +429,47 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                 });
             }
         });
-    }
+    };
 
     var done = function( data ) {
         var nextID = data.next_change_id;
         logger.log( "Next ID: " + nextID, script_name );
-    
+
         if ( interrupt ) {
             logger.log( "Exiting", script_name );
             process.exit( 0 );
         } else {
-            /* Sleep n seconds and call the script on the 
+            /* Sleep n seconds and call the script on the
                next chunk ID */
             var elapsed = secToNsec( Date.now() - startTime );
-            var speed   = ( added + removed + updated ) / 
+            var speed   = ( added + removed + updated ) /
                           (( Date.now() - startTime ) / 1000 ); // insert per sec
-            logger.log( "Entries added: " + added + 
-                        ", removed: " + removed + 
+            logger.log( "Entries added: " + added +
+                        ", removed: " + removed +
                         ", updated: " + updated +
                         ", insert errors: " + insertionError +
-                        " over " + Math.round( elapsed.amount ) + 
+                        " over " + Math.round( elapsed.amount ) +
                         " " + elapsed.unit +
-                        " at " + Math.round( speed ) + " insert/sec" 
-                        , script_name );
+                        " at " + Math.round( speed ) +
+                        " insert/sec", script_name );
             logger.log( "Sleeping " + downloadInterval + "ms", script_name );
-            setTimeout( callback, downloadInterval, 
+            setTimeout( callback, downloadInterval,
                         nextID, collection, db, callback );
         }
-    }
-    
+    };
+
     download( chunkID );
-}
+};
 
 /**
  * Connect to MongoDB. If successfull, run provided callback function
- * 
+ *
  * @params Callback function
  * @return None
  */
 function connectToDB( callback ) {
     // Connect to the db
-    mongo_client.connect( "mongodb://" + address + ":" + port + "/" + database, 
+    mongo_client.connect( "mongodb://" + address + ":" + port + "/" + database,
                          function( err, db ) {
         if ( err ) {
             logger.log( err, script_name, "e" );
@@ -470,7 +477,7 @@ function connectToDB( callback ) {
             process.exit(0);
         }
         logger.log( "Connected to MongoDB.", script_name );
-        
+
         callback( db );
     });
 }
@@ -527,9 +534,9 @@ function main() {
                     });
                 });
             }
-            
+
             // When all indexes are done
-            Promise.all(createIndexs(indexFields)).then(value => { 
+            Promise.all(createIndexs(indexFields)).then(value => {
                 // Check last downloaded chunk ID
                 lastDownloadedChunk( db, function( entry ) {
                     try {
