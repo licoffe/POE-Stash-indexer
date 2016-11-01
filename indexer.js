@@ -38,7 +38,7 @@ io.on( 'connection', function( socket ) {
  */
 var lastDownloadedChunk = function( db, callback ) {
     var entries = [];
-    var cursor = db.collection('chunk_id').find().sort({$natural:-1}).limit(1);
+    var cursor = db.collection( 'chunk_id' ).find().sort({$natural:-1}).limit(1);
     if ( cursor !== undefined ) {
         logger.log( "Last chunk ID found", script_name );
         cursor.each( function( err, doc ) {
@@ -46,6 +46,7 @@ var lastDownloadedChunk = function( db, callback ) {
                 entries.push( doc );
             } else {
                 logger.log( "Found " + entries.length + " entries", script_name );
+                cursor.close();
                 callback( entries );
             }
         });
@@ -63,7 +64,7 @@ var lastDownloadedChunk = function( db, callback ) {
  */
 var getStashByID = function( db, stashID, callback ) {
     var entries = [];
-    var cursor = db.collection(stashCollection).find({ "stashID": stashID });
+    var cursor = db.collection( stashCollection ).find({ "stashID": stashID });
     if ( cursor !== undefined ) {
         cursor.each( function( err, doc ) {
             if ( err ) {
@@ -72,6 +73,7 @@ var getStashByID = function( db, stashID, callback ) {
             if ( doc ) {
                 entries.push( doc );
             } else {
+                cursor.close();
                 callback( entries );
             }
         });
@@ -232,6 +234,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
         db.createCollection( 'chunk_id', function( err, chunk_collection ) {
             if ( err ) {
                 logger.log( "There was an error creating the collection: " + err, script_name, "e" );
+                db.close();
             } else {
                 logger.log( "Adding chunk ID to DB", script_name );
                 chunk_collection.insert(
@@ -437,6 +440,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
 
         if ( interrupt ) {
             logger.log( "Exiting", script_name );
+            db.close();
             process.exit( 0 );
         } else {
             /* Sleep n seconds and call the script on the
