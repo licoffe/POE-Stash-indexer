@@ -5,6 +5,7 @@
         <title>POE-price-helper</title>
         <link rel="stylesheet" href="./style.css">
         <link rel="stylesheet" href="./font/stylesheet.css">
+        <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <!--<script href="https://cdnjs.com/libraries/Chart.js"></script>-->
     </head>
     <body>
@@ -12,6 +13,7 @@
         </div>
         <div class="container" id="market-rates">
             <span class="title">Market rates</span>
+            <div class="indexer-status-icon-offline"></div><span class="indexer-status">Indexer offline</span>
             <img class="loading" src="./media/loading.gif" alt=""><br><br>
             <table>
                 <tr>
@@ -465,7 +467,7 @@
                 </tr>
             </table>
         </div>
-        <div id="auto-complete-arrow"></div>
+        <!--<div id="auto-complete-arrow"></div>-->
         <div id="auto-complete"></div>
 
         <script type="text/javascript">
@@ -487,6 +489,7 @@
                 var itemTypes    = require( "./itemTypes.json" );
                 var uniques      = require( "./uniques.json" );
                 var affixes      = require( "./affixes.json" );
+                var config       = require( "./config.json" );
                 var leagueRates  = {
                     alch:     0.3655772464721796,
                     alt:      0.10982493904715883,
@@ -515,15 +518,14 @@
                 var baseCurrency = "chaos";
                 var dbHandler;
                 var myChart;
-                // var config       = require( 'node-cfg' );
-                // var address      = config.db.address;
-                // var port         = config.db.port;
-                // var database     = config.db.db;
-                var address      = "server.local";
-                var port         = 27017;
+                var dbAddress    = config.dbAddress;
+                var dbPort       = config.dbPort;
+                var dbQueryLimit = config.dbQueryLimit;
+                var indexerIP    = config.indexerIP;
+                var indexerPort  = config.indexerPort;
+                var onlineDelayS = config.onlineDelay;
                 var database     = "POE_price";
                 var script_name  = "index.html";
-                var queryLimit   = 10000;
                 var fields       = {
                     "name": 1,
                     "typeLine": 1,
@@ -552,24 +554,54 @@
                     "artFilename": 1
                 };
                 var autorefreshInterval;
-                var onlineDelay = 1800; // sec
                 var $ = require("jquery");
                 var completionMinChar = 2;
 
-                var checkLastSeen = function( db, account, cb ) {
+                // Connect to the indexer backend and check availability
+                var socket = io( "http://" + indexerIP + ":" + indexerPort );
+                socket.on( "connect", function() {
+                    console.log( "Frontend connected" );
+                    $( ".indexer-status" ).text( "Indexer online" );
+                    $( ".indexer-status-icon-offline" ).removeClass( "indexer-status-icon-offline" )
+                                                       .addClass( "indexer-status-icon-online" );
+                });
+                socket.on( "message", function( data ) {
+                    console.log( "message received: " + data );
+                });
+                socket.on( "disconnect", function() {
+                    console.log( "Frontend disconnected" );
+                    $( ".indexer-status" ).text( "Indexer offline" );
+                    $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                      .addClass( "indexer-status-icon-offline" );
+                });
+                socket.on( "connect_error", function() {
+                    console.log( "Connection error" );
+                    $( ".indexer-status" ).text( "Indexer offline" );
+                    $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                      .addClass( "indexer-status-icon-offline" );
+                })
+
+                /**
+                * Check when input account last published some modifications.
+                *
+                * For each account name in the array, check when it last
+                * updated its status using the online_status table.
+                * @params db, an array of accounts to check, callback function
+                * @return object containing last seen timestamp for each account
+                */
+                var checkLastSeen = function( db, accountList, cb ) {
                     cursor = db.collection( 'online_status' ).find({
-                        "accountName": account
+                        "accountName": { $in: accountList }
                     }, {
+                        "accountName": 1,
                         "lastSeen": 1
                     });
-                    var entries = [];
-                    // logger.log( "Gathering results", script_name );
+                    var entries = {};
                     if ( cursor !== undefined ) {
                         cursor.each( function( err, doc ) {
                             if ( doc !== null ) {
-                                entries.push( doc );
+                                entries[doc.accountName] = doc.lastSeen;
                             } else {
-                                // logger.log( "Found " + entries.length + " entries", script_name );
                                 cursor.close();
                                 db.close();
                                 cb( entries );
@@ -581,6 +613,17 @@
                     }
                 }
 
+                /**
+                * Piggyback on poe.trade online status
+                *
+                * Craft a request to poll poe.trade to see all the online items
+                * for a specific account. If page total length is more than 
+                * 750000 char long (empty page length), there are some items and 
+                * the user is therefore online. Takes long to execute though and
+                * feels wrong to use without proper API or rights. 
+                * @params account, league and callback
+                * @return boolean
+                */
                 var isOnline = function( account, league, cb ) {
                     console.log( "Getting online status for " + account );
                     $.ajax({
@@ -660,17 +703,7 @@
                             enchanted: ""
                         },
                     }).done( function( data, textStatus, jqXHR ) {
-                        /* var parser = new DOMParser();
-                        var doc = parser.parseFromString( jqXHR.responseText, "text/html" );
-                        if ( doc ) {
-                            cb( doc.querySelectorAll( ".search-results-block" ).length );
-                        } else {
-                            cb( 0 );
-                        } */
-                        // console.log( jqXHR.responseText.length );
                         cb( jqXHR.responseText.length > 750000 );
-                        
-                        // cb( jqXHR.responseText.indexOf( "Nothing found" ) !== -1 );
                     });
                 }
 
@@ -746,7 +779,7 @@
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level }
-                            }, fields).limit(queryLimit);
+                            }, fields).limit(dbQueryLimit);
                         } else {
                             cursor = db.collection('stashes').find({
                                 "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
@@ -757,7 +790,7 @@
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level }
-                            }, fields).limit(queryLimit);
+                            }, fields).limit(dbQueryLimit);
                         }
                         
                     } else if ( queryBy === "lastCharacterName" ) {
@@ -770,7 +803,7 @@
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields ).limit(queryLimit);
+                        }, fields ).limit(dbQueryLimit);
                     } else if ( queryBy === "accountName" ) {
                         cursor = db.collection('stashes').find({
                             "accountName": criteria,
@@ -781,7 +814,7 @@
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields).limit(queryLimit);
+                        }, fields).limit(dbQueryLimit);
                     } else if ( queryBy === "mods" ) {
                         cursor = db.collection('stashes').find({
                             "typeLine": type,
@@ -799,13 +832,13 @@
                                 }},
                                 {"enchantMods": { 
                                     $all: criteria
-                                }}, 
+                                }}
                             ],
                             "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields).limit(queryLimit);
+                        }, fields).limit(dbQueryLimit);
                     } else {
                         console.log( "unrecognised query type " + queryBy );
                     }
@@ -829,57 +862,31 @@
                                 
                                 // Set online status for each item
                                 $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
-                                async.each( entries, function( result, callbackOnline ) {
-                                    // Set last seen
-                                    checkLastSeen( db, result.accountName, function( lastSeen ) {
-                                        if ( lastSeen.length > 0 ) {
-                                            result.lastSeen = lastSeen[0];
-                                            result.online   = ( Date.now() - result.lastSeen.lastSeen ) < onlineDelay * 1000;
-                                        } else {
-                                            result.lastSeen = null;
-                                            result.online   = false;
-                                        }
-                                        if ( filterOnline === "either" ) {
-                                            entriesOnline.push( result );
-                                        } else if ( filterOnline === "true" ) {
-                                            if ( result.online ) {
-                                                entriesOnline.push( result );
+                                // Create array of account names
+                                var accountNames = [];
+                                async.each( entries, function( entry, cbEntry ) {
+                                    if ( accountNames.indexOf( entry.accountName ) === -1 ) {
+                                        accountNames.push( entry.accountName );
+                                        cbEntry();
+                                    } else {
+                                        cbEntry();
+                                    }
+                                }, function( err ) {
+                                    /* Send the list of accounts to check 
+                                       for their availability */
+                                    checkLastSeen( db, accountNames, function( lastSeen ) {
+                                        async.each( entries, function( result, callbackOnline ) {
+                                            /* If the user has a last seen 
+                                               timestamp */
+                                            if ( lastSeen[result.accountName]) {
+                                                result.lastSeen = lastSeen[result.accountName];
+                                                result.online   = 
+                                                    ( Date.now() - result.lastSeen ) 
+                                                    < onlineDelayS * 1000;
+                                            } else {
+                                                result.lastSeen = null;
+                                                result.online   = false;
                                             }
-                                        } else if ( filterOnline === "false" ) {
-                                            if ( !result.online ) {
-                                                entriesOnline.push( result );
-                                            }
-                                        }
-                                        callbackOnline();
-                                        /*
-                                        if ( !checkedOnline[result.accountName]) {
-                                            isOnline( result.accountName, league, function( data ) {
-                                                if ( !data ) {
-                                                    result.online = false;
-                                                    checkedOnline[result.accountName] = false;
-                                                    // console.log( "Setting " + result.accountName + " to false" );
-                                                } else {
-                                                    result.online = true;
-                                                    checkedOnline[result.accountName] = true;
-                                                }
-                                                
-                                                // Filter out depending on online select
-                                                if ( filterOnline === "either" ) {
-                                                    entriesOnline.push( result );
-                                                } else if ( filterOnline === "true" ) {
-                                                    if ( result.online ) {
-                                                        entriesOnline.push( result );
-                                                    }
-                                                } else if ( filterOnline === "false" ) {
-                                                    if ( !result.online ) {
-                                                        entriesOnline.push( result );
-                                                    }
-                                                }
-                                                callbackOnline();
-                                            });
-                                        } else {
-                                            result.online = checkedOnline[result.accountName];
-                                            // Filter out depending on online select
                                             if ( filterOnline === "either" ) {
                                                 entriesOnline.push( result );
                                             } else if ( filterOnline === "true" ) {
@@ -892,17 +899,17 @@
                                                 }
                                             }
                                             callbackOnline();
-                                        } */
+                                        }, function( err ) {
+                                            if ( err ) {
+                                                console.log( err );
+                                            }
+                                            db.close();
+                                            /* Send array containing filtered 
+                                               entries to averagePrice function */
+                                            callback( entriesOnline, averagePrice );
+                                        });
                                     });
-                                }, function( err ) {
-                                    if ( err ) {
-                                        console.log( err );
-                                    }
-                                    db.close();
-                                    callback( entriesOnline, averagePrice );
                                 });
-                                
-                                //callback( entries, averagePrice );
                             }
                         });
                     } else {
@@ -919,7 +926,7 @@
                  */
                 function connectToDB( callback ) {
                     // Connect to the db
-                    mongo_client.connect( "mongodb://" + address + ":" + port + "/" + database, 
+                    mongo_client.connect( "mongodb://" + dbAddress + ":" + dbPort + "/" + database, 
                                         function( err, db ) {
                         if ( err ) {
                             console.log( err );
@@ -1142,10 +1149,15 @@
                             }
                         }
                     }
-                    
                     return { "amount": secAmount, "unit": units[counter]};
                 }
 
+                /***
+                 * Generate result lists after search
+                 *
+                 * @param search result list
+                 * @return nothing
+                 */
                 function updateInterface( results ) {
                     $( ".search-status" ).text( "Returning result list ..." );
                     var current = Date.now();
@@ -1208,12 +1220,12 @@
                         var statusColor = "rgb( 100, 100, 100 )";
                         // If this user has an entry in the db
                         if ( result.lastSeen ) {
-                            var lastUpdate = secToNsec( Date.now() - result.lastSeen.lastSeen );
+                            var lastUpdate = secToNsec( Date.now() - result.lastSeen );
                             // console.log( "time: " + truc.amount + " " + truc.unit );
-                            lastUpdateStatus = ( Date.now() - result.lastSeen.lastSeen ) < onlineDelay * 1000;
-                            console.log( "lastUpdateStatus: " + (Date.now() - result.lastSeen.lastSeen ));
+                            lastUpdateStatus = ( Date.now() - result.lastSeen ) < onlineDelayS * 1000;
+                            console.log( "lastUpdateStatus: " + (Date.now() - result.lastSeen ));
                             tooltipLastSeen = "Last seen: " + Math.round( lastUpdate.amount ) + " " + lastUpdate.unit;
-                            var diffSec = ( Date.now() - result.lastSeen.lastSeen ) / 1000;
+                            var diffSec = ( Date.now() - result.lastSeen ) / 1000;
                             var maxDuration = 3600; // 1 h
                             if ( diffSec < maxDuration / 2 ) {
                                 statusColor = "rgb( " + Math.round( diffSec * 255 / ( maxDuration / 2 )) + ", 255, 0 )";
@@ -1309,7 +1321,16 @@
                     });
                 }
 
+                /***
+                 * Update the item preview
+                 *
+                 * @param Item
+                 * @return nothing
+                 */
                 function itemPreview( item ) {
+                    if ( !item ) {
+                        return;
+                    }
                     var itemPrefixes  = [];
                     var itemSuffixes  = [];
                     var itemCorrupted = [];
@@ -2309,12 +2330,19 @@
                     var search = function() {
                         var text  = $( "textarea" ).val();
                         var lines = text.split( "\n" );
+                        var entries = [];
                         var searchBy = $( "#search-by" ).val();
                         $( "#auto-complete" ).fadeOut( "fast" );
                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                        console.log( lines );
                         
                         if ( searchBy === "mods" ) {
                              for ( var i = 0 ; i < lines.length ; i++ ) {
+                                 console.log( lines[i] );
+                                if ( lines[i].length !== 0 ) {
+                                    console.log( lines[i] );
+                                    entries.push( lines[i]);
+                                }
                         //         console.log( lines[i] );
                         //         var splitted = lines[i].split( " " );
                         //         for ( var j = 0 ; j < splitted.length ; j++ ) {
@@ -2334,7 +2362,7 @@
                         //         }
                         //         var str = splitted.join( " " );
                         //         console.log( str );
-                                 lines[i] = new RegExp( lines[i] );
+                        //         lines[i] = new RegExp( lines[i] );
                              }
                          }
                         $( "#search .loading" ).fadeIn( 'fast' );
@@ -2352,7 +2380,7 @@
                             });
                         } else {
                             connectToDB( function( db ) {
-                                queryDB( db, lines, league, searchBy, filterValidPrice );
+                                queryDB( db, entries, league, searchBy, filterValidPrice );
                             });
                         }
                     }
@@ -2383,15 +2411,43 @@
                     if ( event.keyCode === 27 ) {
                         $( "#auto-complete" ).fadeOut( "fast" );
                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
-                    } else {
+                    // Ignore ctrl, shift, alt, meta and enter
+                    } else if ( !event.ctrlKey && !event.altKey && 
+                                !event.shiftKey && !event.metaKey && 
+                                event.keyCode !== 13 ) {
                         // get current text
-                        var currentText = $( "textarea" ).val();
+                        var currentText    = $( "textarea" ).val();
+                        // Get cursor position in text
+                        var cursorPosition = $( "textarea" ).prop( "selectionStart" );
+                        console.log( cursorPosition );
+                        // Split text by line break
+                        var splitted = currentText.split( "\n" );
+                        console.log( splitted );
+                        var currentLine  = "";
+                        var currentIndex = 0;
+                        var lineIndex    = 0;
+                        // Find content of current line
+                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                            if ( cursorPosition >= currentIndex && 
+                                 cursorPosition <= ( currentIndex + splitted[i].length )) {
+                                currentLine = splitted[i];
+                                lineIndex = i;
+                                break;
+                            } else {
+                                currentIndex += splitted[i].length;
+                            }
+                        }
+                        if ( currentLine === "" ) {
+                            currentLine = splitted[splitted.length - 1];
+                            lineIndex   = splitted.length - 1;
+                        }
+                        // console.log( "Current line: " + currentLine );
                         // console.log( currentText.length );
                         var propositions = [];
-                        if (( currentText.length + 1 ) > completionMinChar ) {
+                        if (( currentLine.length + 1 ) > completionMinChar ) {
                             if ( $( "#search-by" ).val() === "name" ) {
                                 async.each( uniques.uniques, function( unique, cb ) {
-                                    if ( unique.includes( currentText )) {
+                                    if ( unique.includes( currentLine )) {
                                         propositions.push( "<span>" + unique + "</span>" );
                                     }
                                     cb();
@@ -2403,17 +2459,29 @@
                                         $( "#auto-complete" ).html( propositions.join( "<br><br>" ));
                                         $( "#auto-complete" ).fadeIn( "fast" );
                                         $( "#auto-complete-arrow" ).fadeIn( "fast" );
+                                        $( "#auto-complete" ).css({ 
+                                            "left": (180 + currentLine.length * 6) + "px",
+                                            "top": (440 + lineIndex * 16) + "px" 
+                                        });
                                     }
                                     // When clicking on auto-complete entry
                                     $( "#auto-complete span" ).click( function() {
-                                        $( "textarea" ).val( $( this ).text());
+                                        var str = ""; 
+                                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                                            if ( i !== lineIndex ) {
+                                                str += splitted[i] + "\n";
+                                            } else {
+                                                str += $( this ).text() + "\n";
+                                            }
+                                        }
+                                        $( "textarea" ).val( str );
                                         $( "#auto-complete" ).fadeOut( "fast" );
                                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
                                     });
                                 })
                             } else if ( $( "#search-by" ).val() === "mods" ) {
                                 async.each( uniques["implicit-mods"], function( implicit, cb ) {
-                                    if ( implicit.includes( currentText )) {
+                                    if ( implicit.includes( currentLine )) {
                                         propositions.push( "<span>" + implicit + "</span>" );
                                     }
                                     cb();
@@ -2425,10 +2493,22 @@
                                         $( "#auto-complete" ).html( propositions.join( "<br><br>" ));
                                         $( "#auto-complete" ).fadeIn( "fast" );
                                         $( "#auto-complete-arrow" ).fadeIn( "fast" );
+                                        $( "#auto-complete" ).css({ 
+                                            "left": (180 + currentLine.length * 6) + "px",
+                                            "top": (440 + lineIndex * 16) + "px" 
+                                        });
                                     }
                                     // When clicking on auto-complete entry
                                     $( "#auto-complete span" ).click( function() {
-                                        $( "textarea" ).val( $( this ).text());
+                                        var str = ""; 
+                                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                                            if ( i !== lineIndex ) {
+                                                str += splitted[i] + "\n";
+                                            } else {
+                                                str += $( this ).text() + "\n";
+                                            }
+                                        }
+                                        $( "textarea" ).val( str );
                                         $( "#auto-complete" ).fadeOut( "fast" );
                                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
                                     });

@@ -74,6 +74,7 @@ textarea {
     resize: none;
     height: 200px;
     width: 90%;
+    line-height: 1.5;
 }
 
 select, input[type="button"] {
@@ -383,8 +384,8 @@ td#preview {
 #auto-complete {
     display: none;
     position: absolute;
-    top: 460px;
-    left: 170px;
+    top: 440px;
+    left: 180px;
     font-size: 0.8em;
     padding: 10px;
     border-radius: 5px;
@@ -395,7 +396,7 @@ td#preview {
 #auto-complete-arrow {
     display: none;
     position: absolute;
-    top: 450px;
+    top: 470px;
     left: 190px;
     width: 0;
     height: 0;
@@ -447,4 +448,30 @@ td#preview {
 }
 .affix-type {
     color: white;
+}
+.indexer-status {
+    position: relative;
+    left: 90%;
+    top: 125px;
+    font-size: 0.9em;
+}
+.indexer-status-icon-online {
+    position: relative;
+    left: 88%;
+    top: 138px;
+    border-radius: 5px;
+    background-color: rgba(0, 200, 100, 1);
+    box-shadow: 0 0 5px rgba(0, 200, 0, 1);
+    width: 10px;
+    height: 10px;
+}
+.indexer-status-icon-offline {
+    position: relative;
+    left: 88%;
+    top: 138px;
+    border-radius: 5px;
+    background-color: rgba(210, 0, 0, 1);
+    box-shadow: 0 0 5px rgba(210, 0, 0, 1);
+    width: 10px;
+    height: 10px;
 }

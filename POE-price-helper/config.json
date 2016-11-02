@@ -1,0 +1,8 @@
+{
+    "dbAddress": "127.0.0.1",
+    "dbPort": 27017,
+    "dbQueryLimit": 1000,
+    "indexerIP": "127.0.0.1",
+    "indexerPort": 3000,
+    "onlineDelayS": 1800
+}
