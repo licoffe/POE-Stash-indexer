@@ -119,10 +119,11 @@ function Currency( league ) {
     }
 
     Currency.prototype.getRate = function( buying, selling, amount, callback ) {
+        /* Check if buying and selling currencies are referenced in currencies 
+           object. Just to make sure to do the proper mapping with poe.trade. */
         var buyingIndex  = this.getCurrencyIndex( buying );
         var sellingIndex = this.getCurrencyIndex( selling );
-    //     console.log( "http://currency.poe.trade/search?league=" + league + "&want=" + 
-    //          sellingIndex + "&have=" + buyingIndex + "&online=" + online );
+        // If not referenced, print error and return 0 value
         if ( buyingIndex === -1 || sellingIndex === -1 ) {
             logger.log( "Unknown currencies: " + selling + " or " + buying,
                         scriptName, "e" );
@@ -137,6 +138,7 @@ function Currency( league ) {
             searchOnline = "";
         }
 
+        // Use jsdom to request the poe.trade page and load jQuery
         jsdom.env (
             "http://currency.poe.trade/search?league=" + league + "&want=" + 
             buyingIndex + "&have=" + sellingIndex + "" + searchOnline,
@@ -146,10 +148,11 @@ function Currency( league ) {
                 var max = -1;
                 var values = [];
 
+                /* Do the scraping and store buy/sell ratios as well as min
+                   and max ratios */
                 window.$( "div.displayoffer-middle" ).each( function() { 
                     var splitted = window.$( this ).text().split( " ⇐ " ); 
                     var ratio = splitted[0] / splitted[1]
-    //                 console.log( buying + " -> " + selling + ": " + ratio + " " + splitted[0] + "/" + splitted[1] );
                     if ( ratio > max ) {
                         max = ratio;
                     } else if ( ratio < min ) {
@@ -158,22 +161,22 @@ function Currency( league ) {
                     values.push( ratio );
                 });
                 
+                // Sum all ratios together
                 var sum = values.reduce( 
                     function( previous, current, index, array ) {
-    //                     console.log( "previous:" + previous );
                         return previous + current;
                     }, 0 
                 );
                 
+                /* If we have a least a value, compute average ratio by dividing 
+                   the sum by the amount of ratios */
                 if ( values.length !== 0 ) {
-    //                 console.log( "sum: " + sum );
                     var avg = sum / values.length;
-                    // console.log( 
-                    //     buying + " -> " + selling + ": With " + amount + " " + 
-                    //     selling + ", you can buy " + avg.toFixed( 4 ) * amount + 
-                    //     " " + buying + " (Min: " +  min.toFixed( 4 ) * amount + 
-                    //     ", Max: " + max.toFixed( 4 ) * amount + ")" );
+                    // return average ratio value trimmed to 4 numbers precision
                     callback( avg.toFixed( 4 ) * amount );
+                /* If there is no ratio, then it means we don't have any offers
+                   between these two currencies. Print error message and return 
+                   0 */
                 } else {
                     logger.log( "getRate: No offers for these currencies: " + 
                                 buying + " <- " + selling,
