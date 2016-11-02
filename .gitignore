@@ -52,3 +52,6 @@ todo.todo
 launch.json
 settings.json
 .browse.VC.db
+affixParser.pl
+out.json
+affix_test

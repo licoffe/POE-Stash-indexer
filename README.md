@@ -36,4 +36,4 @@ Required node packages can be installed through `npm install`. On Ubuntu it may 
 The indexer can be started with `npm start`.
 
 ### Requirements
-MongoDB, NodeJS, Mac or Linux.
+MongoDB and NodeJS

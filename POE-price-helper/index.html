@@ -5,11 +5,15 @@
         <title>POE-price-helper</title>
         <link rel="stylesheet" href="./style.css">
         <link rel="stylesheet" href="./font/stylesheet.css">
+        <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <!--<script href="https://cdnjs.com/libraries/Chart.js"></script>-->
     </head>
     <body>
+        <div id="online-res">
+        </div>
         <div class="container" id="market-rates">
             <span class="title">Market rates</span>
+            <div class="indexer-status-icon-offline"></div><span class="indexer-status">Indexer offline</span>
             <img class="loading" src="./media/loading.gif" alt=""><br><br>
             <table>
                 <tr>
@@ -274,6 +278,17 @@
                             </select>
                         </label>
                     </td>
+                    <td>
+                        <span>Online</span>
+                        &nbsp;
+                        <label>
+                            <select id="online">
+                                <option value="either" selected>Either</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </label>
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -297,7 +312,15 @@
                         </label>
                     </td>
                     <td>
-                        <input type="checkbox" id="verified" checked="true">Verified
+                        <span>Verified</span>
+                        &nbsp;
+                        <label>
+                            <select id="verified">
+                                <option value="either">Either</option>
+                                <option value="true" selected>Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </label>
                     </td>
                 </tr>
             </table>
@@ -421,6 +444,9 @@
                         <input type="checkbox" id="auto-refresh">Auto-refreesh<br><br>
                         <input type="button" id="search-item" value="Search">
                         <img class="loading" src="./media/loading.gif" alt="">
+                        <br>
+                        <br>
+                        <div class="search-status-hidden" style="word-wrap: break-word;">no value</div>
                     </td>
                     <td>
                         <table id="prices">
@@ -441,6 +467,8 @@
                 </tr>
             </table>
         </div>
+        <!--<div id="auto-complete-arrow"></div>-->
+        <div id="auto-complete"></div>
 
         <script type="text/javascript">
             var $ = require('jquery');
@@ -459,44 +487,45 @@
                 var async        = require( "async" );
                 var ncp          = require( "copy-paste" );
                 var itemTypes    = require( "./itemTypes.json" );
+                var uniques      = require( "./uniques.json" );
+                var affixes      = require( "./affixes.json" );
+                var config       = require( "./config.json" );
                 var leagueRates  = {
-                    alch: 0.3655772464721796,
-                    alt: 0.10982493904715883,
-                    armour: 0.017393724344256595,
-                    aug: 0.03528681120144535,
-                    bauble:0.20452825557850815,
-                    bless:0.7427213309566251,
-                    chance:0.30819490245631337,
-                    chaos:1,
-                    chisel:0.47952431188261246,
-                    chrome:0.1860153648691382,
-                    divine:30.030030030030026,
-                    exa:77.51937984496124,
-                    fuse:0.8206138191367143,
-                    jew:0.18509606485766114,
-                    portal:0.013979503252331433,
-                    prism:2.0815986677768525,
-                    regal:1.6207455429497568,
-                    regret:2.2696323195642307,
-                    scouring:1.1482374555057986,
-                    stone:0.03330824112501915,
-                    trans:0.02465963538263123,
-                    vaal:1.9770660340055357,
-                    wisdom:0.007426159836208619
+                    alch:     0.3655772464721796,
+                    alt:      0.10982493904715883,
+                    armour:   0.017393724344256595,
+                    aug:      0.03528681120144535,
+                    bauble:   0.20452825557850815,
+                    bless:    0.7427213309566251,
+                    chance:   0.30819490245631337,
+                    chaos:    1,
+                    chisel:   0.47952431188261246,
+                    chrome:   0.1860153648691382,
+                    divine:   30.030030030030026,
+                    exa:      77.51937984496124,
+                    fuse:     0.8206138191367143,
+                    jew:      0.18509606485766114,
+                    portal:   0.013979503252331433,
+                    prism:    2.0815986677768525,
+                    regal:    1.6207455429497568,
+                    regret:   2.2696323195642307,
+                    scouring: 1.1482374555057986,
+                    stone:    0.03330824112501915,
+                    trans:    0.02465963538263123,
+                    vaal:     1.9770660340055357,
+                    wisdom:   0.007426159836208619
                 };
                 var baseCurrency = "chaos";
                 var dbHandler;
                 var myChart;
-                // var config       = require( 'node-cfg' );
-                // var address      = config.db.address;
-                // var port         = config.db.port;
-                // var database     = config.db.db;
-                var address      = "localhost";
-                // var address      = "server.local";
-                var port         = 27017;
+                var dbAddress    = config.dbAddress;
+                var dbPort       = config.dbPort;
+                var dbQueryLimit = config.dbQueryLimit;
+                var indexerIP    = config.indexerIP;
+                var indexerPort  = config.indexerPort;
+                var onlineDelayS = config.onlineDelay;
                 var database     = "POE_price";
                 var script_name  = "index.html";
-                var queryLimit   = 10000;
                 var fields       = {
                     "name": 1,
                     "typeLine": 1,
@@ -513,6 +542,7 @@
                     "corrupted": 1,
                     "identified": 1,
                     "sockets": 1,
+                    "accountName": 1,
                     "lastCharacterName": 1,
                     "ilvl": 1,
                     "w": 1,
@@ -524,6 +554,158 @@
                     "artFilename": 1
                 };
                 var autorefreshInterval;
+                var $ = require("jquery");
+                var completionMinChar = 2;
+
+                // Connect to the indexer backend and check availability
+                var socket = io( "http://" + indexerIP + ":" + indexerPort );
+                socket.on( "connect", function() {
+                    console.log( "Frontend connected" );
+                    $( ".indexer-status" ).text( "Indexer online" );
+                    $( ".indexer-status-icon-offline" ).removeClass( "indexer-status-icon-offline" )
+                                                       .addClass( "indexer-status-icon-online" );
+                });
+                socket.on( "message", function( data ) {
+                    console.log( "message received: " + data );
+                });
+                socket.on( "disconnect", function() {
+                    console.log( "Frontend disconnected" );
+                    $( ".indexer-status" ).text( "Indexer offline" );
+                    $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                      .addClass( "indexer-status-icon-offline" );
+                });
+                socket.on( "connect_error", function() {
+                    console.log( "Connection error" );
+                    $( ".indexer-status" ).text( "Indexer offline" );
+                    $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                      .addClass( "indexer-status-icon-offline" );
+                })
+
+                /**
+                * Check when input account last published some modifications.
+                *
+                * For each account name in the array, check when it last
+                * updated its status using the online_status table.
+                * @params db, an array of accounts to check, callback function
+                * @return object containing last seen timestamp for each account
+                */
+                var checkLastSeen = function( db, accountList, cb ) {
+                    cursor = db.collection( 'online_status' ).find({
+                        "accountName": { $in: accountList }
+                    }, {
+                        "accountName": 1,
+                        "lastSeen": 1
+                    });
+                    var entries = {};
+                    if ( cursor !== undefined ) {
+                        cursor.each( function( err, doc ) {
+                            if ( doc !== null ) {
+                                entries[doc.accountName] = doc.lastSeen;
+                            } else {
+                                cursor.close();
+                                db.close();
+                                cb( entries );
+                            }
+                        });
+                    } else {
+                        db.close();
+                        cb( entries );
+                    }
+                }
+
+                /**
+                * Piggyback on poe.trade online status
+                *
+                * Craft a request to poll poe.trade to see all the online items
+                * for a specific account. If page total length is more than 
+                * 750000 char long (empty page length), there are some items and 
+                * the user is therefore online. Takes long to execute though and
+                * feels wrong to use without proper API or rights. 
+                * @params account, league and callback
+                * @return boolean
+                */
+                var isOnline = function( account, league, cb ) {
+                    console.log( "Getting online status for " + account );
+                    $.ajax({
+                        type: "POST",
+                        url: "http://poe.trade/search",
+                        data: { 
+                            league: league,
+                            type: "", 
+                            base: "",
+                            name: "",
+                            dmg_min: "",
+                            dmg_max: "",
+                            aps_min: "",
+                            aps_max: "",
+                            crit_min: "",
+                            crit_max: "",
+                            dps_min: "",
+                            dps_max: "",
+                            edps_min: "",
+                            edps_max: "",
+                            pdps_min: "",
+                            pdps_max: "",
+                            armour_min: "",
+                            armour_max: "",
+                            evasion_min: "",
+                            evasion_max: "",
+                            shield_min: "",
+                            shield_max: "",
+                            block_min: "",
+                            block_max: "",
+                            sockets_min: "",
+                            sockets_max: "",
+                            link_min: "",
+                            link_max: "",
+                            sockets_r: "",
+                            sockets_g: "",
+                            sockets_b: "",
+                            sockets_w: "",
+                            linked_r: "",
+                            linked_g: "",
+                            linked_b: "",
+                            linked_w: "",
+                            rlevel_min: "",
+                            rlevel_max: "",
+                            rstr_min: "",
+                            rstr_max: "",
+                            rdex_min: "",
+                            rdex_max: "",
+                            rint_min: "",
+                            rint_max: "",
+                            mod_name: "",
+                            mod_min: "",
+                            mod_max: "",
+                            group_type: "And",
+                            group_min: "",
+                            group_max: "",
+                            group_count: 1,
+                            q_min: "",
+                            q_max: "",
+                            level_min: "",
+                            level_max: "",
+                            ilvl_min: "",
+                            ilvl_max: "",
+                            rarity: "",
+                            seller: account,
+                            thread: "",
+                            identified: "",
+                            corrupted: "",
+                            online: "x",
+                            buyout: "",
+                            altart: "",
+                            capquality: "",
+                            buyout_min: "",
+                            buyout_max: "",
+                            buyout_currency: "",
+                            crafted: "",
+                            enchanted: ""
+                        },
+                    }).done( function( data, textStatus, jqXHR ) {
+                        cb( jqXHR.responseText.length > 750000 );
+                    });
+                }
 
                 /**
                  * Query DB
@@ -535,6 +717,8 @@
                 function queryDB( db, criteria, league, queryBy, callback ) {
                     var entries = [];
                     console.log( "Querying by " + queryBy );
+                    $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
+                    $( ".search-status" ).text( "Querying by " + queryBy + " ..." );
                     console.log( criteria );
                     var start      = new Date();
                     var rarity     = $( "#rarity" ).val();
@@ -542,10 +726,12 @@
                     var identified = $( "#identified" ).val();
                     var corrupted  = $( "#corrupted" ).val();
                     var level      = $( "#item-level" ).val();
-                    var available  = $( "#verified" ).is( ":checked" );
+                    var available  = $( "#verified" ).val();
                     var cursor;
-                    if ( !available ) {
+                    if ( available === "either" ) {
                         available = [true, false];
+                    } else if ( available === "false" ) {
+                        available = [false];
                     } else {
                         available = [true];
                     }
@@ -557,14 +743,14 @@
                     if ( identified !== "either" ) {
                         var bool   = (identified === "true");
                         identified = [bool];
-                        logger.log( "identified: " + identified, script_name );
+                        console.log( "identified: " + identified );
                     } else {
                         identified = [true, false];
                     }
                     if ( corrupted !== "either" ) {
                         var bool  = (corrupted === "true");
                         corrupted = [bool];
-                        logger.log( "corrupted: " + corrupted, script_name );
+                        console.log( "corrupted: " + corrupted );
                     } else {
                         corrupted = [true, false];
                     }
@@ -573,7 +759,6 @@
                     }
                     if ( rarity === "any" ) {
                         rarity = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-                        console.log( "any" );
                     } else {
                         rarity = [parseInt( rarity)];
                     }
@@ -582,43 +767,43 @@
                     if ( queryBy === "name" ) {
                         if ( criteria === "" ) {
                         // if ( criteria === "" || fragment ) {
-                            console.log( "Fragment" );
+                            // console.log( "Fragment" );
                             // if ( fragment ) {
                             //     type = criteria;
                             // }
                             cursor = db.collection('stashes').find({
-                                "league": league, 
-                                "frameType": { $in: rarity },
                                 "typeLine": type,
+                                "frameType": { $in: rarity },
+                                "league": league,
                                 "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level }
-                            }, fields).limit(queryLimit);
+                            }, fields).limit(dbQueryLimit);
                         } else {
                             cursor = db.collection('stashes').find({
                                 "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
-                                "league": league, 
-                                "frameType": { $in: rarity },
                                 "typeLine": type,
+                                "frameType": { $in: rarity },
+                                "league": league,
                                 "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level }
-                            }, fields).limit(queryLimit);
+                            }, fields).limit(dbQueryLimit);
                         }
                         
                     } else if ( queryBy === "lastCharacterName" ) {
                         cursor = db.collection('stashes').find({
                             "lastCharacterName": criteria,
-                            "league": league, 
+                            "league": league,
                             "frameType": { $in: rarity },
                             "typeLine": type,
                             "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields ).limit(queryLimit);
+                        }, fields ).limit(dbQueryLimit);
                     } else if ( queryBy === "accountName" ) {
                         cursor = db.collection('stashes').find({
                             "accountName": criteria,
@@ -629,9 +814,12 @@
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields).limit(queryLimit);
+                        }, fields).limit(dbQueryLimit);
                     } else if ( queryBy === "mods" ) {
                         cursor = db.collection('stashes').find({
+                            "typeLine": type,
+                            "frameType": { $in: rarity },
+                            "league": league, 
                             $or: [
                                 {"explicitMods": { 
                                     $all: criteria
@@ -644,36 +832,88 @@
                                 }},
                                 {"enchantMods": { 
                                     $all: criteria
-                                }}, 
+                                }}
                             ],
-                            "league": league, 
-                            "frameType": { $in: rarity },
-                            "typeLine": type,
                             "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields).limit(queryLimit);
+                        }, fields).limit(dbQueryLimit);
                     } else {
-                        logger.log( "unrecognised query type " + queryBy, script_name, "e" );
+                        console.log( "unrecognised query type " + queryBy );
                     }
 
+                    console.log( "Gathering results" );
+                    // If we have some results
                     if ( cursor !== undefined ) {
-                        logger.log( "Gathering results", script_name );
                         cursor.each( function( err, doc ) {
+                            // If there are still some entries
                             if ( doc !== null ) {
                                 entries.push( doc );
+                            // otherwise close DB and cursor
                             } else {
-                                logger.log( "Found " + entries.length + " entries (" + 
-                                            ( new Date() - start ) + "ms)", script_name );
+                                $( ".search-status" ).text( "Found " + entries.length + " entries" );
+                                console.log( "Found " + entries.length + " entries (" + 
+                                            ( new Date() - start ) + "ms)" );
                                 cursor.close();
-                                db.close();
-                                callback( entries, averagePrice );
+                                var filterOnline = $( "#online" ).val();
+                                var entriesOnline = [];
+                                var checkedOnline = {};
+                                
+                                // Set online status for each item
+                                $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
+                                // Create array of account names
+                                var accountNames = [];
+                                async.each( entries, function( entry, cbEntry ) {
+                                    if ( accountNames.indexOf( entry.accountName ) === -1 ) {
+                                        accountNames.push( entry.accountName );
+                                        cbEntry();
+                                    } else {
+                                        cbEntry();
+                                    }
+                                }, function( err ) {
+                                    /* Send the list of accounts to check 
+                                       for their availability */
+                                    checkLastSeen( db, accountNames, function( lastSeen ) {
+                                        async.each( entries, function( result, callbackOnline ) {
+                                            /* If the user has a last seen 
+                                               timestamp */
+                                            if ( lastSeen[result.accountName]) {
+                                                result.lastSeen = lastSeen[result.accountName];
+                                                result.online   = 
+                                                    ( Date.now() - result.lastSeen ) 
+                                                    < onlineDelayS * 1000;
+                                            } else {
+                                                result.lastSeen = null;
+                                                result.online   = false;
+                                            }
+                                            if ( filterOnline === "either" ) {
+                                                entriesOnline.push( result );
+                                            } else if ( filterOnline === "true" ) {
+                                                if ( result.online ) {
+                                                    entriesOnline.push( result );
+                                                }
+                                            } else if ( filterOnline === "false" ) {
+                                                if ( !result.online ) {
+                                                    entriesOnline.push( result );
+                                                }
+                                            }
+                                            callbackOnline();
+                                        }, function( err ) {
+                                            if ( err ) {
+                                                console.log( err );
+                                            }
+                                            db.close();
+                                            /* Send array containing filtered 
+                                               entries to averagePrice function */
+                                            callback( entriesOnline, averagePrice );
+                                        });
+                                    });
+                                });
                             }
                         });
                     } else {
-                        logger.log( "No items found with these criterias", 
-                                    script_name, "e" );
+                        console.log( "No items found with these criterias" );
                         db.close();
                     }
                 }
@@ -686,15 +926,14 @@
                  */
                 function connectToDB( callback ) {
                     // Connect to the db
-                    mongo_client.connect( "mongodb://" + address + ":" + port + "/" + database, 
+                    mongo_client.connect( "mongodb://" + dbAddress + ":" + dbPort + "/" + database, 
                                         function( err, db ) {
-                        if ( err !== null ) {
-                            logger.log( err, script_name, "e" );
-                            logger.log( "Make sure MongoDB has been started", 
-                                        script_name, "e" );
+                        if ( err ) {
+                            console.log( err );
+                            console.log( "Make sure MongoDB has been started" );
                             $( "#search .loading" ).fadeOut( 'fast' );
                         }
-                        logger.log( "Connected to MongoDB.", script_name );
+                        console.log( "Connected to MongoDB" );
                         
                         callback( db );
                     });
@@ -710,6 +949,7 @@
                  * @return nothing
                  */
                 function filterValidPrice( items, callback ) {
+                    $( ".search-status" ).text( "Filtering non b/o prices ..." );
                     var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew)/;
                     var results         = [];
                     
@@ -721,7 +961,7 @@
                         } else {
                             price = item.stashName;
                         }
-                        console.log( "Trying to match: " + price );
+                        // console.log( "Trying to match: " + price );
                         var match = priceReg.exec( price );
                         // Check if we have a valid poe price (exemple: ~b/o 2 chaos)
                         if ( match != null && match[1] != "0" ) {
@@ -733,7 +973,7 @@
                             // console.log( "Discarding " + item.name + " " + item.note + " " + item.stashName );
                         }
                     }
-                    logger.log( "Kept " + results.length + " items", script_name );
+                    console.log( "Kept " + results.length + " items" );
                     $( "#kept-items" ).text( results.length );
                     $( "#total-items" ).text( items.length );
                     updateInterface( results );
@@ -767,6 +1007,7 @@
                  * @return nothing 
                  */
                 var averagePrice = function( results ) {
+                    $( ".search-status" ).text( "Computing distribution ..." );
                     var shouldNotify = true;
                     var sum          = 0;
                     var medians      = [];
@@ -791,7 +1032,6 @@
                             modes["" + price + ""] = 1;
                         }
                     }
-                    console.log( sum );
                     // Computes the median
                     var med = median( medians );
                     var avg = sum / results.length;
@@ -859,13 +1099,10 @@
                     $( "#avg-price" ).text( Math.round( avg * 100 ) / 100 + " " + unitAverage );
                     $( "#median-price" ).text( Math.round( med * 100 ) / 100 + " " + unitMedian );
                     $( "#mode-price" ).text( Math.round( mode.value * 100 ) / 100 + " " + unitMode );
-                    logger.log( "Average price is " + Math.round( avg * 100 ) / 100 + " " + unitAverage, 
-                                script_name );
-                    logger.log( "Median price is " + Math.round( med * 100 ) / 100 + " " + unitMedian +
-                                " ( " + Math.round( medProportion * 100 ) / 100 + " % items)", 
-                                script_name );
-                    logger.log( "Mode price is " + Math.round( mode.value * 100 ) / 100 + " " + unitMode, 
-                                script_name );
+                    console.log( "Average price is " + Math.round( avg * 100 ) / 100 + " " + unitAverage );
+                    console.log( "Median price is " + Math.round( med * 100 ) / 100 + " " + unitMedian +
+                                " ( " + Math.round( medProportion * 100 ) / 100 + " % items)" );
+                    console.log( "Mode price is " + Math.round( mode.value * 100 ) / 100 + " " + unitMode );
                     if ( shouldNotify ) {
                         notifier.notify({
                             'title': 'Price based on ' + results.length + " items",
@@ -875,7 +1112,6 @@
                         });
                     }
                     drawChart( chartParam );
-                    // process.exit( 0 );
                 }
 
                 /***
@@ -913,11 +1149,17 @@
                             }
                         }
                     }
-                    
                     return { "amount": secAmount, "unit": units[counter]};
                 }
 
+                /***
+                 * Generate result lists after search
+                 *
+                 * @param search result list
+                 * @return nothing
+                 */
                 function updateInterface( results ) {
+                    $( ".search-status" ).text( "Returning result list ..." );
                     var current = Date.now();
                     $( "#search .loading" ).fadeOut( 'fast' );
                     $( "#results table" ).empty();
@@ -931,9 +1173,10 @@
                     var counter = 0;
                     async.each( results, function( result, callbackUpdate ) {
                         var opacity = 1;
+                        // console.log( result.accountName );
+
                         if ( !result.available ) {
                             opacity = 0.3;
-                            console.log( result );
                         }
                         var color = "rgba(255, 255, 255, " + opacity + ")";
                         switch ( result.frameType ) {
@@ -960,20 +1203,45 @@
                         if ( result.corrupted ) {
                             color = "rgba(255, 0, 0, " + opacity + ")";
                         }
-                        counter++;
                         var time = "";
+                        // If item has been updated, use updated ts
                         if ( result.addedTs !== result.updatedTs ) {
                             var conv = secToNsec( current - result.updatedTs );
                             time = Math.round( conv.amount ) + " " + conv.unit;
+                        // Otherwise use added ts
                         } else {
                             var conv = secToNsec( current - result.addedTs );
                             time = Math.round( conv.amount ) + " " + conv.unit;
                         }
+                        var onlineStatus = result.online ? "online" : "offline";
+                        counter++;
+                        var lastUpdateStatus = false; // Not seen by default
+                        var tooltipLastSeen = "Last seen: never";
+                        var statusColor = "rgb( 100, 100, 100 )";
+                        // If this user has an entry in the db
+                        if ( result.lastSeen ) {
+                            var lastUpdate = secToNsec( Date.now() - result.lastSeen );
+                            // console.log( "time: " + truc.amount + " " + truc.unit );
+                            lastUpdateStatus = ( Date.now() - result.lastSeen ) < onlineDelayS * 1000;
+                            console.log( "lastUpdateStatus: " + (Date.now() - result.lastSeen ));
+                            tooltipLastSeen = "Last seen: " + Math.round( lastUpdate.amount ) + " " + lastUpdate.unit;
+                            var diffSec = ( Date.now() - result.lastSeen ) / 1000;
+                            var maxDuration = 3600; // 1 h
+                            if ( diffSec < maxDuration / 2 ) {
+                                statusColor = "rgb( " + Math.round( diffSec * 255 / ( maxDuration / 2 )) + ", 255, 0 )";
+                            } else if ( diffSec <= maxDuration ) {
+                                statusColor = "rgb( 255, " + Math.round( Math.abs( diffSec - maxDuration ) * 255 / ( maxDuration / 2 ))  + ", 0 )";
+                            } else {
+                                statusColor = "rgb( 255, 0, 0 )";
+                            }
+                            console.log( statusColor );
+                        }
+                        lastUpdateStatus = lastUpdateStatus ? "online" : "offline";
 
                         if ( result.frameType <= 1 || result.frameType > 3 ) {
                             $( "#results table" ).append(
                                 "<tr>" +
-                                    "<td id='" + counter + "' style='color: " + color + 
+                                    "<td class='item-entry' id='" + counter + "' style='color: " + color + 
                                     "'>" + 
                                     result.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
                                     " (" + result.price + 
@@ -981,18 +1249,26 @@
                                     result.currency + ".png'>)" + 
                                     "<span class='ago'>" + time + "</span>" +
                                     "</td>" +
+                                    "<td>" + 
+                                    // "<div class='" + onlineStatus + "'></div>" +
+                                    "<div style='background-color: " + statusColor + "' class='online' title='" + tooltipLastSeen + "'></div>" +
+                                    "</td>" +
                                 "</tr>"
                             );
                         } else {
                             $( "#results table" ).append(
                                 "<tr>" +
-                                    "<td id='" + counter + "' style='color: " + color + 
+                                    "<td class='item-entry' id='" + counter + "' style='color: " + color + 
                                     "'>" + 
                                     result.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
                                     " (" + result.price + 
                                     " <img class='currency-result' src='./media/" + 
                                     result.currency + ".png'>)" +
                                     "<span class='ago'>" + time + "</span>" +
+                                    "</td>" +
+                                    "<td>" + 
+                                    // "<div class='" + onlineStatus + "'></div>" +
+                                    "<div style='background-color: " + statusColor + "' class='online' title='" + tooltipLastSeen + "'></div>" +
                                     "</td>" +
                                 "</tr>"
                             );
@@ -1045,7 +1321,537 @@
                     });
                 }
 
+                /***
+                 * Update the item preview
+                 *
+                 * @param Item
+                 * @return nothing
+                 */
                 function itemPreview( item ) {
+                    if ( !item ) {
+                        return;
+                    }
+                    var itemPrefixes  = [];
+                    var itemSuffixes  = [];
+                    var itemCorrupted = [];
+                    var itemSections = [
+                        "One Handed Axe", "Claw", "Dagger", "One Handed Mace",
+                        "One Handed Sword", "Wand", "Two Handed Axe", "Bow",
+                        "Fishing Rod", "Two Handed Mace", "Staff", 
+                        "Two Handed Sword"
+                    ];
+                    var utilityFlasks = [
+                        "Amethyst Flask", "Aquamarine Flask", "Basalt Flask",
+                        "Bismuth Flask", "Granite Flask", "Jade Flask",
+                        "Quartz Flask", "Quicksilver Flask", "Ruby Flask",
+                        "Sapphire Flask", "Silver Flask", "Stibnite Flask",
+                        "Sulphur Flask", "Topaz Flask"
+                    ];
+                    var boots   = {
+                        "Iron Greaves": "AR",
+                        "Steel Greaves": "AR",
+                        "Plated Greaves": "AR",
+                        "Reinforced Greaves": "AR",
+                        "Antique Greaves": "AR",
+                        "Ancient Greaves": "AR",
+                        "Goliath Greaves": "AR",
+                        "Vaal Greaves": "AR",
+                        "Titan Greaves": "AR",
+                        "Rawhide Boots": "EV",
+                        "Goathide Boots": "EV",
+                        "Deerskin Boots": "EV",
+                        "Nubuck Boots": "EV",
+                        "Eelskin Boots": "EV",
+                        "Sharkskin Boots": "EV",
+                        "Shagreen Boots": "EV",
+                        "Stealth Boots": "EV",
+                        "Slink Boots": "EV",
+                        "Wool Shoes": "ES",
+                        "Velvet Slippers": "ES",
+                        "Silk Slippers": "ES",
+                        "Scholar Boots": "ES",
+                        "Satin Slippers": "ES",
+                        "Samite Slippers": "ES",
+                        "Conjurer Boots": "ES",
+                        "Arcanist Slippers": "ES",
+                        "Sorcerer Boots": "ES",
+                        "Leatherscale Boots": "AR/EV",
+                        "Ironscale Boots": "AR/EV",
+                        "Bronzescale Boots": "AR/EV",
+                        "Steelscale Boots": "AR/EV",
+                        "Serpentscale Boots": "AR/EV",
+                        "Wyrmscale Boots": "AR/EV",
+                        "Hydrascale Boots": "AR/EV",
+                        "Dragonscale Boots": "AR/EV",
+                        "Two-Toned Boots": "AR/EV",
+                        "Chain Boots": "AR/ES",
+                        "Ringmail Boots": "AR/ES",
+                        "Mesh Boots": "AR/ES",
+                        "Riveted Boots": "AR/ES",
+                        "Zealot Boots": "AR/ES",
+                        "Soldier Boots": "AR/ES",
+                        "Legion Boots": "AR/ES",
+                        "Crusader Boots": "AR/ES",
+                        "Two-Toned Boots": "AR/ES",
+                        "Wrapped Boots": "EV/ES",
+                        "Strapped Boots": "EV/ES",
+                        "Clasped Boots": "EV/ES",
+                        "Shackled Boots": "EV/ES",
+                        "Trapper Boots": "EV/ES",
+                        "Ambush Boots": "EV/ES",
+                        "Carnal Boots": "EV/ES",
+                        "Assassin's Boots": "EV/ES",
+                        "Murder Boots": "EV/ES",
+                        "Two-Toned Boots": "EV/ES"
+                    };
+                    var helmets = {
+                        "Iron Hat": "AR",
+                        "Cone Helmet": "AR",
+                        "Barbute Helmet": "AR",
+                        "Close Helmet": "AR",
+                        "Gladiator Helmet": "AR",
+                        "Reaver Helmet": "AR",
+                        "Siege Helmet": "AR",
+                        "Samite Helmet": "AR",
+                        "Ezomyte Burgonet": "AR",
+                        "Royal Burgonet": "AR",
+                        "Eternal Burgonet": "AR",
+                        "Leather Cap": "EV",
+                        "Tricorne": "EV",
+                        "Leather Hood": "EV",
+                        "Wolf Pelt": "EV",
+                        "Hunter Hood": "EV",
+                        "Noble Tricorne": "EV",
+                        "Ursine Pelt": "EV",
+                        "Silken Hood": "EV",
+                        "Sinner Tricorne": "EV",
+                        "Lion Pelt": "EV",
+                        "Vine Circlet": "ES",
+                        "Iron Circlet": "ES",
+                        "Torture Cage": "ES",
+                        "Tribal Circlet": "ES",
+                        "Bone Circlet": "ES",
+                        "Lunaris Circlet": "ES",
+                        "Steel Circlet": "ES",
+                        "Necromancer Circlet": "ES",
+                        "Solaris Circlet": "ES",
+                        "Mind Cage": "ES",
+                        "Hubris Circlet": "ES",
+                        "Battered Helm": "AR/EV",
+                        "Sallet": "AR/EV",
+                        "Visored Sallet": "AR/EV",
+                        "Gilded Sallet": "AR/EV",
+                        "Secutor Helm": "AR/EV",
+                        "Fencer Helm": "AR/EV",
+                        "Lacquered Helmet": "AR/EV",
+                        "Fluted Bascinet": "AR/EV",
+                        "Pig-Faced Bascinet": "AR/EV",
+                        "Nightmare Bascinet": "AR/EV",
+                        "Rusted Coif": "AR/ES",
+                        "Soldier Helmet": "AR/ES",
+                        "Great Helmet": "AR/ES",
+                        "Crusader Helmet": "AR/ES",
+                        "Aventail Helmet": "AR/ES",
+                        "Zealot Helmet": "AR/ES",
+                        "Great Crown": "AR/ES",
+                        "Magistrate Crown": "AR/ES",
+                        "Prophet Crown": "AR/ES",
+                        "Praetor Crown": "AR/ES",
+                        "Bone Helmet": "AR/ES",
+                        "Scare Mask": "EV/ES",
+                        "Plague Mask": "EV/ES",
+                        "Iron Mask": "EV/ES",
+                        "Festival Mask": "EV/ES",
+                        "Golden Mask": "EV/ES",
+                        "Raven Mask": "EV/ES",
+                        "Callous Mask": "EV/ES",
+                        "Regicide Mask": "EV/ES",
+                        "Harlequin Mask": "EV/ES",
+                        "Vaal Mask": "EV/ES",
+                        "Deicide Mask": "EV/ES"
+                    };
+                    var shields = { 
+                        "Alder Spiked Shield": "EV/ES",
+                        "Alloyed Spiked Shield": "EV/ES",
+                        "Ancient Spirit Shield": "ES",
+                        "Angelic Kite Shield": "AR/ES",
+                        "Archon Kite Shield": "AR/ES",
+                        "Baroque Round Shield": "AR/EV",
+                        "Battle Buckler": "EV",
+                        "Bone Spirit Shield": "ES",
+                        "Branded Kite Shield": "AR/ES",
+                        "Brass Spirit Shield": "ES",
+                        "Bronze Tower Shield": "AR",
+                        "Buckskin Tower Shield": "AR",
+                        "Burnished Spiked Shield": "EV/ES",
+                        "Cardinal Round Shield": "AR/EV",
+                        "Cedar Tower Shield": "AR",
+                        "Ceremonial Kite Shield": "AR/ES",
+                        "Champion Kite Shield": "AR/ES",
+                        "Chiming Spirit Shield": "ES",
+                        "Colossal Tower Shield": "AR",
+                        "Compound Spiked Shield": "EV/ES",
+                        "Copper Tower Shield": "AR",
+                        "Corroded Tower Shield": "AR",
+                        "Corrugated Buckler": "EV",
+                        "Crested Tower Shield": "AR",
+                        "Crimson Round Shield": "AR/EV",
+                        "Crusader Buckler": "EV",
+                        "Driftwood Spiked Shield": "EV/ES",
+                        "Ebony Tower Shield": "AR",
+                        "Elegant Round Shield": "AR/EV",
+                        "Enameled Buckler": "EV",
+                        "Etched Kite Shield": "AR/ES",
+                        "Ezomyte Spiked Shield": "EV/ES",
+                        "Ezomyte Tower Shield": "AR",
+                        "Fir Round Shield": "AR/EV",
+                        "Fossilised Spirit Shield": "ES",
+                        "Gilded Buckler": "EV",
+                        "Girded Tower Shield": "AR",
+                        "Goathide Buckler": "EV",
+                        "Golden Buckler": "EV",
+                        "Hammered Buckler": "EV",
+                        "Harmonic Spirit Shield": "ES",
+                        "Imperial Buckler": "EV",
+                        "Ironwood Buckler": "EV",
+                        "Ivory Spirit Shield": "ES",
+                        "Jingling Spirit Shield": "ES",
+                        "Lacewood Spirit Shield": "ES",
+                        "Lacquered Buckler": "EV",
+                        "Laminated Kite Shield": "AR/ES",
+                        "Layered Kite Shield": "AR/ES",
+                        "Linden Kite Shield": "AR/ES",
+                        "Mahogany Tower Shield": "AR",
+                        "Maple Round Shield": "AR/EV",
+                        "Mirrored Spiked Shield": "EV/ES",
+                        "Mosaic Kite Shield": "AR/ES",
+                        "Oak Buckler": "EV",
+                        "Ornate Spiked Shield": "EV/ES",
+                        "Painted Buckler": "EV",
+                        "Painted Tower Shield": "AR",
+                        "Pine Buckler": "EV",
+                        "Pinnacle Tower Shield": "AR",
+                        "Plank Kite Shield": "AR/ES",
+                        "Polished Spiked Shield": "EV/ES",
+                        "Rawhide Tower Shield": "AR",
+                        "Redwood Spiked Shield": "EV/ES",
+                        "Reinforced Kite Shield": "AR/ES",
+                        "Reinforced Tower Shield": "AR",
+                        "Rotted Round Shield": "AR/EV",
+                        "Scarlet Round Shield": "AR/EV",
+                        "Shagreen Tower Shield": "AR",
+                        "Sovereign Spiked Shield": "EV/ES",
+                        "Spiked Bundle": "EV/ES",
+                        "Spiked Round Shield": "AR/EV",
+                        "Spiny Round Shield": "AR/EV",
+                        "Splendid Round Shield": "AR/EV",
+                        "Splintered Tower Shield": "AR",
+                        "Steel Kite Shield": "AR/ES",
+                        "Studded Round Shield": "AR/EV",
+                        "Supreme Spiked Shield": "EV/ES",
+                        "Tarnished Spirit Shield": "ES",
+                        "Teak Round Shield": "AR/EV",
+                        "Thorium Spirit Shield": "ES",
+                        "Titanium Spirit Shield": "ES",
+                        "Twig Spirit Shield": "ES",
+                        "Vaal Buckler": "EV",
+                        "Vaal Spirit Shield": "ES",
+                        "Walnut Spirit Shield": "ES",
+                        "War Buckler": "EV",
+                        "Yew Spirit Shield": "ES",
+                    };
+                    var gloves  = {
+                        "Iron Gauntlets": "AR",
+                        "Plated Gauntlets": "AR",
+                        "Bronze Gauntlets": "AR",
+                        "Steel Gauntlets": "AR",
+                        "Antique Gauntlets": "AR",
+                        "Ancient Gauntlets": "AR",
+                        "Goliath Gauntlets": "AR",
+                        "Vaal Gauntlets": "AR",
+                        "Titan Gauntlets": "AR",
+                        "Spiked Gloves": "AR",
+                        "Rawhide Gloves": "EV",
+                        "Goathide Gloves": "EV",
+                        "Deerskin Gloves": "EV",
+                        "Nubuck Gloves": "EV",
+                        "Eelskin Gloves": "EV",
+                        "Sharkskin Gloves": "EV",
+                        "Shagreen Gloves": "EV",
+                        "Stealth Gloves": "EV",
+                        "Slink Gloves": "EV",
+                        "Gripped Gloves": "EV",
+                        "Wool Gloves": "ES",
+                        "Velvet Gloves": "ES",
+                        "Silk Gloves": "ES",
+                        "Embroidered Gloves": "ES",
+                        "Satin Gloves": "ES",
+                        "Samite Gloves": "ES",
+                        "Conjurer Gloves": "ES",
+                        "Arcanist Gloves": "ES",
+                        "Sorcerer Gloves": "ES",
+                        "Fingerless Silk Gloves": "ES",
+                        "Fishscale Gauntlets": "AR/EV",
+                        "Ironscale Gauntlets": "AR/EV",
+                        "Bronzescale Gauntlets": "AR/EV",
+                        "Steelscale Gauntlets": "AR/EV",
+                        "Serpentscale Gauntlets": "AR/EV",
+                        "Wyrmscale Gauntlets": "AR/EV",
+                        "Hydrascale Gauntlets": "AR/EV",
+                        "Dragonscale Gauntlets": "AR/EV",
+                        "Chain Gloves": "AR/ES",
+                        "Ringmail Gloves": "AR/ES",
+                        "Mesh Gloves": "AR/ES",
+                        "Riveted Gloves": "AR/ES",
+                        "Zealot Gloves": "AR/ES",
+                        "Soldier Gloves": "AR/ES",
+                        "Legion Gloves": "AR/ES",
+                        "Crusader Gloves": "AR/ES",
+                        "Wrapped Mitts": "EV/ES",
+                        "Strapped Mitts": "EV/ES",
+                        "Clasped Mitts": "EV/ES",
+                        "Trapper Mitts": "EV/ES",
+                        "Ambush Mitts": "EV/ES",
+                        "Carnal Mitts": "EV/ES",
+                        "Assassin's Mitts": "EV/ES",
+                        "Murder Mitts": "EV/ES"
+                    };
+                    var armors  = {
+                        "Plate Vest": "AR",
+                        "Chestplate": "AR",
+                        "Copper Plate": "AR",
+                        "War Plate": "AR",
+                        "Full Plate": "AR",
+                        "Arena Plate": "AR",
+                        "Lordly Plate": "AR",
+                        "Bronze Plate": "AR",
+                        "Battle Plate": "AR",
+                        "Sun Plate": "AR",
+                        "Colosseum Plate": "AR",
+                        "Majestic Plate": "AR",
+                        "Golden Plate": "AR",
+                        "Crusader Plate": "AR",
+                        "Astral Plate": "AR",
+                        "Gladiator Plate": "AR",
+                        "Glorious Plate": "AR",
+                        "Shabby Jerkin": "EV",
+                        "Strapped Leather": "EV",
+                        "Buckskin Tunic": "EV",
+                        "Wild Leather": "EV",
+                        "Full Leather": "EV",
+                        "Sun Leather": "EV",
+                        "Thief's Garb": "EV",
+                        "Eelskin Tunic": "EV",
+                        "Frontier Leather": "EV",
+                        "Glorious Leather": "EV",
+                        "Coronal Leather": "EV",
+                        "Cutthroat's Garb": "EV",
+                        "Sharkskin Tunic": "EV",
+                        "Destiny Leather": "EV",
+                        "Exquisite Leather": "EV",
+                        "Zodiac Leather": "EV",
+                        "Assassin's Garb": "EV",
+                        "Simple Robe": "ES",
+                        "Silken Vest": "ES",
+                        "Scholar's Robe": "ES",
+                        "Silken Garb": "ES",
+                        "Mage's Vestment": "ES",
+                        "Silk Robe": "ES",
+                        "Cabalist Regalia": "ES",
+                        "Sage's Robe": "ES",
+                        "Silken Wrap": "ES",
+                        "Conjurer's Vestment": "ES",
+                        "Spidersilk Robe": "ES",
+                        "Destroyer Regalia": "ES",
+                        "Savant's Robe": "ES",
+                        "Necromancer Silks": "ES",
+                        "Occultist's Vestment": "ES",
+                        "Widowsilk Robe": "ES",
+                        "Vaal Regalia": "ES",
+                        "Scale Vest": "AR/EV",
+                        "Light Brigandine": "AR/EV",
+                        "Scale Doublet": "AR/EV",
+                        "Infantry Brigandine": "AR/EV",
+                        "Full Scale Armour": "AR/EV",
+                        "Soldier's Brigandine": "AR/EV",
+                        "Field Lamellar": "AR/EV",
+                        "Wyrmscale Doublet": "AR/EV",
+                        "Hussar Brigandine": "AR/EV",
+                        "Full Wyrmscale": "AR/EV",
+                        "Commander's Brigandine": "AR/EV",
+                        "Battle Lamellar": "AR/EV",
+                        "Dragonscale Doublet": "AR/EV",
+                        "Desert Brigandine": "AR/EV",
+                        "Full Dragonscale": "AR/EV",
+                        "General's Brigandine": "AR/EV",
+                        "Triumphant Lamellar": "AR/EV",
+                        "Chainmail Vest": "AR/ES",
+                        "Chainmail Tunic": "AR/ES",
+                        "Ringmail Coat": "AR/ES",
+                        "Chainmail Doublet": "AR/ES",
+                        "Full Ringmail": "AR/ES",
+                        "Full Chainmail": "AR/ES",
+                        "Holy Chainmail": "AR/ES",
+                        "Latticed Ringmail": "AR/ES",
+                        "Crusader Chainmail": "AR/ES",
+                        "Ornate Ringmail": "AR/ES",
+                        "Chain Hauberk": "AR/ES",
+                        "Devout Chainmail": "AR/ES",
+                        "Loricated Ringmail": "AR/ES",
+                        "Conquest Chainmail": "AR/ES",
+                        "Elegant Ringmail": "AR/ES",
+                        "Saint's Hauberk": "AR/ES",
+                        "Saintly Chainmail": "AR/ES",
+                        "Padded Vest": "EV/ES",
+                        "Oiled Vest": "EV/ES",
+                        "Padded Jacket": "EV/ES",
+                        "Oiled Coat": "EV/ES",
+                        "Scarlet Raiment": "EV/ES",
+                        "Waxed Garb": "EV/ES",
+                        "Bone Armour": "EV/ES",
+                        "Quilted Jacket": "EV/ES",
+                        "Sleek Coat": "EV/ES",
+                        "Crimson Raiment": "EV/ES",
+                        "Lacquered Garb": "EV/ES",
+                        "Crypt Armour": "EV/ES",
+                        "Sentinel Jacket": "EV/ES",
+                        "Varnished Coat": "EV/ES",
+                        "Blood Raiment": "EV/ES",
+                        "Sadist Garb": "EV/ES",
+                        "Carnal Armour": "EV/ES",
+                        "Sacrificial Garb": "AR/EV/ES"
+                    };
+
+                    console.log( "Item type: " + item.typeLine );
+
+                   /* Setup item prefix, suffix and corrupt affixes */
+                    // Scepter
+                    if ( item.typeLine.match( /(?!Superior|<<).+ (?:Sceptre|Fetish|Sekhem)/ )) {
+                        console.log( "Scepter" );
+                        itemPrefixes  = affixes["Scepter"].prefix;
+                        itemSuffixes  = affixes["Scepter"].suffix;
+                        itemCorrupted = affixes["Scepter"].corrupted;
+                    // Shields
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Shield|Buckler)/ )) {
+                        var type = shields[item.typeLine];
+                        console.log( "Shield - " + type );
+                        itemPrefixes  = affixes["Shield"][type].prefix;
+                        itemSuffixes  = affixes["Shield"][type].suffix;
+                        itemCorrupted = affixes["Shield"][type].corrupted;
+                    // Helmets
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Helmet|Helm|Circlet|Mask|BurgonetBascinet|Sallet|Crown|Wreath|Hood|Hat|Cap|Pelt|Cage|Tricorne|Coif)/ )) {
+                        var type = helmets[item.typeLine];
+                        console.log( "Helmet - " + type );
+                        itemPrefixes  = affixes["Helmet"][type].prefix;
+                        itemSuffixes  = affixes["Helmet"][type].suffix;
+                        itemCorrupted = affixes["Helmet"][type].corrupted;
+                    // Boots
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Boots|Greaves|Slippers|Caligae|Shoes)/ )) {
+                        var type = boots[item.typeLine];
+                        console.log( "Boots - " + type );
+                        itemPrefixes  = affixes["Boots"][type].prefix;
+                        itemSuffixes  = affixes["Boots"][type].suffix;
+                        itemCorrupted = affixes["Boots"][type].corrupted;
+                    // Gloves
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Mitts|Gauntlets|Gloves|Bracers)/ )) {
+                        var type = gloves[item.typeLine];
+                        console.log( "Gloves - " + type );
+                        itemPrefixes  = affixes["Gloves"][type].prefix;
+                        itemSuffixes  = affixes["Gloves"][type].suffix;
+                        itemCorrupted = affixes["Gloves"][type].corrupted;
+                    // Armor
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Plate|Garb|Lamellar|Raiment|Armour|Tunic|Regalia|Hauberk|Doublet|Vest|Chestplate|Brigandine|Vestment|Chainmail|Leather|Ringmail|Dragonscale|Wyrmscale|Mantle|Silks|Coat|Jacket|Robe|Jerkin|Wrap)/ )) {
+                        var type = armors[item.typeLine];
+                        console.log( "Armor - " + type );
+                        itemPrefixes  = affixes["Armor"][type].prefix;
+                        itemSuffixes  = affixes["Armor"][type].suffix;
+                        itemCorrupted = affixes["Armor"][type].corrupted;
+                    // Amulets
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ Amulet/ )) {
+                        console.log( "Amulet" );
+                        itemPrefixes  = affixes["Amulet"].prefix;
+                        itemSuffixes  = affixes["Amulet"].suffix;
+                        itemCorrupted = affixes["Amulet"].corrupted;
+                    // Belts
+                    } else if ( item.typeLine.match( /^(?!Superior|<<).+ (?:Belt|Obi|Sash)/ )) {
+                        console.log( "Belt" );
+                        itemPrefixes  = affixes["Belt"].prefix;
+                        itemSuffixes  = affixes["Belt"].suffix;
+                        itemCorrupted = affixes["Belt"].corrupted;
+                    // Quivers
+                    } else if ( itemTypes["quiver"].types.indexOf( item.typeLine ) !== -1 ) {
+                        console.log( "Quiver" );
+                        itemPrefixes  = affixes["Quiver"].prefix;
+                        itemSuffixes  = affixes["Quiver"].suffix;
+                        itemCorrupted = affixes["Quiver"].corrupted;
+                    // Rings
+                    } else if ( item.typeLine.match( new RegExp( itemTypes["ring"].types.join( "|" )))) {
+                        console.log( "Ring" );
+                        itemPrefixes  = affixes["Ring"].prefix;
+                        itemSuffixes  = affixes["Ring"].suffix;
+                        itemCorrupted = affixes["Ring"].corrupted;
+                    // Life flasks
+                    } else if ( item.typeLine.match( /Life Flask/ )) {
+                        console.log( "Life Flask" );
+                        itemPrefixes  = affixes["Life"].prefix;
+                        itemSuffixes  = affixes["Life"].suffix;
+                        itemCorrupted = affixes["Life"].corrupted;
+                    // Mana flasks
+                    } else if ( item.typeLine.match( /Mana Flask/ )) {
+                        console.log( "Mana Flask" );
+                        itemPrefixes  = affixes["Mana"].prefix;
+                        itemSuffixes  = affixes["Mana"].suffix;
+                        itemCorrupted = affixes["Mana"].corrupted;
+                    // Hybrid flasks
+                    } else if ( item.typeLine.match( /Hybrid Flask/ )) {
+                        console.log( "Hybrid Flask" );
+                        itemPrefixes  = affixes["Hybrid"].prefix;
+                        itemSuffixes  = affixes["Hybrid"].suffix;
+                        itemCorrupted = affixes["Hybrid"].corrupted;
+                    // Utility flasks
+                    } else if ( utilityFlasks.indexOf( item.typeLine ) !== -1 ) {
+                        console.log( "Utility Flask" );
+                        itemPrefixes  = affixes["Utility"].prefix;
+                        itemSuffixes  = affixes["Utility"].suffix;
+                        itemCorrupted = affixes["Utility"].corrupted;
+                    // Critical Utility flasks
+                    } else if ( item.typeLine.indexOf( "Diamond Flask" ) !== -1 ) {
+                        console.log( "Diamond Flask" );
+                        itemPrefixes  = affixes["Utility"].prefix;
+                        itemSuffixes  = affixes["Utility"].suffix;
+                        itemCorrupted = affixes["Utility"].corrupted;
+                    // Cobalt
+                    } else if ( item.typeLine.indexOf( "Cobalt Jewel" ) !== -1 ) {
+                        console.log( "Cobalt Jewel" );
+                        itemPrefixes  = affixes["Cobalt"].prefix;
+                        itemSuffixes  = affixes["Cobalt"].suffix;
+                        itemCorrupted = affixes["Cobalt"].corrupted;
+                    // Crimson
+                    } else if ( item.typeLine.indexOf( "Crimson Jewel" ) !== -1 ) {
+                        console.log( "Crimson Jewel" );
+                        itemPrefixes  = affixes["Crimson"].prefix;
+                        itemSuffixes  = affixes["Crimson"].suffix;
+                        itemCorrupted = affixes["Crimson"].corrupted;
+                    // Veridian
+                    } else if ( item.typeLine.indexOf( "Veridian Jewel" ) !== -1 ) {
+                        console.log( "Veridian Jewel" );
+                        itemPrefixes  = affixes["Veridian"].prefix;
+                        itemSuffixes  = affixes["Veridian"].suffix;
+                        itemCorrupted = affixes["Veridian"].corrupted;
+                    // Prismatic
+                    } else if ( item.typeLine.indexOf( "Prismatic Jewel" ) !== -1 ) {
+                        console.log( "Prismatic Jewel" );
+                        itemPrefixes  = affixes["Prismatic"].prefix;
+                        itemSuffixes  = affixes["Prismatic"].suffix;
+                        itemCorrupted = affixes["Prismatic"].corrupted;
+                    } else if ( item.properties && 
+                                itemSections.indexOf( item.properties[0].name ) !== -1 ) {
+                        console.log( item.properties[0].name );
+                        itemPrefixes  = affixes[item.properties[0].name].prefix;
+                        itemSuffixes  = affixes[item.properties[0].name].suffix;
+                        itemCorrupted = affixes[item.properties[0].name].corrupted;
+                    }
+                    
                     $( "#price" ).empty();
                     $( "#price" ).html(
                         item.price + "<img src='./media/" + item.currency + ".png'>"
@@ -1114,8 +1920,9 @@
                          item.frameType !== 5 && item.frameType !== 8 && 
                          item.frameType !== 0 && item.frameType !== 6 ) {
                         $( "#item-type-prev" ).text( item.typeLine );
-                        console.log( item.frameType );
+                        // console.log( item.frameType );
                     }
+                    // Item enchant mods
                     $( "#item-enchant-mods" ).empty();
                     if ( item.enchantMods ) {
                         for ( var i = 0 ; i < item.enchantMods.length; i++ ) {
@@ -1131,7 +1938,7 @@
                     } else {
                         $( "#item-enchant-mods" ).hide();
                     }
-                    
+                    // Item properties
                     $( "#item-properties" ).empty();
                     if ( item.properties ) {
                         for ( var i = 0 ; i < item.properties.length; i++ ) {
@@ -1158,46 +1965,197 @@
                             }
                         }
                     }
+                    // Implicit mods
                     $( "#item-implicit-mods" ).empty();
                     if ( item.implicitMods ) {
-                        for ( var i = 0 ; i < item.implicitMods.length; i++ ) {
-                            var mod = item.implicitMods[i];
-                            $( "#item-implicit-mods" ).append(
-                                "<span>" + mod + "</span>"
-                            );
-                            if ( i !== item.implicitMods.length - 1 ) {
-                                $( "#item-implicit-mods" ).append( "<br>" );
+                        console.log( item.implicitMods );
+                        $( "#item-implicit-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.implicitMods, function( mod, cbMod ) {
+                            var reg = /([0-9]+)/g;
+                            var match = mod.replace( /([0-9]+)/g, "#" );
+                            // console.log( match );
+                            var extract = reg.exec( mod );
+                            var val = extract[1];
+                            var affix   = "";
+                            var affRank = 0;
+                            var counter = 0;
+                            /* For implicit mods, check if the affix is a 
+                               corrupted one */ 
+                            if ( itemCorrupted[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                async.each( itemCorrupted[match], function( aff, cbAff ) {
+                                    counter++;
+                                    if ( val >= aff.min && val <= aff.max ) {
+                                        affRank = counter;
+                                    }
+                                    cbAff();
+                                }, function( err ) {
+                                    var val = Math.round( affRank 
+                                              * 100 / itemCorrupted[match].length + 100 );
+                                    affix = "<span class='affix'><span class='affix-type'>C</span>[" + 
+                                            "<span style='color: rgb(0, " + 
+                                            val + ", 0 )'>" + affRank + 
+                                            "</span>/<span class='mod-max'>" +
+                                            itemCorrupted[match].length + 
+                                            "</span>]</span>";
+                                })
                             }
-                        }
+                            $( "#item-implicit-mods table" ).append(
+                                "<tr><td>" +
+                                mod + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function ( err ) {
+                            $( "#item-implicit-mods" ).append(
+                                "</table>"
+                            );
+                        });
                     }
+
+                    // Explicit mods
                     $( "#item-explicit-mods" ).empty();
                     if ( item.explicitMods ) {
-                        for ( var i = 0 ; i < item.explicitMods.length; i++ ) {
-                            var mod = item.explicitMods[i];
-                            $( "#item-explicit-mods" ).append(
-                                "<span>" + mod + "</span>"
-                            );
-                            if ( i !== item.explicitMods.length - 1 ) {
-                                $( "#item-explicit-mods" ).append( "<br>" );
+                        $( "#item-explicit-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.explicitMods, function( mod, cbMod ) {
+                            var reg = /([0-9]+)/g;
+                            var match = mod.replace( /([0-9]+)/g, "#" );
+                            var affix   = "";
+                            if (( item.frameType ===  1 || item.frameType === 2 )) {
+                                affix   = "<span class='affix'>Legacy?</span>";
                             }
-                        }
+                            // console.log( match );
+                            var extract = reg.exec( mod );
+                            if ( extract && extract.length > 1 ) {
+                                var val = extract[1];
+                                var affRank = 0;
+                                var counter = 0;
+                                /* For explicit mods, check if the affix
+                                    is prefix or suffix */
+                                if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemPrefixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemPrefixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemPrefixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemSuffixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemSuffixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemSuffixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                }
+                            } else {
+                                console.log( mod );
+                            }
+                            $( "#item-explicit-mods table" ).append(
+                                "<tr><td>" +
+                                mod + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function( err ) {
+                            $( "#item-explicit-mods" ).append(
+                                "</table>"
+                            );
+                        });
                     }
                     // Crafted Mods
                     $( "#item-crafted-mods" ).empty();
                     if ( item.craftedMods ) {
-                        for ( var i = 0 ; i < item.craftedMods.length; i++ ) {
-                            var mod = item.craftedMods[i];
-                            $( "#item-crafted-mods" ).append(
-                                "<span>" + mod + "</span>"
-                            );
-                            if ( i !== item.craftedMods.length - 1 ) {
-                                $( "#item-crafted-mods" ).append( "<br>" );
+                        $( "#item-crafted-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.craftedMods, function( mod, cbMod ) {
+                            var reg = /([0-9]+)/g;
+                            var match = mod.replace( /([0-9]+)/g, "#" );
+                            // console.log( match );
+                            var extract = reg.exec( mod );
+                            var val = extract[1];
+                            var affix   = "";
+                            if (( item.frameType ===  1 || item.frameType === 2 )) {
+                                affix   = "<span class='affix'>Legacy?</span>";
                             }
-                        }
+                            var affRank = 0;
+                            var counter = 0;
+                            /* For crafted mods, check if the affix
+                            is prefix or suffix */
+                            if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                async.each( itemPrefixes[match], function( aff, cbAff ) {
+                                    counter++;
+                                    if ( val >= aff.min && val <= aff.max ) {
+                                        affRank = counter;
+                                    }
+                                    cbAff();
+                                }, function( err ) {
+                                    var val = Math.round( affRank 
+                                                * 100 / itemPrefixes[match].length + 100 );
+                                    affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
+                                            "<span style='color: rgb(0, " + 
+                                            val + ", 0 )'>" + affRank + 
+                                            "</span>/<span class='mod-max'>" +
+                                            itemPrefixes[match].length + 
+                                            "</span>]</span>";
+                                })
+                            } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                async.each( itemSuffixes[match], function( aff, cbAff ) {
+                                    counter++;
+                                    if ( val >= aff.min && val <= aff.max ) {
+                                        affRank = counter;
+                                    }
+                                    cbAff();
+                                }, function( err ) {
+                                    var val = Math.round( affRank 
+                                                * 100 / itemSuffixes[match].length + 100 );
+                                    affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
+                                            "<span style='color: rgb(0, " + 
+                                            val + ", 0 )'>" + affRank + 
+                                            "</span>/<span class='mod-max'>" +
+                                            itemSuffixes[match].length + 
+                                            "</span>]</span>";
+                                })
+                            }
+                            $( "#item-crafted-mods table" ).append(
+                                "<tr><td>" +
+                                mod + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function( err ) {
+                            $( "#item-crafted-mods" ).append(
+                                "</table>"
+                            );
+                        });
                         $( "#item-crafted-mods" ).show();
                     } else {
                         $( "#item-crafted-mods" ).hide();
                     }
+                    
                     // Corrupted
                     if ( item.corrupted ) {
                         $( "#item-corrupted" ).show();
@@ -1285,7 +2243,7 @@
                 }
 
                 function bindPreviewOnClick() {
-                    $( "#results table td" ).mouseenter( function() {
+                    $( "#results table td.item-entry" ).mouseenter( function() {
                         var item = $( this ).data().dataItem;
                         // console.log( item );
                         itemPreview( item );
@@ -1294,7 +2252,7 @@
 
                 function bindContactOnClick() {
                     // When clicking on item in results
-                    $( "#results table td" ).click( function() {
+                    $( "#results table td.item-entry" ).click( function() {
                         var item = $( this ).data().dataItem;
                         var str = "@" + item.lastCharacterName + " Hi " + 
                             item.lastCharacterName + ", I would like to buy your '" + 
@@ -1347,6 +2305,10 @@
                             }
                         }
                     });
+                    $( ".search-status" ).text( "Idle" );
+                    setTimeout( function() {
+                        $( ".search-status" ).removeClass( "search-status" ).addClass( "search-status-hidden" );
+                    }, 500 );
                 }
 
                 // GUI binding
@@ -1368,10 +2330,19 @@
                     var search = function() {
                         var text  = $( "textarea" ).val();
                         var lines = text.split( "\n" );
+                        var entries = [];
                         var searchBy = $( "#search-by" ).val();
+                        $( "#auto-complete" ).fadeOut( "fast" );
+                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                        console.log( lines );
                         
-                        // if ( searchBy === "mods" ) {
-                        //     for ( var i = 0 ; i < lines.length ; i++ ) {
+                        if ( searchBy === "mods" ) {
+                             for ( var i = 0 ; i < lines.length ; i++ ) {
+                                 console.log( lines[i] );
+                                if ( lines[i].length !== 0 ) {
+                                    console.log( lines[i] );
+                                    entries.push( lines[i]);
+                                }
                         //         console.log( lines[i] );
                         //         var splitted = lines[i].split( " " );
                         //         for ( var j = 0 ; j < splitted.length ; j++ ) {
@@ -1391,9 +2362,9 @@
                         //         }
                         //         var str = splitted.join( " " );
                         //         console.log( str );
-                        //         lines[i] = new RegExp( str );
-                        //     }
-                        // }
+                        //         lines[i] = new RegExp( lines[i] );
+                             }
+                         }
                         $( "#search .loading" ).fadeIn( 'fast' );
                         if ( searchBy === "name" ) {
                             connectToDB( function( db ) {
@@ -1409,7 +2380,7 @@
                             });
                         } else {
                             connectToDB( function( db ) {
-                                queryDB( db, lines, league, searchBy, filterValidPrice );
+                                queryDB( db, entries, league, searchBy, filterValidPrice );
                             });
                         }
                     }
@@ -1431,6 +2402,119 @@
                         $( "#item-subtype" ).append(
                             "<option value='" + types[i] + "'>" + types[i] + " </option>"
                         );
+                    }
+                })
+
+                // When typing in textarea
+                $( "textarea" ).keydown( function( event ) {
+                    // If press on ESC
+                    if ( event.keyCode === 27 ) {
+                        $( "#auto-complete" ).fadeOut( "fast" );
+                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                    // Ignore ctrl, shift, alt, meta and enter
+                    } else if ( !event.ctrlKey && !event.altKey && 
+                                !event.shiftKey && !event.metaKey && 
+                                event.keyCode !== 13 ) {
+                        // get current text
+                        var currentText    = $( "textarea" ).val();
+                        // Get cursor position in text
+                        var cursorPosition = $( "textarea" ).prop( "selectionStart" );
+                        console.log( cursorPosition );
+                        // Split text by line break
+                        var splitted = currentText.split( "\n" );
+                        console.log( splitted );
+                        var currentLine  = "";
+                        var currentIndex = 0;
+                        var lineIndex    = 0;
+                        // Find content of current line
+                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                            if ( cursorPosition >= currentIndex && 
+                                 cursorPosition <= ( currentIndex + splitted[i].length )) {
+                                currentLine = splitted[i];
+                                lineIndex = i;
+                                break;
+                            } else {
+                                currentIndex += splitted[i].length;
+                            }
+                        }
+                        if ( currentLine === "" ) {
+                            currentLine = splitted[splitted.length - 1];
+                            lineIndex   = splitted.length - 1;
+                        }
+                        // console.log( "Current line: " + currentLine );
+                        // console.log( currentText.length );
+                        var propositions = [];
+                        if (( currentLine.length + 1 ) > completionMinChar ) {
+                            if ( $( "#search-by" ).val() === "name" ) {
+                                async.each( uniques.uniques, function( unique, cb ) {
+                                    if ( unique.includes( currentLine )) {
+                                        propositions.push( "<span>" + unique + "</span>" );
+                                    }
+                                    cb();
+                                }, function( err ) {
+                                    if ( propositions.length === 0 ) {
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    } else {
+                                        $( "#auto-complete" ).html( propositions.join( "<br><br>" ));
+                                        $( "#auto-complete" ).fadeIn( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeIn( "fast" );
+                                        $( "#auto-complete" ).css({ 
+                                            "left": (180 + currentLine.length * 6) + "px",
+                                            "top": (440 + lineIndex * 16) + "px" 
+                                        });
+                                    }
+                                    // When clicking on auto-complete entry
+                                    $( "#auto-complete span" ).click( function() {
+                                        var str = ""; 
+                                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                                            if ( i !== lineIndex ) {
+                                                str += splitted[i] + "\n";
+                                            } else {
+                                                str += $( this ).text() + "\n";
+                                            }
+                                        }
+                                        $( "textarea" ).val( str );
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    });
+                                })
+                            } else if ( $( "#search-by" ).val() === "mods" ) {
+                                async.each( uniques["implicit-mods"], function( implicit, cb ) {
+                                    if ( implicit.includes( currentLine )) {
+                                        propositions.push( "<span>" + implicit + "</span>" );
+                                    }
+                                    cb();
+                                }, function( err ) {
+                                    if ( propositions.length === 0 ) {
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    } else {
+                                        $( "#auto-complete" ).html( propositions.join( "<br><br>" ));
+                                        $( "#auto-complete" ).fadeIn( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeIn( "fast" );
+                                        $( "#auto-complete" ).css({ 
+                                            "left": (180 + currentLine.length * 6) + "px",
+                                            "top": (440 + lineIndex * 16) + "px" 
+                                        });
+                                    }
+                                    // When clicking on auto-complete entry
+                                    $( "#auto-complete span" ).click( function() {
+                                        var str = ""; 
+                                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                                            if ( i !== lineIndex ) {
+                                                str += splitted[i] + "\n";
+                                            } else {
+                                                str += $( this ).text() + "\n";
+                                            }
+                                        }
+                                        $( "textarea" ).val( str );
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    });
+                                })
+                            }
+                        }
                     }
                 })
 
