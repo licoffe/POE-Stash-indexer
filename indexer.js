@@ -33,7 +33,7 @@ io.on( 'connection', function( socket ) {
 /**
  * Return the next chunk ID to download from last downloaded chunk file
  *
- * @params Mongo database handler
+ * @param Mongo database handler
  * @return Next chunk ID
  */
 var lastDownloadedChunk = function( db, callback ) {
@@ -59,7 +59,7 @@ var lastDownloadedChunk = function( db, callback ) {
 /**
  * Return items associated to input stash ID
  *
- * @params Mongo database handler, stashID
+ * @param Mongo database handler, stashID
  * @return items included
  */
 var getStashByID = function( db, stashID, callback ) {
@@ -125,13 +125,13 @@ var secToNsec = function( secAmount ) {
  * Compare two arrays (old and new) and return an object containing an array
  * of removed, added and common elements to the second array.
  *
- * @params old and new arrays + callback
+ * @param old and new arrays + callback
  * @return return object containing removed, added and common elements
  */
 var compareArrays = function( old, young, cb ) {
-    var removed = [];
-    var added   = [];
-    var common  = [];
+    var removed    = [];
+    var added      = [];
+    var common     = [];
     var discovered = {};
 
     async.each( old, function( itemOld, cbOld ) {
@@ -186,7 +186,7 @@ var compareArrays = function( old, young, cb ) {
  * Download chunk from POE stash API using wget command with compression.
  * Extract downloaded data and check if next chunk is available. If yes,
  * recurse with next chunk ID.
- * @params chunk ID to download
+ * @param chunk ID to download
  * @return next chunk ID to download
  */
 var downloadChunk = function( chunkID, collection, db, callback ) {
@@ -277,14 +277,15 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 async.each( stash.items, function( item, cb ) {
                                     item.accountName = stash.accountName;
                                     item.lastCharacterName = stash.lastCharacterName;
-                                    item.stashID     = stash.id;
-                                    item.stashName   = stash.stash;
-                                    item.stashType   = stash.stashType;
-                                    item.publicStash = stash.public;
-                                    item._id         = item.id;
-                                    item.available   = true;
-                                    item.addedTs     = Date.now();
-                                    item.updatedTs   = Date.now();
+                                    item.stashID      = stash.id;
+                                    item.stashName    = stash.stash;
+                                    item.stashType    = stash.stashType;
+                                    item.publicStash  = stash.public;
+                                    item.socketAmount = item.sockets.length;
+                                    item._id          = item.id;
+                                    item.available    = true;
+                                    item.addedTs      = Date.now();
+                                    item.updatedTs    = Date.now();
 
                                     // Store this item
                                     collection.save( item, function( err, result ) {
@@ -346,7 +347,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         collection.save( removedItem, function( err, result ) {
                                             if ( err ) {
                                                 logger.log(
-                                                    "Stash update: There was an error inserting value: " + err,
+                                                    "Stash update -> unavailable: There was an error inserting value: " + err,
                                                     script_name, "w" );
                                                 insertionError++;
                                             } else {
@@ -361,20 +362,21 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         // For each item added
                                         async.each( res.added, function( addedItem, cbAdded ) {
                                             logger.log( addedItem.id + " added", script_name, "", true );
-                                            addedItem.accountName = stash.accountName;
-                                            addedItem.stashID     = stash.id;
-                                            addedItem.stashName   = stash.stash;
-                                            addedItem.stashType   = stash.stashType;
-                                            addedItem.publicStash = stash.public;
-                                            addedItem._id         = addedItem.id;
-                                            addedItem.available   = true;
-                                            addedItem.addedTs     = Date.now();
-                                            addedItem.updatedTs   = Date.now();
+                                            addedItem.accountName  = stash.accountName;
+                                            addedItem.stashID      = stash.id;
+                                            addedItem.stashName    = stash.stash;
+                                            addedItem.stashType    = stash.stashType;
+                                            addedItem.publicStash  = stash.public;
+                                            addedItem.socketAmount = addedItem.sockets.length;
+                                            addedItem._id          = addedItem.id;
+                                            addedItem.available    = true;
+                                            addedItem.addedTs      = Date.now();
+                                            addedItem.updatedTs    = Date.now();
                                             addedItem.lastCharacterName = stash.lastCharacterName;
                                             // Store this item
                                             collection.save( addedItem, function( err, result ) {
                                                 if ( err ) {
-                                                    logger.log( "Stash update: There was an error inserting value: " + err, script_name, "w" );
+                                                    logger.log( "Stash update -> added: There was an error inserting value: " + err, script_name, "w" );
                                                     insertionError++;
                                                 } else {
                                                     added++;
@@ -404,7 +406,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                                 // Store this item
                                                 collection.save( commonItem, function( err, result ) {
                                                     if ( err ) {
-                                                        logger.log( "Stash update: There was an error inserting value: " + err, script_name, "w" );
+                                                        logger.log( "Stash update -> kept: There was an error inserting value: " + err, script_name, "w" );
                                                         insertionError++;
                                                     } else {
                                                         updated++;
@@ -468,7 +470,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
 /**
  * Connect to MongoDB. If successfull, run provided callback function
  *
- * @params Callback function
+ * @param Callback function
  * @return None
  */
 function connectToDB( callback ) {
