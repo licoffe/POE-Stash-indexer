@@ -181,6 +181,102 @@ var compareArrays = function( old, young, cb ) {
 };
 
 /**
+ * Extract mods with their values from input item
+ *
+ * Extract implicit, explicit, crafted and enchanted mods from item.
+ * @param item from stash API, callback
+ * @return Pass four arrays to callback with extracted mods
+ */
+var parseMods = function( item, callback ) {
+    var parsedExplicitMods  = [];
+    var parsedImplicitMods  = [];
+    var parsedCraftedMods   = [];
+    var parsedEnchantedMods = [];
+    // Parse explicit mods
+    async.each( item.explicitMods, function( mod, cbMod ) {
+        var re = /([0-9.]+)/g;
+        var match = re.exec( mod );
+        var matches = [];
+        while ( match !== null ) {
+            matches.push( parseFloat( match[1]));
+            match = re.exec( mod );
+        }
+        mod = mod.replace( re, "#" );
+        parsedExplicitMods.push({
+            "mod": mod,
+            "values": matches
+        });
+        cbMod();
+    }, function( err ) {
+        if ( err ) {
+            logger.log( "Error: " + err, script_name, "w" );
+        }
+    });
+    // Parse implicit mods
+    async.each( item.implicitMods, function( mod, cbMod ) {
+        var re = /([0-9.]+)/g;
+        var match = re.exec( mod );
+        var matches = [];
+        while ( match !== null ) {
+            matches.push( parseFloat( match[1]));
+            match = re.exec( mod );
+        }
+        mod = mod.replace( re, "#" );
+        parsedImplicitMods.push({
+            "mod": mod,
+            "values": matches
+        });
+        cbMod();
+    }, function( err ) {
+        if ( err ) {
+            logger.log( "Error: " + err, script_name, "w" );
+        }
+    });
+    // Parse crafted mods
+    async.each( item.craftedMods, function( mod, cbMod ) {
+        var re = /([0-9.]+)/g;
+        var match = re.exec( mod );
+        var matches = [];
+        while ( match !== null ) {
+            matches.push( parseFloat( match[1]));
+            match = re.exec( mod );
+        }
+        mod = mod.replace( re, "#" );
+        parsedCraftedMods.push({
+            "mod": mod,
+            "values": matches
+        });
+        cbMod();
+    }, function( err ) {
+        if ( err ) {
+            logger.log( "Error: " + err, script_name, "w" );
+        }
+    });
+    // Parse enchanted mods
+    async.each( item.enchantMods, function( mod, cbMod ) {
+        var re = /([0-9.]+)/g;
+        var match = re.exec( mod );
+        var matches = [];
+        while ( match !== null ) {
+            matches.push( parseFloat( match[1]));
+            match = re.exec( mod );
+        }
+        mod = mod.replace( re, "#" );
+        parsedEnchantedMods.push({
+            "mod": mod,
+            "values": matches
+        });
+        cbMod();
+    }, function( err ) {
+        if ( err ) {
+            logger.log( "Error: " + err, script_name, "w" );
+        }
+    });
+    callback( parsedExplicitMods, parsedImplicitMods, 
+              parsedCraftedMods, parsedEnchantedMods );
+} 
+
+/**
  * Download all public stashes starting with input chunk ID.
  *
  * Download chunk from POE stash API using wget command with compression.
@@ -275,39 +371,46 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                 logger.log( "Stash contains " + stash.items.length + " items", script_name, "", true );
 
                                 async.each( stash.items, function( item, cb ) {
-                                    item.accountName = stash.accountName;
-                                    item.lastCharacterName = stash.lastCharacterName;
-                                    item.stashID      = stash.id;
-                                    item.stashName    = stash.stash;
-                                    item.stashType    = stash.stashType;
-                                    item.publicStash  = stash.public;
-                                    item.socketAmount = item.sockets.length;
-                                    item._id          = item.id;
-                                    item.available    = true;
-                                    item.addedTs      = Date.now();
-                                    item.updatedTs    = Date.now();
 
-                                    // Store this item
-                                    collection.save( item, function( err, result ) {
-                                        if ( err ) {
-                                            logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
-                                            insertionError++;
-                                        } else {
-                                            added++;
-                                        }
-                                        if ( !item.name ) {
-                                            logger.log(
-                                                "Adding new item \x1b[35m" +
-                                                item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                "\x1b[0m to " + stash.id, script_name, "", true );
-                                        } else {
-                                            logger.log(
-                                                "Adding new item \x1b[35m" +
-                                                item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                "\x1b[0m to " + stash.id, script_name, "", true );
-                                        }
+                                    parseMods( item, function( explicit, implicit, crafted, enchanted ) {
+                                        item.accountName = stash.accountName;
+                                        item.lastCharacterName = stash.lastCharacterName;
+                                        item.stashID      = stash.id;
+                                        item.stashName    = stash.stash;
+                                        item.stashType    = stash.stashType;
+                                        item.publicStash  = stash.public;
+                                        item.socketAmount = item.sockets.length;
+                                        item._id          = item.id;
+                                        item.available    = true;
+                                        item.addedTs      = Date.now();
+                                        item.updatedTs    = Date.now();
+                                        item.parsedImplicitMods  = implicit;
+                                        item.parsedExplicitMods  = explicit;
+                                        item.parsedCraftedMods   = crafted;
+                                        item.parsedEnchantedMods = enchanted;
 
-                                        cb();
+                                        // Store this item
+                                        collection.save( item, function( err, result ) {
+                                            if ( err ) {
+                                                logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
+                                                insertionError++;
+                                            } else {
+                                                added++;
+                                            }
+                                            if ( !item.name ) {
+                                                logger.log(
+                                                    "Adding new item \x1b[35m" +
+                                                    item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                    "\x1b[0m to " + stash.id, script_name, "", true );
+                                            } else {
+                                                logger.log(
+                                                    "Adding new item \x1b[35m" +
+                                                    item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                    "\x1b[0m to " + stash.id, script_name, "", true );
+                                            }
+
+                                            cb();
+                                        });
                                     });
                                 }, function( err ) {
                                     if ( err ) {
@@ -362,37 +465,43 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         // For each item added
                                         async.each( res.added, function( addedItem, cbAdded ) {
                                             logger.log( addedItem.id + " added", script_name, "", true );
-                                            addedItem.accountName  = stash.accountName;
-                                            addedItem.stashID      = stash.id;
-                                            addedItem.stashName    = stash.stash;
-                                            addedItem.stashType    = stash.stashType;
-                                            addedItem.publicStash  = stash.public;
-                                            addedItem.socketAmount = addedItem.sockets.length;
-                                            addedItem._id          = addedItem.id;
-                                            addedItem.available    = true;
-                                            addedItem.addedTs      = Date.now();
-                                            addedItem.updatedTs    = Date.now();
-                                            addedItem.lastCharacterName = stash.lastCharacterName;
-                                            // Store this item
-                                            collection.save( addedItem, function( err, result ) {
-                                                if ( err ) {
-                                                    logger.log( "Stash update -> added: There was an error inserting value: " + err, script_name, "w" );
-                                                    insertionError++;
-                                                } else {
-                                                    added++;
-                                                }
-                                                if ( !addedItem.name ) {
-                                                    logger.log(
-                                                        "Adding new item \x1b[35m" +
-                                                        addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                        "\x1b[0m to " + stash.id, script_name, "", true );
-                                                } else {
-                                                    logger.log(
-                                                        "Adding new item \x1b[35m" +
-                                                        addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                        "\x1b[0m to " + stash.id, script_name, "", true );
-                                                }
-                                                cbAdded();
+                                            parseMods( addedItem, function( explicit, implicit, crafted, enchanted ) {
+                                                addedItem.accountName  = stash.accountName;
+                                                addedItem.stashID      = stash.id;
+                                                addedItem.stashName    = stash.stash;
+                                                addedItem.stashType    = stash.stashType;
+                                                addedItem.publicStash  = stash.public;
+                                                addedItem.socketAmount = addedItem.sockets.length;
+                                                addedItem._id          = addedItem.id;
+                                                addedItem.available    = true;
+                                                addedItem.addedTs      = Date.now();
+                                                addedItem.updatedTs    = Date.now();
+                                                addedItem.lastCharacterName = stash.lastCharacterName;
+                                                addedItem.parsedImplicitMods  = implicit;
+                                                addedItem.parsedExplicitMods  = explicit;
+                                                addedItem.parsedCraftedMods   = crafted;
+                                                addedItem.parsedEnchantedMods = enchanted;
+                                                // Store this item
+                                                collection.save( addedItem, function( err, result ) {
+                                                    if ( err ) {
+                                                        logger.log( "Stash update -> added: There was an error inserting value: " + err, script_name, "w" );
+                                                        insertionError++;
+                                                    } else {
+                                                        added++;
+                                                    }
+                                                    if ( !addedItem.name ) {
+                                                        logger.log(
+                                                            "Adding new item \x1b[35m" +
+                                                            addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                                    } else {
+                                                        logger.log(
+                                                            "Adding new item \x1b[35m" +
+                                                            addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                                    }
+                                                    cbAdded();
+                                                });
                                             });
                                         }, function( err ) {
                                             if ( err ) {
@@ -526,7 +635,12 @@ function main() {
                 "stashID",
                 "available",
                 "ilvl",
-                "addedTs"
+                "addedTs",
+                "socketAmount",
+                "parsedImplicitMods.mod",
+                "parsedExplicitMods.mod",
+                "parsedCraftedMods.mod",
+                "parsedEnchantedMods.mod"
             ];
 
             function createIndexs(indexFields){
