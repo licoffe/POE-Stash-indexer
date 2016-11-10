@@ -172,6 +172,7 @@
     "body-armor": {
         "command": "db.getCollection('stashes').distinct( 'typeLine', { frameType: { $ne: 4 }, 'properties.name': /Armour/, typeLine: { $all: [/^(?!Superior|<<).+ (?:Plate|Garb|Lamellar|Raiment|Armour|Tunic|Regalia|Hauberk|Doublet|Vest|Chestplate|Brigandine|Vestment|Chainmail|Leather|Ringmail|Dragonscale|Wyrmscale|Mantle|Silks|Coat|Jacket|Robe|Jerkin|Wrap)/] }})",
         "types": [
+            "Vaal Regalia",
             "Crusader Chainmail",
             "Gladiator Plate",
             "Saint's Hauberk",

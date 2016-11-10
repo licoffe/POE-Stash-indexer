@@ -443,20 +443,26 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     logger.log( res.common.length + " items to update", script_name, "", true );
                                     // For each removed item
                                     async.each( res.removed, function( removedItem, cbRemoved ) {
-                                        // Set item status to unavailable
-                                        logger.log( removedItem.id + " removed", script_name, "", true );
-                                        removedItem.available = false;
-                                        // Update status in DB
-                                        collection.save( removedItem, function( err, result ) {
-                                            if ( err ) {
-                                                logger.log(
-                                                    "Stash update -> unavailable: There was an error inserting value: " + err,
-                                                    script_name, "w" );
-                                                insertionError++;
-                                            } else {
-                                                removed++;
-                                            }
-                                            cbRemoved();
+                                        parseMods( removedItem, function( explicit, implicit, crafted, enchanted ) {
+                                            removedItem.parsedImplicitMods  = implicit;
+                                            removedItem.parsedExplicitMods  = explicit;
+                                            removedItem.parsedCraftedMods   = crafted;
+                                            removedItem.parsedEnchantedMods = enchanted;
+                                            // Set item status to unavailable
+                                            logger.log( removedItem.id + " removed", script_name, "", true );
+                                            removedItem.available = false;
+                                            // Update status in DB
+                                            collection.save( removedItem, function( err, result ) {
+                                                if ( err ) {
+                                                    logger.log(
+                                                        "Stash update -> unavailable: There was an error inserting value: " + err,
+                                                        script_name, "w" );
+                                                    insertionError++;
+                                                } else {
+                                                    removed++;
+                                                }
+                                                cbRemoved();
+                                            });
                                         });
                                     }, function( err ) {
                                         if ( err ) {
@@ -510,17 +516,23 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             // For each item kept
                                             async.each( res.common, function( commonItem, cbCommon ) {
                                                 logger.log( commonItem.id + " updated", script_name, "", true );
-                                                // Update its update timestamp
-                                                commonItem.updatedTs = Date.now();
-                                                // Store this item
-                                                collection.save( commonItem, function( err, result ) {
-                                                    if ( err ) {
-                                                        logger.log( "Stash update -> kept: There was an error inserting value: " + err, script_name, "w" );
-                                                        insertionError++;
-                                                    } else {
-                                                        updated++;
-                                                    }
-                                                    cbCommon();
+                                                parseMods( commonItem, function( explicit, implicit, crafted, enchanted ) {
+                                                    commonItem.parsedImplicitMods  = implicit;
+                                                    commonItem.parsedExplicitMods  = explicit;
+                                                    commonItem.parsedCraftedMods   = crafted;
+                                                    commonItem.parsedEnchantedMods = enchanted;
+                                                    // Update its update timestamp
+                                                    commonItem.updatedTs = Date.now();
+                                                    // Store this item
+                                                    collection.save( commonItem, function( err, result ) {
+                                                        if ( err ) {
+                                                            logger.log( "Stash update -> kept: There was an error inserting value: " + err, script_name, "w" );
+                                                            insertionError++;
+                                                        } else {
+                                                            updated++;
+                                                        }
+                                                        cbCommon();
+                                                    });
                                                 });
                                             }, function( err ) {
                                                 if ( err ) {

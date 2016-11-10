@@ -42,6 +42,14 @@ table .title {
     width: 32px;
 }
 
+#market-rates img.loading {
+    width: 20px;
+    position: relative;
+    top: -16px;
+    left: 170px;
+    display: none;
+}
+
 .container_table {
     position: absolute;
     left: 1%;
@@ -214,8 +222,18 @@ input[type="button"] {
 }
 #item-implicit-mods table, #item-explicit-mods table, .item-value {
     color: rgb(92, 130, 255);
+    transition: color 0.2s;
 }
-#item-enchant-mods table {
+#item-implicit-mods td, #item-explicit-mods td, .item-value {
+    color: rgb(92, 130, 255);
+    transition: color 0.2s;
+}
+#item-implicit-mods td:hover, #item-explicit-mods td:hover, .item-value:hover {
+    cursor: pointer;
+    color: rgb(132, 183, 255);
+    transition: color 0.2s;
+}
+#item-enchant-mods span {
     color: rgba(180, 180, 255, 1);
 }
 #item-crafted-mods table {
@@ -240,7 +258,7 @@ input[type="button"] {
     box-shadow: none;
     font-size: 1em;
 }
-#market-rates img.loading, img.loading {
+img.loading {
     width: 20px;
     position: relative;
     top: 5px;
@@ -288,27 +306,27 @@ td#preview {
 }
 #socket1 {
     right: 125px;
-    top: 300px;
+    top: 310px;
 }
 #socket2 {
     right: 73px;
-    top: 300px;
+    top: 310px;
 }
 #socket3 {
     right: 73px;
-    top: 354px;
+    top: 364px;
 }
 #socket4 {
     right: 125px;
-    top: 354px;
+    top: 364px;
 }
 #socket5 {
     right: 125px;
-    top: 408px;
+    top: 418px;
 }
 #socket6 {
     right: 73px;
-    top: 408px;
+    top: 418px;
 }
 #socket-vert-1 {
     left: 160px;
@@ -329,23 +347,23 @@ td#preview {
 }
 #link1 {
     right: 103px;
-    top: 315px;
+    top: 325px;
 }
 #link2 {
     right: 88px;
-    top: 332px;
+    top: 342px;
 }
 #link3 {
     right: 103px;
-    top: 369px;
+    top: 379px;
 }
 #link4 {
     right: 140px;
-    top: 386px;
+    top: 396px;
 }
 #link5 {
     right: 103px;
-    top: 423px;
+    top: 433px;
 }
 #link-vert-1 {
     left: 175px;
@@ -413,7 +431,7 @@ td#preview {
     background: rgba( 0, 0, 0, 0 );
     transition: background 0.2s;
 }
-#auto-complete span:hover {
+#auto-complete span:hover, #auto-complete span.selected {
     cursor: pointer;
     background: rgba( 0, 100, 200, 0.5 );
     transition: background 0.2s;
@@ -452,13 +470,13 @@ td#preview {
 .indexer-status {
     position: relative;
     left: 90%;
-    top: 125px;
+    top: -26px;
     font-size: 0.9em;
 }
 .indexer-status-icon-online {
     position: relative;
     left: 88%;
-    top: 138px;
+    top: -12px;
     border-radius: 5px;
     background-color: rgba(0, 200, 100, 1);
     box-shadow: 0 0 5px rgba(0, 200, 0, 1);
@@ -468,10 +486,15 @@ td#preview {
 .indexer-status-icon-offline {
     position: relative;
     left: 88%;
-    top: 138px;
+    top: -12px;
     border-radius: 5px;
     background-color: rgba(210, 0, 0, 1);
     box-shadow: 0 0 5px rgba(210, 0, 0, 1);
     width: 10px;
     height: 10px;
 }
+/*#item-explicit-mods td:hover {
+    cursor: pointer;
+    color: rgb(132, 183, 255);
+    transition: color 0.2s;
+}*/

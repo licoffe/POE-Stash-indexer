@@ -12,9 +12,8 @@
         <div id="online-res">
         </div>
         <div class="container" id="market-rates">
-            <span class="title">Market rates</span>
-            <div class="indexer-status-icon-offline"></div><span class="indexer-status">Indexer offline</span>
-            <img class="loading" src="./media/loading.gif" alt=""><br><br>
+            <span class="title">Market rates</span><br>
+            <img class="loading" src="./media/loading.gif" alt=""><br>
             <table>
                 <tr>
                     <td>
@@ -208,7 +207,7 @@
         <br>
 
         <div class="container" id="settings">
-            <span class="title">Parameters</span><br><br>
+            <span class="title">Parameters</span><div class="indexer-status-icon-offline"></div><span class="indexer-status">Indexer offline</span>
             <table>
                 <tr>
                     <td>
@@ -216,7 +215,9 @@
                         <label>
                             <select id="league">
                                 <option selected value="Standard">Standard</option>
+                                <option value="Hardcore">Hardcore</option>
                                 <option value="Essence">Essence</option>
+                                <option value="Hardcore Essence">Hardcore Essence</option>
                             </select>
                         </label>
                     </td>
@@ -487,7 +488,7 @@
                 var async        = require( "async" );
                 var ncp          = require( "copy-paste" );
                 var itemTypes    = require( "./itemTypes.json" );
-                var uniques      = require( "./uniques.json" );
+                var autocomplete = require( "./autocomplete.json" );
                 var affixes      = require( "./affixes.json" );
                 var config       = require( "./config.json" );
                 var leagueRates  = {
@@ -523,7 +524,7 @@
                 var dbQueryLimit = config.dbQueryLimit;
                 var indexerIP    = config.indexerIP;
                 var indexerPort  = config.indexerPort;
-                var onlineDelayS = config.onlineDelay;
+                var onlineDelayS = config.onlineDelayS;
                 var database     = "POE_price";
                 var script_name  = "index.html";
                 var fields       = {
@@ -556,6 +557,7 @@
                 var autorefreshInterval;
                 var $ = require("jquery");
                 var completionMinChar = 2;
+                var selectedEntryIndex = 0;
 
                 // Connect to the indexer backend and check availability
                 var socket = io( "http://" + indexerIP + ":" + indexerPort );
@@ -762,6 +764,86 @@
                     } else {
                         rarity = [parseInt( rarity)];
                     }
+                    var options = {
+                        "limit": dbQueryLimit,
+                        'maxTimeMs': 15000,
+                        "fields": fields
+                    };
+
+                    var done = function( cursor ) {
+                        console.log( "Gathering results" );
+                        if ( cursor !== undefined ) {
+                            cursor.each( function( err, doc ) {
+                                // If there are still some entries
+                                if ( doc !== null ) {
+                                    entries.push( doc );
+                                // otherwise close DB and cursor
+                                } else {
+                                    $( ".search-status" ).text( "Found " + entries.length + " entries" );
+                                    console.log( "Found " + entries.length + " entries (" + 
+                                                ( new Date() - start ) + "ms)" );
+                                    cursor.close();
+                                    var filterOnline = $( "#online" ).val();
+                                    var entriesOnline = [];
+                                    var checkedOnline = {};
+                                    
+                                    // Set online status for each item
+                                    $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
+                                    // Create array of account names
+                                    var accountNames = [];
+                                    async.each( entries, function( entry, cbEntry ) {
+                                        if ( accountNames.indexOf( entry.accountName ) === -1 ) {
+                                            accountNames.push( entry.accountName );
+                                            cbEntry();
+                                        } else {
+                                            cbEntry();
+                                        }
+                                    }, function( err ) {
+                                        /* Send the list of accounts to check 
+                                        for their availability */
+                                        checkLastSeen( db, accountNames, function( lastSeen ) {
+                                            console.log( lastSeen );
+                                            async.each( entries, function( result, callbackOnline ) {
+                                                /* If the user has a last seen 
+                                                timestamp */
+                                                if ( lastSeen[result.accountName]) {
+                                                    result.lastSeen = lastSeen[result.accountName];
+                                                    result.online   = 
+                                                        ( Date.now() - result.lastSeen ) < ( onlineDelayS * 1000 );
+                                                } else {
+                                                    result.lastSeen = null;
+                                                    result.online   = false;
+                                                }
+                                                if ( filterOnline === "either" ) {
+                                                    entriesOnline.push( result );
+                                                } else if ( filterOnline === "true" ) {
+                                                    if ( result.online ) {
+                                                        entriesOnline.push( result );
+                                                    }
+                                                } else if ( filterOnline === "false" ) {
+                                                    if ( !result.online ) {
+                                                        entriesOnline.push( result );
+                                                    }
+                                                }
+                                                callbackOnline();
+                                            }, function( err ) {
+                                                if ( err ) {
+                                                    console.log( err );
+                                                }
+                                                db.close();
+                                                /* Send array containing filtered 
+                                                entries to averagePrice function */
+                                                callback( entriesOnline, averagePrice );
+                                            });
+                                        });
+                                    });
+                                }
+                            });
+                        } else {
+                            console.log( "No items found with these criterias" );
+                            db.close();
+                        }
+                    };
 
                     // var fragment = ( itemTypes.fragment.types.indexOf( criteria ) !== -1 );
                     if ( queryBy === "name" ) {
@@ -771,15 +853,20 @@
                             // if ( fragment ) {
                             //     type = criteria;
                             // }
-                            cursor = db.collection('stashes').find({
+                            db.collection('stashes').find({
                                 "typeLine": type,
                                 "frameType": { $in: rarity },
                                 "league": league,
                                 "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
-                                "ilvl": { $gte: level }
-                            }, fields).limit(dbQueryLimit);
+                                "ilvl": { $gte: level },
+                            }, options, function( err, cursor ) {
+                                if ( err ) {
+                                    console.log( err );
+                                }
+                                done( cursor );
+                            });
                         } else {
                             cursor = db.collection('stashes').find({
                                 "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
@@ -790,7 +877,12 @@
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level }
-                            }, fields).limit(dbQueryLimit);
+                            }, options, function( err, cursor ) {
+                                if ( err ) {
+                                    console.log( err );
+                                }
+                                done( cursor );
+                            });
                         }
                         
                     } else if ( queryBy === "lastCharacterName" ) {
@@ -803,7 +895,12 @@
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields ).limit(dbQueryLimit);
+                        }, options, function( err, cursor ) {
+                            if ( err ) {
+                                console.log( err );
+                            }
+                            done( cursor );
+                        });
                     } else if ( queryBy === "accountName" ) {
                         cursor = db.collection('stashes').find({
                             "accountName": criteria,
@@ -814,107 +911,43 @@
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields).limit(dbQueryLimit);
+                        }, options, function( err, cursor ) {
+                            if ( err ) {
+                                console.log( err );
+                            }
+                            done( cursor );
+                        });
                     } else if ( queryBy === "mods" ) {
+                        // $or: [
+                            //     {"explicitMods": { 
+                            //         $all: criteria
+                            //     }},
+                            //     {"implicitMods": { 
+                            //         $all: criteria
+                            //     }},
+                            //     {"craftedMods": { 
+                            //         $all: criteria
+                            //     }},
+                            //     {"enchantMods": { 
+                            //         $all: criteria
+                            //     }}
                         cursor = db.collection('stashes').find({
+                            "parsedExplicitMods": { $all: criteria },
                             "typeLine": type,
                             "frameType": { $in: rarity },
                             "league": league, 
-                            $or: [
-                                {"explicitMods": { 
-                                    $all: criteria
-                                }},
-                                {"implicitMods": { 
-                                    $all: criteria
-                                }},
-                                {"craftedMods": { 
-                                    $all: criteria
-                                }},
-                                {"enchantMods": { 
-                                    $all: criteria
-                                }}
-                            ],
                             "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
                             "ilvl": { $gte: level }
-                        }, fields).limit(dbQueryLimit);
-                    } else {
-                        console.log( "unrecognised query type " + queryBy );
-                    }
-
-                    console.log( "Gathering results" );
-                    // If we have some results
-                    if ( cursor !== undefined ) {
-                        cursor.each( function( err, doc ) {
-                            // If there are still some entries
-                            if ( doc !== null ) {
-                                entries.push( doc );
-                            // otherwise close DB and cursor
-                            } else {
-                                $( ".search-status" ).text( "Found " + entries.length + " entries" );
-                                console.log( "Found " + entries.length + " entries (" + 
-                                            ( new Date() - start ) + "ms)" );
-                                cursor.close();
-                                var filterOnline = $( "#online" ).val();
-                                var entriesOnline = [];
-                                var checkedOnline = {};
-                                
-                                // Set online status for each item
-                                $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
-                                // Create array of account names
-                                var accountNames = [];
-                                async.each( entries, function( entry, cbEntry ) {
-                                    if ( accountNames.indexOf( entry.accountName ) === -1 ) {
-                                        accountNames.push( entry.accountName );
-                                        cbEntry();
-                                    } else {
-                                        cbEntry();
-                                    }
-                                }, function( err ) {
-                                    /* Send the list of accounts to check 
-                                       for their availability */
-                                    checkLastSeen( db, accountNames, function( lastSeen ) {
-                                        async.each( entries, function( result, callbackOnline ) {
-                                            /* If the user has a last seen 
-                                               timestamp */
-                                            if ( lastSeen[result.accountName]) {
-                                                result.lastSeen = lastSeen[result.accountName];
-                                                result.online   = 
-                                                    ( Date.now() - result.lastSeen ) 
-                                                    < onlineDelayS * 1000;
-                                            } else {
-                                                result.lastSeen = null;
-                                                result.online   = false;
-                                            }
-                                            if ( filterOnline === "either" ) {
-                                                entriesOnline.push( result );
-                                            } else if ( filterOnline === "true" ) {
-                                                if ( result.online ) {
-                                                    entriesOnline.push( result );
-                                                }
-                                            } else if ( filterOnline === "false" ) {
-                                                if ( !result.online ) {
-                                                    entriesOnline.push( result );
-                                                }
-                                            }
-                                            callbackOnline();
-                                        }, function( err ) {
-                                            if ( err ) {
-                                                console.log( err );
-                                            }
-                                            db.close();
-                                            /* Send array containing filtered 
-                                               entries to averagePrice function */
-                                            callback( entriesOnline, averagePrice );
-                                        });
-                                    });
-                                });
+                        }, options, function( err, cursor ) {
+                            if ( err ) {
+                                console.log( err );
                             }
+                            done( cursor );
                         });
                     } else {
-                        console.log( "No items found with these criterias" );
-                        db.close();
+                        console.log( "unrecognised query type " + queryBy );
                     }
                 }
 
@@ -1223,7 +1256,7 @@
                             var lastUpdate = secToNsec( Date.now() - result.lastSeen );
                             // console.log( "time: " + truc.amount + " " + truc.unit );
                             lastUpdateStatus = ( Date.now() - result.lastSeen ) < onlineDelayS * 1000;
-                            console.log( "lastUpdateStatus: " + (Date.now() - result.lastSeen ));
+                            // console.log( "lastUpdateStatus: " + (Date.now() - result.lastSeen ));
                             tooltipLastSeen = "Last seen: " + Math.round( lastUpdate.amount ) + " " + lastUpdate.unit;
                             var diffSec = ( Date.now() - result.lastSeen ) / 1000;
                             var maxDuration = 3600; // 1 h
@@ -1234,7 +1267,7 @@
                             } else {
                                 statusColor = "rgb( 255, 0, 0 )";
                             }
-                            console.log( statusColor );
+                            // console.log( statusColor );
                         }
                         lastUpdateStatus = lastUpdateStatus ? "online" : "offline";
 
@@ -2096,50 +2129,53 @@
                             var match = mod.replace( /([0-9]+)/g, "#" );
                             // console.log( match );
                             var extract = reg.exec( mod );
-                            var val = extract[1];
                             var affix   = "";
-                            if (( item.frameType ===  1 || item.frameType === 2 )) {
-                                affix   = "<span class='affix'>Legacy?</span>";
+                            if ( extract && extract.length > 2 ) {
+                                var val = extract[1];
+                                if (( item.frameType ===  1 || item.frameType === 2 )) {
+                                    affix   = "<span class='affix'>Legacy?</span>";
+                                }
+                                var affRank = 0;
+                                var counter = 0;
+                                /* For crafted mods, check if the affix
+                                is prefix or suffix */
+                                if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemPrefixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemPrefixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemPrefixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemSuffixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemSuffixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemSuffixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                }
                             }
-                            var affRank = 0;
-                            var counter = 0;
-                            /* For crafted mods, check if the affix
-                            is prefix or suffix */
-                            if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
-                                async.each( itemPrefixes[match], function( aff, cbAff ) {
-                                    counter++;
-                                    if ( val >= aff.min && val <= aff.max ) {
-                                        affRank = counter;
-                                    }
-                                    cbAff();
-                                }, function( err ) {
-                                    var val = Math.round( affRank 
-                                                * 100 / itemPrefixes[match].length + 100 );
-                                    affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
-                                            "<span style='color: rgb(0, " + 
-                                            val + ", 0 )'>" + affRank + 
-                                            "</span>/<span class='mod-max'>" +
-                                            itemPrefixes[match].length + 
-                                            "</span>]</span>";
-                                })
-                            } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
-                                async.each( itemSuffixes[match], function( aff, cbAff ) {
-                                    counter++;
-                                    if ( val >= aff.min && val <= aff.max ) {
-                                        affRank = counter;
-                                    }
-                                    cbAff();
-                                }, function( err ) {
-                                    var val = Math.round( affRank 
-                                                * 100 / itemSuffixes[match].length + 100 );
-                                    affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
-                                            "<span style='color: rgb(0, " + 
-                                            val + ", 0 )'>" + affRank + 
-                                            "</span>/<span class='mod-max'>" +
-                                            itemSuffixes[match].length + 
-                                            "</span>]</span>";
-                                })
-                            }
+                            
                             $( "#item-crafted-mods table" ).append(
                                 "<tr><td>" +
                                 mod + "</td><td>" +
@@ -2240,6 +2276,11 @@
                             );
                         }
                     }
+                    // If user clicks on affix
+                    $( "#item-explicit-mods td" ).click( function() { 
+                        var txt = $( "textarea" ).val() + $( this ).text() + "\n"; 
+                        $( "textarea" ).val( txt ) 
+                    });
                 }
 
                 function bindPreviewOnClick() {
@@ -2334,14 +2375,25 @@
                         var searchBy = $( "#search-by" ).val();
                         $( "#auto-complete" ).fadeOut( "fast" );
                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
-                        console.log( lines );
-                        
+                        var re = /([0-9.]+)/g;
                         if ( searchBy === "mods" ) {
                              for ( var i = 0 ; i < lines.length ; i++ ) {
-                                 console.log( lines[i] );
                                 if ( lines[i].length !== 0 ) {
-                                    console.log( lines[i] );
-                                    entries.push( lines[i]);
+                                    var mod = lines[i];
+                                    var match = re.exec( mod );
+                                    var matches = [];
+                                    while ( match !== null ) {
+                                        matches.push( parseFloat( match[1]));
+                                        match = re.exec( mod );
+                                    }
+                                    mod = mod.replace( re, "#" );
+                                    var entry = { 
+                                        "$elemMatch" : { 
+                                            "mod": mod, 
+                                            "values.0": { $gte: matches[0]} 
+                                        }
+                                    };
+                                    entries.push( entry );
                                 }
                         //         console.log( lines[i] );
                         //         var splitted = lines[i].split( " " );
@@ -2411,10 +2463,33 @@
                     if ( event.keyCode === 27 ) {
                         $( "#auto-complete" ).fadeOut( "fast" );
                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                    // Go up in the completion list if left/up arrow pressed
+                    } else if ( event.keyCode === 37 || event.keyCode === 38 ) {
+                        selectedEntryIndex = selectedEntryIndex > 0 ? selectedEntryIndex - 1 : 0;
+                        $( "#auto-complete span" ).removeClass( "selected" );
+                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
+                        $( "div#auto-complete" ).animate({ scrollTop: 28 * selectedEntryIndex }, 150 );
+                    // Go down in the completion list if right/down arrow pressed
+                    } else if ( event.keyCode === 39 || event.keyCode === 40 ) {
+                        var entryAmount = $( "#auto-complete span" ).length - 1;
+                        selectedEntryIndex = selectedEntryIndex < entryAmount ? selectedEntryIndex + 1 : entryAmount;
+                        $( "#auto-complete span" ).removeClass( "selected" );
+                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
+                        $( "div#auto-complete" ).animate({ scrollTop: 28 * selectedEntryIndex }, 150 );
+                    // On ENTER validate input
+                    } else if ( event.keyCode === 13 ) {
+                        event.preventDefault(); // Do not add return char
+                        // If autocomplete opened, validate selection
+                        if ( $( "#auto-complete:visible" ).length === 1 ) {
+                            $( "#auto-complete span" ).eq([selectedEntryIndex]).click();
+                        // Otherwise, launch search
+                        } else {
+                            $( "#search-item" ).click();
+                        }
                     // Ignore ctrl, shift, alt, meta and enter
                     } else if ( !event.ctrlKey && !event.altKey && 
-                                !event.shiftKey && !event.metaKey && 
-                                event.keyCode !== 13 ) {
+                                !event.shiftKey && !event.metaKey ) {
+                        selectedEntryIndex = 0;
                         // get current text
                         var currentText    = $( "textarea" ).val();
                         // Get cursor position in text
@@ -2446,7 +2521,7 @@
                         var propositions = [];
                         if (( currentLine.length + 1 ) > completionMinChar ) {
                             if ( $( "#search-by" ).val() === "name" ) {
-                                async.each( uniques.uniques, function( unique, cb ) {
+                                async.each( autocomplete.uniques, function( unique, cb ) {
                                     if ( unique.includes( currentLine )) {
                                         propositions.push( "<span>" + unique + "</span>" );
                                     }
@@ -2463,6 +2538,8 @@
                                             "left": (180 + currentLine.length * 6) + "px",
                                             "top": (440 + lineIndex * 16) + "px" 
                                         });
+                                        $( "#auto-complete span" ).removeClass( "selected" );
+                                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
                                     }
                                     // When clicking on auto-complete entry
                                     $( "#auto-complete span" ).click( function() {
@@ -2480,7 +2557,7 @@
                                     });
                                 })
                             } else if ( $( "#search-by" ).val() === "mods" ) {
-                                async.each( uniques["implicit-mods"], function( implicit, cb ) {
+                                async.each( autocomplete["implicit-mods"], function( implicit, cb ) {
                                     if ( implicit.includes( currentLine )) {
                                         propositions.push( "<span>" + implicit + "</span>" );
                                     }
@@ -2497,6 +2574,8 @@
                                             "left": (180 + currentLine.length * 6) + "px",
                                             "top": (440 + lineIndex * 16) + "px" 
                                         });
+                                        $( "#auto-complete span" ).removeClass( "selected" );
+                                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
                                     }
                                     // When clicking on auto-complete entry
                                     $( "#auto-complete span" ).click( function() {
