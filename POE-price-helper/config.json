@@ -4,5 +4,7 @@
     "dbQueryLimit": 1000,
     "indexerIP": "127.0.0.1",
     "indexerPort": 3000,
-    "onlineDelayS": 1800
+    "onlineDelayS": 3600,
+    "contactMessage": "@<charName> Hi <charName>, I would like to buy your '<itemName>' for '<itemPrice>'. This item is in stash '<stashName>'. Thank you :)",
+    "monitorIndexerStatus": false
 }
