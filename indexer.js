@@ -121,6 +121,10 @@ var secToNsec = function( secAmount ) {
     return { "amount": secAmount, "unit": units[counter]};
 };
 
+// var getLinksAmount = function( item ) {
+
+// }
+
 /**
  * Compare two arrays (old and new) and return an object containing an array
  * of removed, added and common elements to the second array.
@@ -453,6 +457,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             removedItem.parsedExplicitMods  = explicit;
                                             removedItem.parsedCraftedMods   = crafted;
                                             removedItem.parsedEnchantedMods = enchanted;
+                                            removedItem.socketAmount        = removedItem.sockets.length;
                                             // Set item status to unavailable
                                             logger.log( removedItem.id + " removed", script_name, "", true );
                                             removedItem.available = false;
@@ -539,6 +544,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             commonItem.parsedExplicitMods  = explicit;
                                             commonItem.parsedCraftedMods   = crafted;
                                             commonItem.parsedEnchantedMods = enchanted;
+                                            commonItem.socketAmount        = commonItem.sockets.length;
                                             // Update its update timestamp
                                             commonItem.updatedTs = Date.now();
                                             // Store this item
