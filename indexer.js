@@ -773,6 +773,9 @@ function main() {
 
             // When all indexes are done
             Promise.all(createIndexs(indexFields)).then(value => {
+
+                db.getCollection('online_status').createIndex({ "accountName": 1 }, { "unique": true });
+
                 // Check last downloaded chunk ID
                 lastDownloadedChunk( db, function( entry ) {
                     try {
