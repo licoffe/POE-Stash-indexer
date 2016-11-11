@@ -726,6 +726,10 @@ function main() {
     }
     connectToDB( function( db ) {
         logger.log( "Attempting to create or reuse POE_price collection", script_name );
+        // Create online status index
+        db.createCollection('online_status', function( err, collection ){
+            collection.createIndex({ "accountName": 1 }, { "unique": true });
+        });
         db.createCollection( stashCollection, function( err, collection ) {
             logger.log( "Checking indexes have been generated", script_name );
             var indexFields = [
@@ -773,8 +777,6 @@ function main() {
 
             // When all indexes are done
             Promise.all(createIndexs(indexFields)).then(value => {
-
-                db.getCollection('online_status').createIndex({ "accountName": 1 }, { "unique": true });
 
                 // Check last downloaded chunk ID
                 lastDownloadedChunk( db, function( entry ) {
