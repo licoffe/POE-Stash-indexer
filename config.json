@@ -1,0 +1,8 @@
+{
+    "dbAddress": "localhost",
+    "dbPort": 27017,
+    "dbName": "POE_price",
+    "authenticate": true,
+    "user": "indexer",
+    "pass": "indexer"
+}

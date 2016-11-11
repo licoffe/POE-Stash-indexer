@@ -12,9 +12,6 @@ var page             = "http://www.pathofexile.com/api/public-stash-tabs";
 var downloadInterval = 0; // Time between downloads in seconds
 var mongo_client     = require( "mongodb" ).MongoClient;
 // MongoDB vars
-var address          = "localhost";
-var port             = 27017;
-var database         = "POE_price";
 var script_name      = "Indexer";
 var interrupt        = false;
 var debug            = false;
@@ -682,17 +679,33 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
  * @return None
  */
 function connectToDB( callback ) {
+
+    // Read config file
+    logger.log( "Reading config file", script_name );
+    var config = require( "./config.json" );
+
     // Connect to the db
-    mongo_client.connect( "mongodb://" + address + ":" + port + "/" + database,
+    mongo_client.connect( "mongodb://" + config.dbAddress + ":" + config.dbPort + "/" + config.dbName,
                          function( err, db ) {
         if ( err ) {
             logger.log( err, script_name, "e" );
             logger.log( "Make sure MongoDB has been started", script_name, "e" );
             process.exit(0);
         }
-        logger.log( "Connected to MongoDB.", script_name );
-
-        callback( db );
+        logger.log( "Connected to MongoDB", script_name );
+        if ( config.authenticate ) {
+            db.authenticate( config.user, config.pass, function( err, res ) {
+                if ( err ) {
+                    logger.log( err, script_name, "e" );
+                    process.exit(0);
+                }
+                logger.log( "Logged in " + config.dbName, script_name );
+                callback( db );
+            });
+        } else {
+            logger.log( "Logged in " + config.dbName, script_name );
+            callback( db );
+        }
     });
 }
 
