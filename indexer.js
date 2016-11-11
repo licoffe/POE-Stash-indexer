@@ -121,9 +121,44 @@ var secToNsec = function( secAmount ) {
     return { "amount": secAmount, "unit": units[counter]};
 };
 
-// var getLinksAmount = function( item ) {
-
-// }
+/**
+ * Computes the amount of links and the socket colors of an item
+ *
+ * @param item data, callback
+ * @return pass the amount to callback
+ */
+var getLinksAmountAndColor = function( item, callback ) {
+    var groups      = {};
+    var groupColors = {};
+    var colors      = [];
+    // FOr each sockets in the item
+    async.each( item.sockets, function( socket, cb ) {
+        // If we have a new socket group
+        if ( !groups[socket.group] ) {
+            groups[socket.group] = 1;
+            groupColors[socket.group] = [socket.attr];
+        // Otherwise, add a new socket to this group
+        } else {
+            groups[socket.group]++;
+            groupColors[socket.group].push( socket.attr );
+        }
+        colors.push( socket.attr );
+        cb();
+    }, function( err ) {
+        var linkAmount = 0;
+        var linkColors = [];
+        // Extract largest group
+        for ( var key in groups ) {
+            if ( groups.hasOwnProperty( key )) {
+                if ( groups[key] > linkAmount ) {
+                    linkAmount = groups[key];
+                    linkColors = groupColors[key];
+                }
+            }
+        }
+        callback({ "linkAmount": linkAmount, "colors": colors, "linkedColors": linkColors });
+    });
+}
 
 /**
  * Compare two arrays (old and new) and return an object containing an array
@@ -397,29 +432,33 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                         item.parsedExplicitMods  = explicit;
                                         item.parsedCraftedMods   = crafted;
                                         item.parsedEnchantedMods = enchanted;
+                                        getLinksAmountAndColor( item, function( res ) {
+                                            item.linkAmount   = res.linkAmount;
+                                            item.colors       = res.colors;
+                                            item.linkedColors = res.linkedColors;
+                                            // Store this item
+                                            collection.save( item, function( err, result ) {
+                                                if ( err ) {
+                                                    logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
+                                                    insertionError++;
+                                                } else {
+                                                    added++;
+                                                }
+                                                if ( !item.name ) {
+                                                    logger.log(
+                                                        "Adding new item \x1b[35m" +
+                                                        item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                        "\x1b[0m to " + stash.id, script_name, "", true );
+                                                } else {
+                                                    logger.log(
+                                                        "Adding new item \x1b[35m" +
+                                                        item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                        "\x1b[0m to " + stash.id, script_name, "", true );
+                                                }
 
-                                        // Store this item
-                                        collection.save( item, function( err, result ) {
-                                            if ( err ) {
-                                                logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
-                                                insertionError++;
-                                            } else {
-                                                added++;
-                                            }
-                                            if ( !item.name ) {
-                                                logger.log(
-                                                    "Adding new item \x1b[35m" +
-                                                    item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                    "\x1b[0m to " + stash.id, script_name, "", true );
-                                            } else {
-                                                logger.log(
-                                                    "Adding new item \x1b[35m" +
-                                                    item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                    "\x1b[0m to " + stash.id, script_name, "", true );
-                                            }
-
-                                            cb();
-                                        });
+                                                cb();
+                                            });
+                                        }); 
                                     });
                                 }, function( err ) {
                                     if ( err ) {
@@ -461,28 +500,33 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             // Set item status to unavailable
                                             logger.log( removedItem.id + " removed", script_name, "", true );
                                             removedItem.available = false;
-                                            // Update status in DB
-                                            collection.save( removedItem, function( err, result ) {
-                                                if ( err ) {
-                                                    logger.log(
-                                                        "Stash update -> unavailable: There was an error inserting value: " + err,
-                                                        script_name, "w" );
-                                                    insertionError++;
-                                                } else {
-                                                    if ( !removedItem.name ) {
+                                            getLinksAmountAndColor( removedItem, function( res ) {
+                                                removedItem.linkAmount        = res.linkAmount;
+                                                removedItem.colors            = res.colors;
+                                                removedItem.linkedColors      = res.linkedColors;
+                                                // Update status in DB
+                                                collection.save( removedItem, function( err, result ) {
+                                                    if ( err ) {
                                                         logger.log(
-                                                            "Removing item \x1b[35m" +
-                                                            removedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                                            "Stash update -> unavailable: There was an error inserting value: " + err,
+                                                            script_name, "w" );
+                                                        insertionError++;
                                                     } else {
-                                                        logger.log(
-                                                            "Removing item \x1b[35m" +
-                                                            removedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                                        if ( !removedItem.name ) {
+                                                            logger.log(
+                                                                "Removing item \x1b[35m" +
+                                                                removedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                                "\x1b[0m to " + stash.id, script_name, "", true );
+                                                        } else {
+                                                            logger.log(
+                                                                "Removing item \x1b[35m" +
+                                                                removedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                                "\x1b[0m to " + stash.id, script_name, "", true );
+                                                        }
+                                                        removed++;
                                                     }
-                                                    removed++;
-                                                }
-                                                cbRemoved();
+                                                    cbRemoved();
+                                                });
                                             });
                                         });
                                     }, function( err ) {
@@ -509,26 +553,31 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             addedItem.parsedExplicitMods  = explicit;
                                             addedItem.parsedCraftedMods   = crafted;
                                             addedItem.parsedEnchantedMods = enchanted;
-                                            // Store this item
-                                            collection.save( addedItem, function( err, result ) {
-                                                if ( err ) {
-                                                    logger.log( "Stash update -> added: There was an error inserting value: " + err, script_name, "w" );
-                                                    insertionError++;
-                                                } else {
-                                                    added++;
-                                                }
-                                                if ( !addedItem.name ) {
-                                                    logger.log(
-                                                        "Adding new item \x1b[35m" +
-                                                        addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                        "\x1b[0m to " + stash.id, script_name, "", true );
-                                                } else {
-                                                    logger.log(
-                                                        "Adding new item \x1b[35m" +
-                                                        addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                        "\x1b[0m to " + stash.id, script_name, "", true );
-                                                }
-                                                cbAdded();
+                                            getLinksAmountAndColor( addedItem, function( res ) {
+                                                addedItem.linkAmount   = res.linkAmount;
+                                                addedItem.colors       = res.colors;
+                                                addedItem.linkedColors = res.linkedColors;
+                                                // Store this item
+                                                collection.save( addedItem, function( err, result ) {
+                                                    if ( err ) {
+                                                        logger.log( "Stash update -> added: There was an error inserting value: " + err, script_name, "w" );
+                                                        insertionError++;
+                                                    } else {
+                                                        added++;
+                                                    }
+                                                    if ( !addedItem.name ) {
+                                                        logger.log(
+                                                            "Adding new item \x1b[35m" +
+                                                            addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                                    } else {
+                                                        logger.log(
+                                                            "Adding new item \x1b[35m" +
+                                                            addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                                    }
+                                                    cbAdded();
+                                                });
                                             });
                                         });
                                     }, function( err ) {
@@ -547,26 +596,31 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                             commonItem.socketAmount        = commonItem.sockets.length;
                                             // Update its update timestamp
                                             commonItem.updatedTs = Date.now();
-                                            // Store this item
-                                            collection.save( commonItem, function( err, result ) {
-                                                if ( err ) {
-                                                    logger.log( "Stash update -> kept: There was an error inserting value: " + err, script_name, "w" );
-                                                    insertionError++;
-                                                } else {
-                                                    if ( !commonItem.name ) {
-                                                        logger.log(
-                                                            "Updating item \x1b[35m" +
-                                                            commonItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                            getLinksAmountAndColor( commonItem, function( res ) {
+                                                commonItem.linkAmount   = res.linkAmount;
+                                                commonItem.colors       = res.colors;
+                                                commonItem.linkedColors = res.linkedColors;
+                                                // Store this item
+                                                collection.save( commonItem, function( err, result ) {
+                                                    if ( err ) {
+                                                        logger.log( "Stash update -> kept: There was an error inserting value: " + err, script_name, "w" );
+                                                        insertionError++;
                                                     } else {
-                                                        logger.log(
-                                                            "Updating item \x1b[35m" +
-                                                            commonItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                                                            "\x1b[0m to " + stash.id, script_name, "", true );
+                                                        if ( !commonItem.name ) {
+                                                            logger.log(
+                                                                "Updating item \x1b[35m" +
+                                                                commonItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                                "\x1b[0m to " + stash.id, script_name, "", true );
+                                                        } else {
+                                                            logger.log(
+                                                                "Updating item \x1b[35m" +
+                                                                commonItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
+                                                                "\x1b[0m to " + stash.id, script_name, "", true );
+                                                        }
+                                                        updated++;
                                                     }
-                                                    updated++;
-                                                }
-                                                cbCommon();
+                                                    cbCommon();
+                                                });
                                             });
                                         });
                                     }, function( err ) {
@@ -682,10 +736,13 @@ function main() {
                 "ilvl",
                 "addedTs",
                 "socketAmount",
+                "linkAmount",
+                "colors",
+                "linkedColors",
                 "parsedImplicitMods.mod",
                 "parsedExplicitMods.mod",
                 "parsedCraftedMods.mod",
-                "parsedEnchantedMods.mod"
+                "parsedEnchantedMods.mod",
             ];
 
             function createIndexs(indexFields){
