@@ -716,41 +716,42 @@ function main() {
         db.createCollection( stashCollection, function( err, collection ) {
             logger.log( "Checking indexes have been generated", script_name );
             var indexFields = [
-                "name",
-                "explicitMods",
-                "accountName",
-                "id",
-                "properties",
-                "implicitMods",
-                "league",
-                "typeLine",
-                "identified",
-                "corrupted",
-                "stashName",
-                "frameType",
-                "lastCharacterName",
-                "craftedMods",
-                "enchantMods",
-                "stashID",
-                "available",
-                "ilvl",
-                "addedTs",
-                "socketAmount",
-                "linkAmount",
-                "colors",
-                "linkedColors",
-                "parsedImplicitMods.mod",
-                "parsedExplicitMods.mod",
-                "parsedCraftedMods.mod",
-                "parsedEnchantedMods.mod",
+                { "name": 1 },
+                { "explicitMods": 1 },
+                { "accountName": 1 },
+                { "id": 1 },
+                { "properties": 1 },
+                { "implicitMods": 1 },
+                { "league": 1 },
+                { "typeLine": 1 },
+                { "identified": 1 },
+                { "corrupted": 1 },
+                { "stashName": 1 },
+                { "frameType": 1 },
+                { "lastCharacterName": 1 },
+                { "craftedMods": 1 },
+                { "enchantMods": 1 },
+                { "stashID": 1 },
+                { "available": 1 },
+                { "ilvl": 1 },
+                { "addedTs": 1 },
+                { "socketAmount": 1 },
+                { "linkAmount": 1 },
+                { "colors": 1 },
+                { "linkedColors": 1 },
+                { "parsedImplicitMods.mod": 1 },
+                { "parsedExplicitMods.mod": 1 },
+                { "parsedCraftedMods.mod": 1 },
+                { "parsedEnchantedMods.mod": 1 },
+                { "name": 1, "socketAmount": 1 },
+                { "name": 1, "socketAmount": 1, "linkAmount": 1 },
+                { "parsedExplicitMods.mod": 1, "socketAmount": 1, "linkAmount": 1 }
             ];
 
             function createIndexs(indexFields){
                 return indexFields.map(function (key) {
                     return new Promise(function (resolve, reject){
-                        var keys = {};
-                        keys[key] = 1;
-                        collection.createIndex(keys, function () {
+                        collection.createIndex(key, function () {
                             resolve();
                         });
                     });
