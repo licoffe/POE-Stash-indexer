@@ -155,7 +155,7 @@ var getLinksAmountAndColor = function( item, callback ) {
         }
         callback({ "linkAmount": linkAmount, "colors": colors, "linkedColors": linkColors });
     });
-}
+};
 
 /**
  * Compare two arrays (old and new) and return an object containing an array
@@ -410,7 +410,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                             if ( results.length === 0 ) {
                                 logger.log( "Stash " + stash.id + " does not exist, creating it", script_name, "", true );
                                 logger.log( "Stash contains " + stash.items.length + " items", script_name, "", true );
-
+                                console.time( "DB insertion" );
                                 async.each( stash.items, function( item, cb ) {
 
                                     parseMods( item, function( explicit, implicit, crafted, enchanted ) {
@@ -461,6 +461,7 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     if ( err ) {
                                         logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
                                     }
+                                    console.timeEnd( "DB insertion" );
                                     callbackStash();
                                 });
                             // If the stash already exists
