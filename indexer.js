@@ -233,6 +233,7 @@ var parseMods = function( item, callback ) {
     var parsedImplicitMods  = [];
     var parsedCraftedMods   = [];
     var parsedEnchantedMods = [];
+    console.time( "Parsing mods" );
     // Parse explicit mods
     async.each( item.explicitMods, function( mod, cbMod ) {
         var re = /([0-9.]+)/g;
@@ -312,6 +313,7 @@ var parseMods = function( item, callback ) {
         if ( err ) {
             logger.log( "Error: " + err, script_name, "w" );
         }
+        console.timeEnd( "Parsing mods" );
     });
     callback( parsedExplicitMods, parsedImplicitMods, 
               parsedCraftedMods, parsedEnchantedMods );
@@ -461,7 +463,6 @@ var downloadChunk = function( chunkID, collection, db, callback ) {
                                     if ( err ) {
                                         logger.log( "New stash: There was an error inserting value: " + err, script_name, "w" );
                                     }
-                                    console.timeEnd( "DB insertion" );
                                     callbackStash();
                                 });
                             // If the stash already exists
