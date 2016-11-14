@@ -3,7 +3,7 @@ body {
     top: -8px;
     left: -8px;
     background-color: rgba( 35, 35, 35, 1 );
-    font-family: "helvetica";
+    font-family: "Roboto", "Arial", "helvetica";
     font-size: 0.9em;
     color: white;
 }
@@ -76,6 +76,15 @@ input[type="text"], textarea {
     padding: 10px;
     color: white;
     transition: border 0.2s;
+    font-size: 1em;
+}
+
+option {
+    background: #1E1E1E;
+}
+
+#query-limit {
+    width: 90%;
 }
 
 textarea {
@@ -83,6 +92,7 @@ textarea {
     height: 200px;
     width: 90%;
     line-height: 1.5;
+    font-family: "Roboto", "Arial", "helvetica";
 }
 
 select, input[type="button"] {
@@ -105,6 +115,7 @@ select, input[type="button"] {
     padding-right: 20px;
     transition: border 0.2s;
     text-shadow: 0 1px 1px black;
+    font-size: 1em;
 }
 
 select:hover, input:hover, textarea:hover {
@@ -208,8 +219,19 @@ input[type="button"] {
 }
 #results {
     font-size: 1.2em;
-    height: 400px;
+    height: 455px;
     overflow-y: scroll;
+    position: relative;
+    top: -5px;
+}
+#results th {
+    color: rgba( 255, 255, 255, 1 );
+    transition: 0.2s color;
+}
+#results th:hover {
+    cursor: pointer;
+    /*color: rgba(69, 169, 207, 1);*/
+    transition: 0.2s color;
 }
 #results table {
     border: none;
@@ -219,6 +241,9 @@ input[type="button"] {
 #item-overlay {
     text-align: center;
     font-family: "Fontin";
+}
+#item-name:hover {
+    cursor: pointer;
 }
 #item-implicit-mods table, #item-explicit-mods table, .item-value {
     color: rgb(92, 130, 255);
@@ -422,6 +447,37 @@ td#preview {
     border-width: 0 10px 10px 10px;
     border-color: transparent transparent #000 transparent;
 }
+#tooltip {
+    display: none;
+    position: absolute;
+    top: 440px;
+    left: 200px;
+    font-size: 0.8em;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 1);
+    overflow-y: scroll;
+    max-height: 120px;
+    box-shadow: 0 0 20px rgba( 0, 100, 200, 1 );
+    z-index: 10000;
+    width: 150px;
+    overflow: hidden;
+}
+#tooltip-arrow {
+    display: none;
+    position: absolute;
+    top: 447px;
+    left: 190px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent; 
+    border-right:10px solid black;
+    z-index: 10000;
+}
+.online-status:hover {
+    cursor: none;
+}
 #auto-complete span {
     /*position: relative;*/
     /*padding-top: 20px;*/
@@ -430,6 +486,7 @@ td#preview {
     border-radius: 3px;
     background: rgba( 0, 0, 0, 0 );
     transition: background 0.2s;
+    overflow: auto;
 }
 #auto-complete span:hover, #auto-complete span.selected {
     cursor: pointer;
@@ -498,3 +555,60 @@ td#preview {
     color: rgb(132, 183, 255);
     transition: color 0.2s;
 }*/
+#arrow-down-price {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #888;
+    position: relative;
+    top: 11px;
+    left: 5px;
+    /*display: none;*/
+}
+#arrow-up-price {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid #888;
+    position: relative;
+    top: -11px;
+    left: 5px;
+}
+#arrow-down-status {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #888;
+    position: relative;
+    top: 11px;
+    left: 5px;
+}
+#arrow-up-status {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid #888;
+    position: relative;
+    top: -11px;
+    left: 5px;
+}
+#arrow-down-explicit {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #888;
+    position: absolute;
+}
+#arrow-up-explicit {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid #888;
+    position: absolute;
+}

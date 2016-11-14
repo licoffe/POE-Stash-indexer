@@ -5,6 +5,7 @@
         <title>POE-price-helper</title>
         <link rel="stylesheet" href="./style.css">
         <link rel="stylesheet" href="./font/stylesheet.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <!--<script href="https://cdnjs.com/libraries/Chart.js"></script>-->
     </head>
@@ -170,31 +171,31 @@
                         <label>
                             <select id="base-currency">
                                 <option selected disabled>Base curreny</option>
-                                <option value="alt">alt</option>
-                                <option value="fuse">fuse</option>
-                                <option value="alch">alch</option>
-                                <option value="chaos">chaos</option>
-                                <option value="prism">prism</option>
-                                <option value="exa">exa</option>
-                                <option value="chrome">chrome</option>
-                                <option value="jew">jew</option>
-                                <option value="chance">chance</option>
-                                <option value="chisel">chisel</option>
-                                <option value="scouring">scouring</option>
-                                <option value="bless">bless</option>
-                                <option value="regret">regret</option>
-                                <option value="regal">regal</option>
-                                <option value="divine">divine</option>
-                                <option value="vaal">vaal</option>
-                                <option value="wisdom">wisdom</option>
-                                <option value="portal">portal</option>
-                                <option value="scrap">scrap</option>
-                                <option value="stone">stone</option>
-                                <option value="bauble">bauble</option>
-                                <option value="trans">trans</option>
-                                <option value="aug">aug</option>
-                                <option value="eternal">eternal</option>
-                                <option value="mirror">mirror</option>
+                                <option value="scrap">Armourer's Scrap</option>
+                                <option value="stone">Blacksmith's Whetstone</option>
+                                <option value="bless">Blessed Orb</option>
+                                <option value="chisel">Cartographer's Chisel</option>
+                                <option value="chaos">Chaos Orb</option>
+                                <option value="chrome">Chromatic Orb</option>
+                                <option value="divine">Divine Orb</option>
+                                <option value="eternal">Eternal Orb</option>
+                                <option value="exa">Exalted Orb</option>
+                                <option value="prism">Gemcutter's Prism</option>
+                                <option value="bauble">Glassblower's Bauble</option>
+                                <option value="jew">Jeweller's Orb</option>
+                                <option value="mirror">Mirror of Kalandra</option>
+                                <option value="alch">Orb of Alchemy</option>
+                                <option value="alt">Orb of Alteration</option>
+                                <option value="aug">Orb of Augmentation</option>
+                                <option value="chance">Orb of Chance</option>
+                                <option value="fuse">Orb of Fusing</option>
+                                <option value="regret">Orb of Regret</option>
+                                <option value="scouring">Orb of Scouring</option>
+                                <option value="trans">Orb of Transmutation</option>
+                                <option value="portal">Portal Scroll</option>
+                                <option value="regal">Regal Orb</option>
+                                <option value="wisdom">Scroll of Wisdom</option>
+                                <option value="vaal">Vaal Orb</option>
                             </select>
                         </label>
                         <br>
@@ -207,7 +208,7 @@
         <br>
 
         <div class="container" id="settings">
-            <span class="title">Parameters</span><div class="indexer-status-icon-offline"></div><span class="indexer-status">Indexer offline</span>
+            <!--<span class="title">Parameters</span><div class="indexer-status-icon-offline"></div><span class="indexer-status">Indexer offline</span>-->
             <table>
                 <tr>
                     <td>
@@ -251,7 +252,7 @@
                                 <option value="prophecy">Prophecy</option>
                                 <option value="quiver">Quiver</option>
                                 <option value="ring">Ring</option>
-                                <option value="map-fragments">Map</option>
+                                <option value="map">Map</option>
                                 <option value="fragment">Fragment</option>
                             </select>
                         </label>
@@ -290,6 +291,9 @@
                             </select>
                         </label>
                     </td>
+                    <td>
+                        <input id="socket-amount" type="text" placeholder="Socket amount">
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -299,6 +303,7 @@
                         <span>Item subtype</span>&nbsp;
                          <label>
                             <select id="item-subtype">
+                                <option value="any">Any</option>
                             </select>
                         </label>
                     </td>
@@ -322,6 +327,12 @@
                                 <option value="false">No</option>
                             </select>
                         </label>
+                    </td>
+                    <td>
+
+                    </td>
+                    <td>
+                        <input id="link-amount" type="text" placeholder="Linked sockets">
                     </td>
                 </tr>
             </table>
@@ -353,12 +364,13 @@
                                 <option value="accountName">Account</option>
                                 <option value="mods">Mods</option>
                             </select>
-                        </label>
+                        </label><br><br>
+                        <input id="query-limit" type="text" placeholder="Query limit: default 100">
                     </td>
                     <td>
                         Kept <span id="kept-items">0</span> items out of <span id="total-items">0</span>.
                     </td>
-                    <td rowspan="3">
+                    <td rowspan="3" style="padding: 0">
                         <div id="results">
                             <table>
                             </table>
@@ -453,15 +465,15 @@
                         <table id="prices">
                             <tr>
                                 <td>Average price:</td>
-                                <td><span id="avg-price">2.0 chaos</span></td>
+                                <td><span id="avg-price"></span></td>
                             </tr>
                             <tr>
                                 <td>Median price:</td>
-                                <td><span id="median-price">2.0 chaos</span></td>
+                                <td><span id="median-price"></span></td>
                             </tr>
                             <tr>
                                 <td>Mode price:</td>
-                                <td><span id="mode-price">2.0 chaos</span></td>
+                                <td><span id="mode-price"></span></td>
                             </tr>
                         </table>
                     </td>
@@ -470,6 +482,10 @@
         </div>
         <!--<div id="auto-complete-arrow"></div>-->
         <div id="auto-complete"></div>
+        <div id="tooltip-arrow"></div>
+        <div id="tooltip"></div>
+        <span id="arrow-up-explicit" class="arrow-filter"></span>
+        <span id="arrow-down-explicit" class="arrow-filter"></span>
 
         <script type="text/javascript">
             var $ = require('jquery');
@@ -491,6 +507,15 @@
                 var autocomplete = require( "./autocomplete.json" );
                 var affixes      = require( "./affixes.json" );
                 var config       = require( "./config.json" );
+                const os         = require('os');
+                var cr           = "\n";
+                // On windows, carriage return is not like in the usual world
+                console.log( "OS type is: " + os.type());
+                if ( os.type() === "Windows_NT" ) {
+                    // cr = "\r\n";
+                    console.log( "Setting line break to '\r\n'" );
+                }
+                var lastResults  = [];
                 var leagueRates  = {
                     alch:     0.3655772464721796,
                     alt:      0.10982493904715883,
@@ -522,6 +547,8 @@
                 var dbAddress    = config.dbAddress;
                 var dbPort       = config.dbPort;
                 var dbQueryLimit = config.dbQueryLimit;
+                var dbBatchSize  = config.dbBatchSize;
+                var dbQueryTimeOut = config.dbQueryTimeOut;
                 var indexerIP    = config.indexerIP;
                 var indexerPort  = config.indexerPort;
                 var onlineDelayS = config.onlineDelayS;
@@ -552,43 +579,58 @@
                     "available": 1,
                     "prophecyText": 1,
                     "prophecyDiffText": 1,
-                    "artFilename": 1
+                    "artFilename": 1,
+                    "socketAmount": 1
                 };
                 var autorefreshInterval;
-                var $ = require("jquery");
-                var completionMinChar = 2;
+                var $                  = require("jquery");
+                var completionMinChar  = 2;
                 var selectedEntryIndex = 0;
+                var sortBy             = "status";
+                var ascending          = true;
+                var sortOrder          = {
+                    "price": true,
+                    "status": true,
+                    "explicit": false
+                };
+                var explicitSort       = "";
+                var modPosition        = "";
 
-                // Connect to the indexer backend and check availability
-                var socket = io( "http://" + indexerIP + ":" + indexerPort );
-                socket.on( "connect", function() {
-                    console.log( "Frontend connected" );
-                    $( ".indexer-status" ).text( "Indexer online" );
-                    $( ".indexer-status-icon-offline" ).removeClass( "indexer-status-icon-offline" )
-                                                       .addClass( "indexer-status-icon-online" );
-                });
-                socket.on( "message", function( data ) {
-                    console.log( "message received: " + data );
-                });
-                socket.on( "disconnect", function() {
-                    console.log( "Frontend disconnected" );
-                    $( ".indexer-status" ).text( "Indexer offline" );
-                    $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
-                                                      .addClass( "indexer-status-icon-offline" );
-                });
-                socket.on( "connect_error", function() {
-                    console.log( "Connection error" );
-                    $( ".indexer-status" ).text( "Indexer offline" );
-                    $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
-                                                      .addClass( "indexer-status-icon-offline" );
-                })
+                if ( config.monitorIndexerStatus ) {
+                    // Connect to the indexer backend and check availability
+                    var socket = io( "http://" + indexerIP + ":" + indexerPort );
+                    socket.on( "connect", function() {
+                        console.log( "Frontend connected" );
+                        $( ".indexer-status" ).text( "Indexer online" );
+                        $( ".indexer-status-icon-offline" ).removeClass( "indexer-status-icon-offline" )
+                                                        .addClass( "indexer-status-icon-online" );
+                    });
+                    socket.on( "message", function( data ) {
+                        console.log( "message received: " + data );
+                    });
+                    socket.on( "disconnect", function() {
+                        console.log( "Frontend disconnected" );
+                        $( ".indexer-status" ).text( "Indexer offline" );
+                        $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                        .addClass( "indexer-status-icon-offline" );
+                    });
+                    socket.on( "connect_error", function() {
+                        console.log( "Connection error" );
+                        $( ".indexer-status" ).text( "Indexer offline" );
+                        $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                        .addClass( "indexer-status-icon-offline" );
+                    })
+                } else {
+                    $( ".indexer-status-icon-offline" ).css({ "background-color": "rgba( 0, 0, 0, 0 )", "box-shadow": "none" });
+                    $( ".indexer-status" ).css({ "color": "rgba( 0, 0, 0, 0 )" });
+                }
 
                 /**
                 * Check when input account last published some modifications.
                 *
                 * For each account name in the array, check when it last
                 * updated its status using the online_status table.
-                * @params db, an array of accounts to check, callback function
+                * @param db, an array of accounts to check, callback function
                 * @return object containing last seen timestamp for each account
                 */
                 var checkLastSeen = function( db, accountList, cb ) {
@@ -623,7 +665,7 @@
                 * 750000 char long (empty page length), there are some items and 
                 * the user is therefore online. Takes long to execute though and
                 * feels wrong to use without proper API or rights. 
-                * @params account, league and callback
+                * @param account, league and callback
                 * @return boolean
                 */
                 var isOnline = function( account, league, cb ) {
@@ -712,7 +754,7 @@
                 /**
                  * Query DB
                  *
-                 * @params MongoDB handler, criteria, league, the type, a callback 
+                 * @param MongoDB handler, criteria, league, the type, a callback 
                  * the results will be sent to
                  * @return DB results matching the criteria
                 */
@@ -722,6 +764,12 @@
                     $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
                     $( ".search-status" ).text( "Querying by " + queryBy + " ..." );
                     console.log( criteria );
+                    // Check if query-limit field holds a value
+                    var queryLimit = $( "#query-limit" ).val();
+                    if ( queryLimit !== "" ) {
+                        dbQueryLimit = parseInt( queryLimit );
+                        console.log( "Setting query limit to " + queryLimit );
+                    }
                     var start      = new Date();
                     var rarity     = $( "#rarity" ).val();
                     var type       = $( "#item-subtype" ).val();
@@ -729,6 +777,16 @@
                     var corrupted  = $( "#corrupted" ).val();
                     var level      = $( "#item-level" ).val();
                     var available  = $( "#verified" ).val();
+                    var socketAmount = 0;
+                    var socketField  = parseInt( $( "#socket-amount" ).val());
+                    if ( socketField > 0 ) {
+                        socketAmount = socketField;
+                    }
+                    var linkAmount = 0;
+                    var linkField  = parseInt( $( "#link-amount" ).val());
+                    if ( linkField > 0 ) {
+                        linkAmount = linkField;
+                    }
                     var cursor;
                     if ( available === "either" ) {
                         available = [true, false];
@@ -756,7 +814,10 @@
                     } else {
                         corrupted = [true, false];
                     }
-                    if ( !type || type === "any" ) {
+                    if ( $( "#item-subtype" ).val() === "any" && 
+                                $( "#item-type" ).val() !== "any" ) {
+                        type = { $in: itemTypes[$( "#item-type" ).val()].types };
+                    } else {
                         type = / /;
                     }
                     if ( rarity === "any" ) {
@@ -764,83 +825,82 @@
                     } else {
                         rarity = [parseInt( rarity)];
                     }
-                    var options = {
-                        "limit": dbQueryLimit,
-                        'maxTimeMs': 15000,
-                        "fields": fields
-                    };
 
                     var done = function( cursor ) {
                         console.log( "Gathering results" );
                         if ( cursor !== undefined ) {
-                            cursor.each( function( err, doc ) {
-                                // If there are still some entries
-                                if ( doc !== null ) {
-                                    entries.push( doc );
+                            async.each( cursor, function( doc, cb ) {
+                                $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
+                                $( ".search-status" ).text( entries.length + " entries found ..." );
+                                console.log( "Found " + entries.length + " entries so far" );
+                                entries.push( doc );
+                                cb();
+                            }, function( err ) {
                                 // otherwise close DB and cursor
-                                } else {
-                                    $( ".search-status" ).text( "Found " + entries.length + " entries" );
-                                    console.log( "Found " + entries.length + " entries (" + 
-                                                ( new Date() - start ) + "ms)" );
-                                    cursor.close();
-                                    var filterOnline = $( "#online" ).val();
-                                    var entriesOnline = [];
-                                    var checkedOnline = {};
-                                    
-                                    // Set online status for each item
-                                    $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
-                                    // Create array of account names
-                                    var accountNames = [];
-                                    async.each( entries, function( entry, cbEntry ) {
-                                        if ( accountNames.indexOf( entry.accountName ) === -1 ) {
-                                            accountNames.push( entry.accountName );
-                                            cbEntry();
-                                        } else {
-                                            cbEntry();
-                                        }
-                                    }, function( err ) {
-                                        /* Send the list of accounts to check 
-                                        for their availability */
-                                        checkLastSeen( db, accountNames, function( lastSeen ) {
-                                            console.log( lastSeen );
-                                            async.each( entries, function( result, callbackOnline ) {
-                                                /* If the user has a last seen 
-                                                timestamp */
-                                                if ( lastSeen[result.accountName]) {
-                                                    result.lastSeen = lastSeen[result.accountName];
-                                                    result.online   = 
-                                                        ( Date.now() - result.lastSeen ) < ( onlineDelayS * 1000 );
-                                                } else {
-                                                    result.lastSeen = null;
-                                                    result.online   = false;
-                                                }
-                                                if ( filterOnline === "either" ) {
+                                $( ".search-status" ).text( "Found " + entries.length + " entries" );
+                                console.log( "Found " + entries.length + " entries (" + 
+                                            ( new Date() - start ) + "ms)" );
+                                // cursor.close();
+                                var filterOnline = $( "#online" ).val();
+                                var entriesOnline = [];
+                                var checkedOnline = {};
+                                
+                                // Set online status for each item
+                                $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
+                                // Create array of account names
+                                var accountNames = [];
+                                async.each( entries, function( entry, cbEntry ) {
+                                    console.log( entry );
+                                    if ( accountNames.indexOf( entry.accountName ) === -1 ) {
+                                        accountNames.push( entry.accountName );
+                                        cbEntry();
+                                    } else {
+                                        cbEntry();
+                                    }
+                                }, function( err ) {
+                                    /* Send the list of accounts to check 
+                                    for their availability */
+                                    checkLastSeen( db, accountNames, function( lastSeen ) {
+                                        console.log( lastSeen );
+                                        async.each( entries, function( result, callbackOnline ) {
+                                            /* If the user has a last seen 
+                                            timestamp */
+                                            if ( lastSeen[result.accountName]) {
+                                                result.lastSeen = lastSeen[result.accountName];
+                                                result.online   = 
+                                                    ( Date.now() - result.lastSeen ) < ( onlineDelayS * 1000 );
+                                            } else {
+                                                result.lastSeen = null;
+                                                result.online   = false;
+                                            }
+                                            if ( filterOnline === "either" ) {
+                                                entriesOnline.push( result );
+                                            } else if ( filterOnline === "true" ) {
+                                                if ( result.online ) {
                                                     entriesOnline.push( result );
-                                                } else if ( filterOnline === "true" ) {
-                                                    if ( result.online ) {
-                                                        entriesOnline.push( result );
-                                                    }
-                                                } else if ( filterOnline === "false" ) {
-                                                    if ( !result.online ) {
-                                                        entriesOnline.push( result );
-                                                    }
                                                 }
-                                                callbackOnline();
-                                            }, function( err ) {
-                                                if ( err ) {
-                                                    console.log( err );
+                                            } else if ( filterOnline === "false" ) {
+                                                if ( !result.online ) {
+                                                    entriesOnline.push( result );
                                                 }
-                                                db.close();
-                                                /* Send array containing filtered 
-                                                entries to averagePrice function */
-                                                callback( entriesOnline, averagePrice );
-                                            });
+                                            }
+                                            callbackOnline();
+                                        }, function( err ) {
+                                            if ( err ) {
+                                                console.log( err );
+                                            }
+                                            db.close();
+                                            /* Send array containing filtered 
+                                            entries to averagePrice function */
+                                            callback( entriesOnline, averagePrice );
                                         });
                                     });
-                                }
+                                });
                             });
                         } else {
-                            console.log( "No items found with these criterias" );
+                            console.log( "Query timed out" );
+                            $( "#search .loading" ).fadeOut( 'fast' );
+                            $( ".search-status" ).text( "Query timed out" );
                             db.close();
                         }
                     };
@@ -861,7 +921,10 @@
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
                                 "ilvl": { $gte: level },
-                            }, options, function( err, cursor ) {
+                                "socketAmount": { $gte: socketAmount },
+                                "linkAmount": { $gte: linkAmount }
+                            }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                              .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
                                 if ( err ) {
                                     console.log( err );
                                 }
@@ -876,8 +939,11 @@
                                 "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
-                                "ilvl": { $gte: level }
-                            }, options, function( err, cursor ) {
+                                "ilvl": { $gte: level },
+                                "socketAmount": { $gte: socketAmount },
+                                "linkAmount": { $gte: linkAmount }
+                            }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                              .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
                                 if ( err ) {
                                     console.log( err );
                                 }
@@ -894,8 +960,11 @@
                             "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
-                            "ilvl": { $gte: level }
-                        }, options, function( err, cursor ) {
+                            "ilvl": { $gte: level },
+                            "socketAmount": { $gte: socketAmount },
+                            "linkAmount": { $gte: linkAmount }
+                        }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                          .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
                             if ( err ) {
                                 console.log( err );
                             }
@@ -910,14 +979,18 @@
                             "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
-                            "ilvl": { $gte: level }
-                        }, options, function( err, cursor ) {
+                            "ilvl": { $gte: level },
+                            "socketAmount": { $gte: socketAmount },
+                            "linkAmount": { $gte: linkAmount }
+                        }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                          .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
                             if ( err ) {
                                 console.log( err );
                             }
                             done( cursor );
                         });
                     } else if ( queryBy === "mods" ) {
+                        console.log( JSON.stringify( criteria ));
                         // $or: [
                             //     {"explicitMods": { 
                             //         $all: criteria
@@ -931,7 +1004,7 @@
                             //     {"enchantMods": { 
                             //         $all: criteria
                             //     }}
-                        cursor = db.collection('stashes').find({
+                        db.collection('stashes').find({
                             "parsedExplicitMods": { $all: criteria },
                             "typeLine": type,
                             "frameType": { $in: rarity },
@@ -939,8 +1012,11 @@
                             "available": { $in: available },
                             "corrupted": { $in: corrupted },
                             "identified": { $in: identified },
-                            "ilvl": { $gte: level }
-                        }, options, function( err, cursor ) {
+                            "ilvl": { $gte: level },
+                            "socketAmount": { $gte: socketAmount },
+                            "linkAmount": { $gte: linkAmount }
+                        }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                          .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
                             if ( err ) {
                                 console.log( err );
                             }
@@ -954,7 +1030,7 @@
                 /**
                  * Connect to MongoDB. If successfull, run provided callback function
                  * 
-                 * @params Callback function
+                 * @param Callback function
                  * @return None
                  */
                 function connectToDB( callback ) {
@@ -967,8 +1043,14 @@
                             $( "#search .loading" ).fadeOut( 'fast' );
                         }
                         console.log( "Connected to MongoDB" );
-                        
-                        callback( db );
+                        db.authenticate( config.dbUser, config.dbPass, function( err, res ) {
+                            if ( err ) {
+                                console.log( err, script_name, "e" );
+                                process.exit(0);
+                            }
+                            console.log( "Logged in " + database, script_name );
+                            callback( db );
+                        });
                     });
                 }
 
@@ -978,7 +1060,7 @@
                  * For each item in the list, check if it matches the price
                  * regexp. If it does, store its price with the currency it is
                  * in.
-                 * @params a list of item, a callback to send the list to
+                 * @param a list of item, a callback to send the list to
                  * @return nothing
                  */
                 function filterValidPrice( items, callback ) {
@@ -1009,6 +1091,7 @@
                     console.log( "Kept " + results.length + " items" );
                     $( "#kept-items" ).text( results.length );
                     $( "#total-items" ).text( items.length );
+                    lastResults = results;
                     updateInterface( results );
                     callback( results );
                 }
@@ -1017,7 +1100,7 @@
                  * Returns the median value of an array
                  *
                  * Sort array, then return its median
-                 * @params array
+                 * @param array
                  * @return median value
                  */
                 var median = function( values ) {
@@ -1036,7 +1119,7 @@
                  * For each item of the set, sum its price in chaos to a global sum and
                  * divide by the number of items. Then sort the prices and extract the 
                  * median value. Print the average and median prices.
-                 * @params sets of items
+                 * @param sets of items
                  * @return nothing 
                  */
                 var averagePrice = function( results ) {
@@ -1137,12 +1220,22 @@
                                 " ( " + Math.round( medProportion * 100 ) / 100 + " % items)" );
                     console.log( "Mode price is " + Math.round( mode.value * 100 ) / 100 + " " + unitMode );
                     if ( shouldNotify ) {
-                        notifier.notify({
-                            'title': 'Price based on ' + results.length + " items",
-                            'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + ".\n" + 
-                                    "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + ".\n" +
-                                    "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode,
-                        });
+                        if ( os.type() === "Windows_NT" ) {
+                            notifier.notify({
+                                'title': 'Price based on ' + results.length + " items",
+                                'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + ". " + 
+                                            "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + ". " +
+                                            "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode,
+                            });
+                        } else {
+                            notifier.notify({
+                                'title': 'Price based on ' + results.length + " items",
+                                'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + "." + cr + 
+                                            "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + "." + cr +
+                                            "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode,
+                            });
+                        }
+                        
                     }
                     drawChart( chartParam );
                 }
@@ -1192,17 +1285,93 @@
                  * @return nothing
                  */
                 function updateInterface( results ) {
-                    $( ".search-status" ).text( "Returning result list ..." );
+                    // $( ".search-status" ).text( "Returning result list ..." );
                     var current = Date.now();
                     $( "#search .loading" ).fadeOut( 'fast' );
                     $( "#results table" ).empty();
+                    $( "#results table" ).append( 
+                        "<tr>" + 
+                            "<th>Price" + 
+                                "<span id='arrow-up-price' class='arrow-filter'></span>" +
+                                "<span id='arrow-down-price' class='arrow-filter'></span>" + 
+                            "</th><th>Status" + 
+                                "<span id='arrow-up-status' class='arrow-filter'></span>" +
+                                "<span id='arrow-down-status' class='arrow-filter'></span>" +
+                            "</th></tr>" );
                     itemPreview( results[0]);
-                    // sort results by price
-                    results.sort( function( a, b ) {
-                        // console.log( leagueRates[a.currency] );
-                        return a.price * leagueRates[a.currency] - 
-                               b.price * leagueRates[b.currency];
-                    });
+                    var direction = ascending ? "up" : "down";
+                    var border    = ascending ? "border-bottom" : "border-top";
+                    $( "#arrow-up-price"      ).css({ "border-bottom": "8px solid #888" });
+                    $( "#arrow-down-price"    ).css({ "border-top": "8px solid #888" });
+                    $( "#arrow-up-status"     ).css({ "border-bottom": "8px solid #888" });
+                    $( "#arrow-down-status"   ).css({ "border-top": "8px solid #888" });
+                    $( "#arrow-up-explicit"   ).css({ "border-bottom": "8px solid #888" });
+                    $( "#arrow-down-explicit" ).css({ "border-top": "8px solid #888" });
+                    if ( $( this ).text() === "Price" ) {
+                        $( "#arrow-" + direction + "-" + sortBy ).css( border, "8px solid #ffad17" );
+                    } else if ( $( this ).text() === "Status" ) {
+                        $( "#arrow-" + direction + "-" + sortBy ).css( border, "8px solid #ffad17" );
+                    } else {
+                        $( "#arrow-" + direction + "-" + sortBy ).css( border, "8px solid #ffad17" );
+                    }
+                    // Sort results by price
+                    if ( sortBy === "price" ) {
+                        results.sort( function( a, b ) {
+                            if ( !ascending ) {
+                                var c = a;
+                                a = b;
+                                b = c;
+                            }
+                            // console.log( leagueRates[a.currency] );
+                            return a.price * leagueRates[a.currency] - 
+                                   b.price * leagueRates[b.currency];
+                        });
+                    // Sort result by online status
+                    } else if ( sortBy === "status" ) {
+                        results.sort( function( a, b ) {
+                            if ( !ascending ) {
+                                var c = a;
+                                a = b;
+                                b = c;
+                            }
+                            // console.log( leagueRates[a.currency] );
+                            return ( Date.now() - a.lastSeen ) - 
+                                   ( Date.now() - b.lastSeen );
+                        });
+                    } else if ( sortBy === "explicit" ) {
+                        results.sort( function( a, b ) {
+                            console.log( a );
+                            if ( !ascending ) {
+                                var c = a;
+                                a = b;
+                                b = c;
+                            }
+                            var indexA = -1;
+                            var indexB = -1;
+                            for ( var i = 0 ; i < a.parsedExplicitMods.length ; i++ ) {
+                                if ( a.parsedExplicitMods[i].mod === explicitSort ) {
+                                    indexA = i;
+                                    break;
+                                }
+                            }
+                            for ( var i = 0 ; i < b.parsedExplicitMods.length ; i++ ) {
+                                if ( b.parsedExplicitMods[i].mod === explicitSort ) {
+                                    indexB = i;
+                                    break;
+                                }
+                            }
+                            if ( indexA !== -1 && indexB !== -1 ) {
+                                return a.parsedExplicitMods[indexA].values[0] - 
+                                       b.parsedExplicitMods[indexB].values[0];
+                            /* probably asked to filter something across 
+                               rare items which have different mods. Nothing 
+                               we can do here */
+                            } else {
+                                return a;
+                            }
+                        });
+                    }
+                    
                     var counter = 0;
                     async.each( results, function( result, callbackUpdate ) {
                         var opacity = 1;
@@ -1282,9 +1451,8 @@
                                     result.currency + ".png'>)" + 
                                     "<span class='ago'>" + time + "</span>" +
                                     "</td>" +
-                                    "<td>" + 
-                                    // "<div class='" + onlineStatus + "'></div>" +
-                                    "<div style='background-color: " + statusColor + "' class='online' title='" + tooltipLastSeen + "'></div>" +
+                                    "<td class='online-status'>" + 
+                                    "<div style='background-color: " + statusColor + "' class='online'></div>" +
                                     "</td>" +
                                 "</tr>"
                             );
@@ -1299,9 +1467,8 @@
                                     result.currency + ".png'>)" +
                                     "<span class='ago'>" + time + "</span>" +
                                     "</td>" +
-                                    "<td>" + 
-                                    // "<div class='" + onlineStatus + "'></div>" +
-                                    "<div style='background-color: " + statusColor + "' class='online' title='" + tooltipLastSeen + "'></div>" +
+                                    "<td class='online-status'>" + 
+                                    "<div style='background-color: " + statusColor + "' class='online'></div>" +
                                     "</td>" +
                                 "</tr>"
                             );
@@ -1311,6 +1478,52 @@
                     }, function( err ) {
                         bindPreviewOnClick();
                         bindContactOnClick();
+
+                        // Show tooltip when hovering status
+                        $( ".online-status" ).mouseover( function( e ) { 
+                            var item = $( this ).parent()
+                                                .children( ".item-entry" )
+                                                .data().dataItem;
+                            var position = $( this ).offset();
+                            var lastUpdate = secToNsec( Date.now() - item.lastSeen );
+                            $( "#tooltip" ).html( "<strong>" + item.accountName + 
+                                                "</strong> " + Math.round( lastUpdate.amount ) + 
+                                                " " + lastUpdate.unit + " ago" );
+                            // Change tooltip position
+                            $( "#tooltip" ).css({
+                                "top": position.top + "px",
+                                "left": ( position.left + 70 ) + "px"
+                            });
+                            $( "#tooltip-arrow" ).css({
+                                "top": ( position.top + 7 ) + "px",
+                                "left": ( position.left + 60 ) + "px"
+                            });
+                            $( "#tooltip" ).stop().show( 'fast' );
+                            $( "#tooltip-arrow" ).stop().show( 'fast' );
+                        });
+                        // Hide tooltip, when mouse exits
+                        $( ".online-status" ).mouseleave( function() {
+                            $( "#tooltip" ).stop().hide( 'fast' );
+                            $( "#tooltip-arrow" ).stop().hide( 'fast' );
+                        });
+                        // If user clicks on table header, filter by price or online status
+                        $( "#results th" ).click( function() {
+                            if ( $( this ).text().toLowerCase() === sortBy ) {
+                                ascending         = !ascending;
+                                sortOrder[sortBy] = ascending;
+                            } else {
+                                sortOrder[sortBy] = ascending;
+                                ascending = sortOrder[$( this ).text().toLowerCase()];
+                            }
+                            
+                            if ( $( this ).text() === "Price" ) {
+                                sortBy = "price";
+                            } else if ( $( this ).text() === "Status" ) {
+                                sortBy = "status";
+                            }
+                            console.log( "Sorting in " + ascending + " order by " + sortBy );
+                            updateInterface( lastResults );
+                        })
                     });
                 }
 
@@ -2276,10 +2489,88 @@
                             );
                         }
                     }
+
                     // If user clicks on affix
-                    $( "#item-explicit-mods td" ).click( function() { 
-                        var txt = $( "textarea" ).val() + $( this ).text() + "\n"; 
-                        $( "textarea" ).val( txt ) 
+                    $( "#item-explicit-mods td" ).unbind();
+                    // If user hovers explicit mod 
+                    $( "#item-explicit-mods td" ).mouseenter( function() {
+                        var position = $( this ).offset();
+                        // Change arrow positions
+                        $( "#arrow-up-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 25 ) + "px"
+                        });
+                        $( "#arrow-down-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 15 ) + "px"
+                        });
+                    });
+                    $( "#item-explicit-mods td" ).mouseleave( function() {
+                        var position = $( this ).offset();
+                        $( "#arrow-up-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 25 ) + "px"
+                        });
+                        $( "#arrow-down-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 15 ) + "px"
+                        });
+                    });
+                    $( "#item-explicit-mods td" ).click( function( event ) {
+                        modPosition = $( this ).offset();
+                        // If left click, sort by explicit mods
+                        if ( event.which === 1 ) {
+                            sortBy = "explicit";
+                            explicitSort = $( this ).text().replace( /[0-9]+/g, "#" );
+                            /* If we replaced numbers, sort. Otherwise, no need
+                               to order anything */
+                            if ( explicitSort !== $( this ).text()) {
+                                console.log( lastResults );
+                                updateInterface( lastResults );
+                            }
+                        // Otherwise add the mod to the search
+                        } else {
+                            if ( $( "#search-by" ).val() !== "mods" ) {
+                                $( "#search-by" ).val( "mods" );
+                                $( "textarea" ).val( $( this ).text() + cr );
+                            } else {
+                                $( "#search-by" ).val( "mods" );
+                                var text = $( "textarea" ).val();
+                                var splitted = text.split( cr );
+                                console.log( splitted );
+                                var newEntry = $( this ).text();
+                                var replaced = false;
+                                var newEntries = [];
+                                async.each( splitted, function( line, cbLine ) {
+                                    console.log( "Comparing " + line.replace( /[0-9]+/g, "#" ) + " and " + newEntry );
+                                    if ( line.replace( /[0-9]+/g, "#" ) === newEntry.replace( /[0-9]+/g, "#" )) {
+                                        newEntries.push( newEntry );
+                                        replaced = true;
+                                        console.log( "replaced entry" );
+                                    } else {
+                                        newEntries.push( line );
+                                    }
+                                    cbLine();
+                                }, function( err ) {
+                                    if ( replaced ) {
+                                        $( "textarea" ).val( newEntries.join( cr ));
+                                    } else {
+                                        var txt = $( "textarea" ).val() + newEntry + cr; 
+                                        $( "textarea" ).val( txt );
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    /* If user clicks on object name, set the search to name,
+                       replace search terms by the name of the object clicked
+                       and launch the search
+                    */
+                    $( "#item-name" ).unbind();
+                    $( "#item-name" ).click( function() {
+                        $( "#search-by" ).val( "name" );
+                        $( "textarea" ).val( $( this ).text());
+                        $( "#search-item" ).click();
                     });
                 }
 
@@ -2288,6 +2579,28 @@
                         var item = $( this ).data().dataItem;
                         // console.log( item );
                         itemPreview( item );
+                        // Restore arrow position when sorted by explicit
+                        if ( sortBy === "explicit" ) {
+                            // browse explicit mods for mod position
+                            $( "div#item-explicit-mods td" ).each( function() {
+                                if ( $( this ).text().replace( /([0-9]+)/g, "#" ) === explicitSort ) {
+                                    var position = $( this ).offset();
+                                    // Change arrow positions
+                                    $( "#arrow-up-explicit" ).css({
+                                        "top": ( position.top + 2 ) + "px",
+                                        "left": ( position.left - 25 ) + "px"
+                                    });
+                                    $( "#arrow-down-explicit" ).css({
+                                        "top": ( position.top + 2 ) + "px",
+                                        "left": ( position.left - 15 ) + "px"
+                                    });
+                                    $( this ).css({ 
+                                        "color": "yellow",
+                                        "text-shadow": "0 0 10px rgb(228, 255, 0)" 
+                                    });
+                                }
+                            });
+                        }
                     });
                 }
 
@@ -2295,11 +2608,12 @@
                     // When clicking on item in results
                     $( "#results table td.item-entry" ).click( function() {
                         var item = $( this ).data().dataItem;
-                        var str = "@" + item.lastCharacterName + " Hi " + 
-                            item.lastCharacterName + ", I would like to buy your '" + 
-                            item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) +
-                            "' for '" + item.price + " " + item.currency + 
-                            "'. This item is in stash '" + item.stashName + "'. Thank you :)";
+                        var str = config.contactMessage;
+                        // Replace placeholder by values
+                        str = str.replace( /<charName>/g, item.lastCharacterName );
+                        str = str.replace( /<itemName>/g, item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
+                        str = str.replace( /<itemPrice>/g, item.price + " " + item.currency );
+                        str = str.replace( /<stashName>/g, item.stashName );
                         ncp.copy( str, function() {
                             console.log( "copied to clipboard" );
                             notifier.notify({
@@ -2346,10 +2660,12 @@
                             }
                         }
                     });
-                    $( ".search-status" ).text( "Idle" );
-                    setTimeout( function() {
-                        $( ".search-status" ).removeClass( "search-status" ).addClass( "search-status-hidden" );
-                    }, 500 );
+                    var date = new Date();
+                    var time = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                    $( ".search-status" ).text( "Search complete: " + time );
+                    // setTimeout( function() {
+                    //     $( ".search-status" ).removeClass( "search-status" ).addClass( "search-status-hidden" );
+                    // }, 500 );
                 }
 
                 // GUI binding
@@ -2367,12 +2683,15 @@
 
                 // WHen clicking on search button
                 $( "#search-item" ).click( function() {
+                    sortBy = "status";
+                    console.log( "Setting back to status" );
                     var searchDelay = 10000;
                     var search = function() {
                         var text  = $( "textarea" ).val();
-                        var lines = text.split( "\n" );
+                        var lines = text.split( cr );
                         var entries = [];
                         var searchBy = $( "#search-by" ).val();
+                        
                         $( "#auto-complete" ).fadeOut( "fast" );
                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
                         var re = /([0-9.]+)/g;
@@ -2443,13 +2762,16 @@
                     } else {
                         clearInterval( autorefreshInterval );
                     }
-                    
                 });
 
                 $( "#item-type" ).change( function() {
                     $( "#item-subtype" ).empty();
+
                     var types = itemTypes[$( this ).val()].types;
                     types.sort();
+                    $( "#item-subtype" ).append(
+                        "<option value='any'>Any</option>"
+                    );
                     for ( var i = 0 ; i < types.length ; i++ ) {
                         $( "#item-subtype" ).append(
                             "<option value='" + types[i] + "'>" + types[i] + " </option>"
@@ -2496,7 +2818,7 @@
                         var cursorPosition = $( "textarea" ).prop( "selectionStart" );
                         console.log( cursorPosition );
                         // Split text by line break
-                        var splitted = currentText.split( "\n" );
+                        var splitted = currentText.split( cr );
                         console.log( splitted );
                         var currentLine  = "";
                         var currentIndex = 0;
@@ -2546,9 +2868,9 @@
                                         var str = ""; 
                                         for ( var i = 0 ; i < splitted.length ; i++ ) {
                                             if ( i !== lineIndex ) {
-                                                str += splitted[i] + "\n";
+                                                str += splitted[i] + cr;
                                             } else {
-                                                str += $( this ).text() + "\n";
+                                                str += $( this ).text() + cr;
                                             }
                                         }
                                         $( "textarea" ).val( str );
@@ -2572,7 +2894,7 @@
                                         $( "#auto-complete-arrow" ).fadeIn( "fast" );
                                         $( "#auto-complete" ).css({ 
                                             "left": (180 + currentLine.length * 6) + "px",
-                                            "top": (440 + lineIndex * 16) + "px" 
+                                            "top":  (440 + lineIndex * 16) + "px" 
                                         });
                                         $( "#auto-complete span" ).removeClass( "selected" );
                                         $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
@@ -2582,9 +2904,9 @@
                                         var str = ""; 
                                         for ( var i = 0 ; i < splitted.length ; i++ ) {
                                             if ( i !== lineIndex ) {
-                                                str += splitted[i] + "\n";
+                                                str += splitted[i] + cr;
                                             } else {
-                                                str += $( this ).text() + "\n";
+                                                str += $( this ).text() + cr;
                                             }
                                         }
                                         $( "textarea" ).val( str );
@@ -2595,7 +2917,14 @@
                             }
                         }
                     }
-                })
+                });
+
+                // When pressing ENTER in any textfield, run search
+                $( "input" ).keydown( function( event ) {
+                    if ( event.keyCode === 13 ) {
+                        $( "#search-item" ).click();
+                    }
+                });
 
                 process.on('SIGINT', cleanup );
                 process.on('SIGTERM', cleanup );

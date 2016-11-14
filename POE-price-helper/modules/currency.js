@@ -82,13 +82,14 @@ function Currency( league ) {
 
     Currency.prototype.searchOnline = function( online ) {
         this.online = online;
-    }
+    };
 
     Currency.prototype.getCurrencyIndex = function( currency ) {
         return this.currencies.indexOf( currency ) + 1;
-    }
+    };
 
     Currency.prototype.getAllRates = function( currency, callback ) {
+        // var event = new Event( 'currencyPrice' );
         var rates = {};
         var start = new Date();
         if ( this.currencies.indexOf( currency ) === -1 ) {
@@ -116,7 +117,7 @@ function Currency( league ) {
             logger.log( "Got last rates (" + (new Date() - start) + "ms)", scriptName );
             callback( rates );
         });
-    }
+    };
 
     Currency.prototype.getRate = function( buying, selling, amount, callback ) {
         var buyingIndex  = this.getCurrencyIndex( buying );
@@ -148,7 +149,7 @@ function Currency( league ) {
 
                 window.$( "div.displayoffer-middle" ).each( function() { 
                     var splitted = window.$( this ).text().split( " ⇐ " ); 
-                    var ratio = splitted[0] / splitted[1]
+                    var ratio = splitted[0] / splitted[1];
     //                 console.log( buying + " -> " + selling + ": " + ratio + " " + splitted[0] + "/" + splitted[1] );
                     if ( ratio > max ) {
                         max = ratio;
@@ -182,7 +183,7 @@ function Currency( league ) {
                 }
             }
         );
-    }
+    };
 }
 
 module.exports = Currency;
