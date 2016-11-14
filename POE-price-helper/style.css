@@ -603,6 +603,7 @@ td#preview {
     border-right: 5px solid transparent;
     border-top: 8px solid #888;
     position: absolute;
+    display: none;
 }
 #arrow-up-explicit {
     width: 0;
@@ -611,4 +612,5 @@ td#preview {
     border-right: 5px solid transparent;
     border-bottom: 8px solid #888;
     position: absolute;
+    display: none;
 }
