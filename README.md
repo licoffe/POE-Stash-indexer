@@ -28,6 +28,8 @@ The client features:
 - Clicking on an entry in the item list will copy a message in the clipboard to contact the seller with his offer
 - Auto-refresh the search at a fixed poll (10s) for now
 - Pop-up Notification when the search is finished
+- Search can be sorted by affix value, price and player activity
+- Search can be filtered by item level, socket amount, socket links, corrupted, sold/moved
 
 #### Installation
 Required node packages can be installed through `npm install`. On Ubuntu it may also be required to create an alias of the nodejs command to node using the following `ln /usr/bin/nodejs /usr/bin/node`.

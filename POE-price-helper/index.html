@@ -368,7 +368,7 @@
                         <input id="query-limit" type="text" placeholder="Query limit: default 100">
                     </td>
                     <td>
-                        Kept <span id="kept-items">0</span> items out of <span id="total-items">0</span>.
+                        Kept <span id="kept-items">0</span> items out of <span id="total-items">0</span>
                     </td>
                     <td rowspan="3" style="padding: 0">
                         <div id="results">
@@ -484,6 +484,8 @@
         <div id="auto-complete"></div>
         <div id="tooltip-arrow"></div>
         <div id="tooltip"></div>
+        <div id="tooltip-advice-arrow"></div>
+        <div id="tooltip-advice"></div>
         <span id="arrow-up-explicit" class="arrow-filter"></span>
         <span id="arrow-down-explicit" class="arrow-filter"></span>
 
@@ -1090,7 +1092,36 @@
                     }
                     console.log( "Kept " + results.length + " items" );
                     $( "#kept-items" ).text( results.length );
-                    $( "#total-items" ).text( items.length );
+                    /* If we have as many items as the query limit, it means
+                       we have likely more items in the db */
+                    if ( items.length === parseInt( $( "#query-limit" ).val()) || 
+                         items.length === dbQueryLimit ) {
+                        console.log( items.length + " " + dbQueryLimit + " " + parseInt( $( "#query-limit" ).val()) )
+                        $( "#total-items" ).text( items.length );
+                        $( "#total-items" ).css({ "color": "red" });
+                        var position = $( "#total-items" ).offset();
+                        $( "#tooltip-advice" ).html( "Change the query limit to show more results" );
+                        // Change tooltip position
+                        $( "#tooltip-advice" ).css({
+                            "top": ( position.top - 15 ) + "px",
+                            "left": ( position.left - 50 ) + "px"
+                        });
+                        $( "#tooltip-advice-arrow" ).css({
+                            "top": ( position.top - 3 ) + "px",
+                            "left": ( position.left - 60 ) + "px"
+                        });
+                        $( "#total-items" ).mouseenter( function() {
+                            $( "#tooltip-advice" ).stop().show( 'fast' );
+                            $( "#tooltip-advice-arrow" ).stop().show( 'fast' );
+                        });
+                        $( "#total-items" ).mouseout( function() {
+                            $( "#tooltip-advice" ).stop().hide( 'fast' );
+                            $( "#tooltip-advice-arrow" ).stop().hide( 'fast' );
+                        });
+                    } else {
+                        $( "#total-items" ).css({ "color": "white" });
+                        $( "#total-items" ).text( items.length );
+                    }
                     lastResults = results;
                     updateInterface( results );
                     callback( results );

@@ -24,7 +24,7 @@ table .title {
 .container {
     position: relative;
     top: 20px;
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
 
 }
@@ -314,6 +314,9 @@ td#preview {
     position: relative;
     top: 5px;
 }
+#update-market {
+    width: 160px;
+}
 #item-corrupted {
     color: rgba( 210, 0, 0, 1 );
     margin-bottom: 10px;
@@ -447,7 +450,7 @@ td#preview {
     border-width: 0 10px 10px 10px;
     border-color: transparent transparent #000 transparent;
 }
-#tooltip {
+#tooltip, #tooltip-advice {
     display: none;
     position: absolute;
     top: 440px;
@@ -463,7 +466,7 @@ td#preview {
     width: 150px;
     overflow: hidden;
 }
-#tooltip-arrow {
+#tooltip-arrow, #tooltip-advice-arrow {
     display: none;
     position: absolute;
     top: 447px;
@@ -613,4 +616,17 @@ td#preview {
     border-bottom: 8px solid #888;
     position: absolute;
     display: none;
+}
+::-webkit-scrollbar {
+  width: 5px;  /* for vertical scrollbars */
+  height: 5px; /* for horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 100, 0.5);
+  border-radius: 3px;
 }
