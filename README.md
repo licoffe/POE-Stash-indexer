@@ -24,6 +24,7 @@ The client features:
 - Market exchange rate polling through [poe.trade](http://poe.trade)
 - Lookup of prices, stats and last update time for a given item name, account name, last character or mods
 - A price distribution plot to have a better idea of the current market price for a specific item
+- Text completion for mods and item names
 - An average, median and mode price over the entries indexed
 - Clicking on an entry in the item list will copy a message in the clipboard to contact the seller with his offer
 - Auto-refresh the search at a fixed poll (10s) for now
