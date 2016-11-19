@@ -292,12 +292,12 @@
                         </label>
                     </td>
                     <td>
-                        <input id="socket-amount" type="text" placeholder="Socket amount">
+                        <input id="socket-amount" type="number" min="1" max="6" placeholder="Socket amount">
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <input type="text" id="item-level" placeholder="Item level">
+                        <input type="number" id="item-level" min="1" max="100" placeholder="Item level">
                     </td>
                     <td>
                         <span>Item subtype</span>&nbsp;
@@ -332,7 +332,7 @@
 
                     </td>
                     <td>
-                        <input id="link-amount" type="text" placeholder="Linked sockets">
+                        <input id="link-amount" type="number" min="0" max="6" placeholder="Linked sockets">
                     </td>
                 </tr>
             </table>
@@ -365,7 +365,7 @@
                                 <option value="mods">Mods</option>
                             </select>
                         </label><br><br>
-                        <input id="query-limit" type="text" placeholder="Query limit: default 100">
+                        <input id="query-limit" type="number" min="100" max="1000" step="100" placeholder="Query limit: default 100">
                     </td>
                     <td>
                         Kept <span id="kept-items">0</span> items out of <span id="total-items">0</span>
@@ -817,8 +817,10 @@
                         corrupted = [true, false];
                     }
                     if ( $( "#item-subtype" ).val() === "any" && 
-                                $( "#item-type" ).val() !== "any" ) {
+                         $( "#item-type" ).val() !== "any" ) {
                         type = { $in: itemTypes[$( "#item-type" ).val()].types };
+                    } else if ( $( "#item-subtype" ).val() !== "any" ) {
+                        type = $( "#item-subtype" ).val();
                     } else {
                         type = / /;
                     }
@@ -830,6 +832,7 @@
 
                     var done = function( cursor ) {
                         console.log( "Gathering results" );
+                        console.log( cursor );
                         if ( cursor !== undefined ) {
                             async.each( cursor, function( doc, cb ) {
                                 $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
@@ -910,15 +913,88 @@
                     // var fragment = ( itemTypes.fragment.types.indexOf( criteria ) !== -1 );
                     if ( queryBy === "name" ) {
                         if ( criteria === "" ) {
-                        // if ( criteria === "" || fragment ) {
-                            // console.log( "Fragment" );
-                            // if ( fragment ) {
-                            //     type = criteria;
-                            // }
-                            db.collection('stashes').find({
-                                "typeLine": type,
-                                "frameType": { $in: rarity },
+                            if ( type === "" ) {
+                                db.collection('stashes').find({
+                                    "frameType": { $in: rarity },
+                                    "league": league,
+                                    "available": { $in: available },
+                                    "corrupted": { $in: corrupted },
+                                    "identified": { $in: identified },
+                                    "ilvl": { $gte: level },
+                                    "socketAmount": { $gte: socketAmount },
+                                    "linkAmount": { $gte: linkAmount }
+                                }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                                .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                    if ( err ) {
+                                        console.log( err );
+                                    }
+                                    done( cursor );
+                                });
+                            } else {
+                                db.collection('stashes').find({
+                                    "typeLine": type,
+                                    "frameType": { $in: rarity },
+                                    "league": league,
+                                    "available": { $in: available },
+                                    "corrupted": { $in: corrupted },
+                                    "identified": { $in: identified },
+                                    "ilvl": { $gte: level },
+                                    "socketAmount": { $gte: socketAmount },
+                                    "linkAmount": { $gte: linkAmount }
+                                }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                                .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                    if ( err ) {
+                                        console.log( err );
+                                    }
+                                    done( cursor );
+                                });
+                            }
+                        } else {
+                            if ( type === "" ) {
+                                cursor = db.collection('stashes').find({
+                                    "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
+                                    "frameType": { $in: rarity },
+                                    "league": league,
+                                    "available": { $in: available },
+                                    "corrupted": { $in: corrupted },
+                                    "identified": { $in: identified },
+                                    "ilvl": { $gte: level },
+                                    "socketAmount": { $gte: socketAmount },
+                                    "linkAmount": { $gte: linkAmount }
+                                }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                                .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                    if ( err ) {
+                                        console.log( err );
+                                    }
+                                    done( cursor );
+                                });
+                            } else {
+                                cursor = db.collection('stashes').find({
+                                    "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
+                                    "typeLine": type,
+                                    "frameType": { $in: rarity },
+                                    "league": league,
+                                    "available": { $in: available },
+                                    "corrupted": { $in: corrupted },
+                                    "identified": { $in: identified },
+                                    "ilvl": { $gte: level },
+                                    "socketAmount": { $gte: socketAmount },
+                                    "linkAmount": { $gte: linkAmount }
+                                }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                                .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                    if ( err ) {
+                                        console.log( err );
+                                    }
+                                    done( cursor );
+                                });
+                            }
+                        }
+                    } else if ( queryBy === "lastCharacterName" ) {
+                        if ( type === "" ) {
+                            cursor = db.collection('stashes').find({
+                                "lastCharacterName": criteria,
                                 "league": league,
+                                "frameType": { $in: rarity },
                                 "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
@@ -926,7 +1002,7 @@
                                 "socketAmount": { $gte: socketAmount },
                                 "linkAmount": { $gte: linkAmount }
                             }).batchSize(dbBatchSize).limit(dbQueryLimit)
-                              .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                            .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
                                 if ( err ) {
                                     console.log( err );
                                 }
@@ -934,10 +1010,10 @@
                             });
                         } else {
                             cursor = db.collection('stashes').find({
-                                "name": "<<set:MS>><<set:M>><<set:S>>" + criteria,
-                                "typeLine": type,
-                                "frameType": { $in: rarity },
+                                "lastCharacterName": criteria,
                                 "league": league,
+                                "frameType": { $in: rarity },
+                                "typeLine": type,
                                 "available": { $in: available },
                                 "corrupted": { $in: corrupted },
                                 "identified": { $in: identified },
@@ -945,52 +1021,52 @@
                                 "socketAmount": { $gte: socketAmount },
                                 "linkAmount": { $gte: linkAmount }
                             }).batchSize(dbBatchSize).limit(dbQueryLimit)
-                              .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                            .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
                                 if ( err ) {
                                     console.log( err );
                                 }
                                 done( cursor );
                             });
                         }
-                        
-                    } else if ( queryBy === "lastCharacterName" ) {
-                        cursor = db.collection('stashes').find({
-                            "lastCharacterName": criteria,
-                            "league": league,
-                            "frameType": { $in: rarity },
-                            "typeLine": type,
-                            "available": { $in: available },
-                            "corrupted": { $in: corrupted },
-                            "identified": { $in: identified },
-                            "ilvl": { $gte: level },
-                            "socketAmount": { $gte: socketAmount },
-                            "linkAmount": { $gte: linkAmount }
-                        }).batchSize(dbBatchSize).limit(dbQueryLimit)
-                          .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
-                            if ( err ) {
-                                console.log( err );
-                            }
-                            done( cursor );
-                        });
                     } else if ( queryBy === "accountName" ) {
-                        cursor = db.collection('stashes').find({
-                            "accountName": criteria,
-                            "league": league, 
-                            "frameType": { $in: rarity },
-                            "typeLine": type,
-                            "available": { $in: available },
-                            "corrupted": { $in: corrupted },
-                            "identified": { $in: identified },
-                            "ilvl": { $gte: level },
-                            "socketAmount": { $gte: socketAmount },
-                            "linkAmount": { $gte: linkAmount }
-                        }).batchSize(dbBatchSize).limit(dbQueryLimit)
-                          .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
-                            if ( err ) {
-                                console.log( err );
-                            }
-                            done( cursor );
-                        });
+                        if ( type === "" ) {
+                            cursor = db.collection('stashes').find({
+                                "accountName": criteria,
+                                "league": league, 
+                                "frameType": { $in: rarity },
+                                "available": { $in: available },
+                                "corrupted": { $in: corrupted },
+                                "identified": { $in: identified },
+                                "ilvl": { $gte: level },
+                                "socketAmount": { $gte: socketAmount },
+                                "linkAmount": { $gte: linkAmount }
+                            }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                            .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                if ( err ) {
+                                    console.log( err );
+                                }
+                                done( cursor );
+                            });
+                        } else {
+                            cursor = db.collection('stashes').find({
+                                "accountName": criteria,
+                                "league": league, 
+                                "frameType": { $in: rarity },
+                                "typeLine": type,
+                                "available": { $in: available },
+                                "corrupted": { $in: corrupted },
+                                "identified": { $in: identified },
+                                "ilvl": { $gte: level },
+                                "socketAmount": { $gte: socketAmount },
+                                "linkAmount": { $gte: linkAmount }
+                            }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                            .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                if ( err ) {
+                                    console.log( err );
+                                }
+                                done( cursor );
+                            });
+                        }
                     } else if ( queryBy === "mods" ) {
                         console.log( JSON.stringify( criteria ));
                         // $or: [
@@ -1006,24 +1082,45 @@
                             //     {"enchantMods": { 
                             //         $all: criteria
                             //     }}
-                        db.collection('stashes').find({
-                            "parsedExplicitMods": { $all: criteria },
-                            "typeLine": type,
-                            "frameType": { $in: rarity },
-                            "league": league, 
-                            "available": { $in: available },
-                            "corrupted": { $in: corrupted },
-                            "identified": { $in: identified },
-                            "ilvl": { $gte: level },
-                            "socketAmount": { $gte: socketAmount },
-                            "linkAmount": { $gte: linkAmount }
-                        }).batchSize(dbBatchSize).limit(dbQueryLimit)
-                          .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
-                            if ( err ) {
-                                console.log( err );
-                            }
-                            done( cursor );
-                        });
+                        if ( type === "" ) {
+                            db.collection('stashes').find({
+                                "parsedExplicitMods": { $all: criteria },
+                                "frameType": { $in: rarity },
+                                "league": league, 
+                                "available": { $in: available },
+                                "corrupted": { $in: corrupted },
+                                "identified": { $in: identified },
+                                "ilvl": { $gte: level },
+                                "socketAmount": { $gte: socketAmount },
+                                "linkAmount": { $gte: linkAmount }
+                            }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                            .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                if ( err ) {
+                                    console.log( err );
+                                }
+                                done( cursor );
+                            });
+                        } else {
+                            db.collection('stashes').find({
+                                "parsedExplicitMods": { $all: criteria },
+                                "typeLine": type,
+                                "frameType": { $in: rarity },
+                                "league": league, 
+                                "available": { $in: available },
+                                "corrupted": { $in: corrupted },
+                                "identified": { $in: identified },
+                                "ilvl": { $gte: level },
+                                "socketAmount": { $gte: socketAmount },
+                                "linkAmount": { $gte: linkAmount }
+                            }).batchSize(dbBatchSize).limit(dbQueryLimit)
+                            .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                if ( err ) {
+                                    console.log( err );
+                                }
+                                done( cursor );
+                            });
+                        }
+                        
                     } else {
                         console.log( "unrecognised query type " + queryBy );
                     }
@@ -1404,6 +1501,15 @@
                     }
                     
                     var counter = 0;
+                    /* If we don't have any results, still fill the table with
+                       empty div */
+                    if ( results.length === 0 ) {
+                        $( "#results table" ).append( 
+                            "<tr>" + 
+                                "<td><div style='height: 500px;'></div></td>" + 
+                            "</tr>"
+                        );
+                    }
                     async.each( results, function( result, callbackUpdate ) {
                         var opacity = 1;
                         // console.log( result.accountName );
@@ -2800,8 +2906,10 @@
                 $( "#item-type" ).change( function() {
                     $( "#item-subtype" ).empty();
 
-                    var types = itemTypes[$( this ).val()].types;
-                    types.sort();
+                    if ( $( this ).val() !== "any" ) {
+                        var types = itemTypes[$( this ).val()].types;
+                        types.sort();
+                    }
                     $( "#item-subtype" ).append(
                         "<option value='any'>Any</option>"
                     );
@@ -2877,7 +2985,7 @@
                         if (( currentLine.length + 1 ) > completionMinChar ) {
                             if ( $( "#search-by" ).val() === "name" ) {
                                 async.each( autocomplete.uniques, function( unique, cb ) {
-                                    if ( unique.includes( currentLine )) {
+                                    if ( unique.toLowerCase().includes( currentLine.toLowerCase())) {
                                         propositions.push( "<span>" + unique + "</span>" );
                                     }
                                     cb();
@@ -2913,7 +3021,7 @@
                                 })
                             } else if ( $( "#search-by" ).val() === "mods" ) {
                                 async.each( autocomplete["implicit-mods"], function( implicit, cb ) {
-                                    if ( implicit.includes( currentLine )) {
+                                    if ( implicit.toLowerCase().includes( currentLine.toLowerCase())) {
                                         propositions.push( "<span>" + implicit + "</span>" );
                                     }
                                     cb();

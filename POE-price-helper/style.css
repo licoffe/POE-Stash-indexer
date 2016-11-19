@@ -62,8 +62,10 @@ table .title {
 *:focus {
     outline: none;
 }
-
-input[type="text"], textarea {
+div#settings input[type="number"] {
+    width: 150px;
+}
+input[type="text"], input[type="number"], textarea {
     /* Rectangle 2: */
     border-radius: 4px;
     /* Rectangle 2: */
@@ -183,6 +185,7 @@ table th {
     border: 1px solid #3a3a3a;
     font-weight: 300;
     padding: 6px;
+    max-height: 27px;
 }
 
 #search table td, #settings table td {
