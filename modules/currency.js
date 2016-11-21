@@ -189,8 +189,8 @@ function Currency( league ) {
 
         /* Check if buying and selling currencies are referenced in currencies 
            object. Just to make sure to do the proper mapping with poe.trade. */
-        var buyingIndex  = this.getCurrencyIndex( buying );
-        var sellingIndex = this.getCurrencyIndex( selling );
+        var buyingIndex  = that.getCurrencyIndex( buying );
+        var sellingIndex = that.getCurrencyIndex( selling );
         // If not referenced, print error and return 0 value
         if ( buyingIndex === -1 || sellingIndex === -1 ) {
             logger.log( "Unknown currencies: " + selling + " or " + buying,
@@ -237,7 +237,8 @@ function Currency( league ) {
                         var ratio = splitted[0] / splitted[1];
                         if ( ratio > max ) {
                             max = ratio;
-                        } else if ( ratio < min ) {
+                        }
+                        if ( ratio < min ) {
                             min = ratio;
                         }
                         values.push( ratio );
