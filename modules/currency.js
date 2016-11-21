@@ -125,6 +125,8 @@ function Currency( league ) {
     };
 
     Currency.prototype.getRate = function( buying, selling, amount, callback ) {
+
+        var that = this;
         /**
          * Returns the median value of an array
          *
@@ -205,7 +207,9 @@ function Currency( league ) {
         request({ "url": url, "gzip": true },
             function( error, response, body ) {
                 if ( error ) {
-                    logger.log( "Error occured" + error, scriptName, "e" );
+                    logger.log( "Error occured: " + error, scriptName, "e" );
+                    // Retry in case of failure
+                    setTimeout( that.getRate, 1000, buying, selling, amount, callback );
                 } else {
                     var min = Infinity;
                     var max = -Infinity;
