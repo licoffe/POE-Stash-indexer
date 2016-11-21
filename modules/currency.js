@@ -126,6 +126,18 @@ function Currency( league ) {
 
     Currency.prototype.getRate = function( buying, selling, amount, callback ) {
 
+        if ( buying === selling ) {
+            callback({
+                "buy": buying,
+                "ratios": [ 1 ],
+                "avg": 1,
+                "median": 1,
+                "mode": 1,
+                "min": 1,
+                "max": 1 
+            });
+        }
+
         var that = this;
         /**
          * Returns the median value of an array
@@ -186,11 +198,11 @@ function Currency( league ) {
             callback({
                 "buy": buying,
                 "ratios": ratios,
-                "avg": 0,
-                "median": 0,
-                "mode": 0,
-                "min": 0,
-                "max": 0
+                "avg": Infinity,
+                "median": Infinity,
+                "mode": Infinity,
+                "min": Infinity,
+                "max": Infinity 
             });
         }
 
@@ -270,11 +282,11 @@ function Currency( league ) {
                             callback({
                                 "buy": buying,
                                 "ratios": ratios,
-                                "avg": 0,
-                                "median": 0,
-                                "mode": 0,
-                                "min": 0,
-                                "max": 0
+                                "avg": Infinity,
+                                "median": Infinity,
+                                "mode": Infinity,
+                                "min": Infinity,
+                                "max": Infinity
                             });
                         }
                     });
