@@ -3,13 +3,15 @@
  *
  */
 
-var async  = require("async");
-var jsdom  = require( "jsdom" );
-var Logger = require( "./logger.js" );
-var logger = new Logger();
+var async   = require( "async" );
+var jsdom   = require("jsdom"); 
+var request = require( "request" );
+var $       = require('jquery')(jsdom.jsdom().defaultView); 
+var Logger  = require( "./logger.js" );
+var logger  = new Logger();
 logger.set_use_timestamp( true );
 logger.set_file_path( "log.txt" );
-var scriptName = "currency.js";
+var scriptName = "Currency";
 
 function Currency( league ) {
     this.league = league;
@@ -19,7 +21,7 @@ function Currency( league ) {
         "vaal", "wisdom", "portal", "armour", "stone", "bauble", "trans", "aug", 
         "mirror", "eternal"
     ];
-    this.onlineSearch = true; // SHould we search for online offers only or both
+    this.online = true; // Should we search for online offers only or both
     // Fixed prices at vendors 
     this.vendorCurrencyValues = [
         { "type": "alch", "price": 64, "location": 3 },
@@ -82,14 +84,14 @@ function Currency( league ) {
 
     Currency.prototype.searchOnline = function( online ) {
         this.online = online;
-    }
+    };
 
     Currency.prototype.getCurrencyIndex = function( currency ) {
         return this.currencies.indexOf( currency ) + 1;
-    }
+    };
 
     Currency.prototype.getAllRates = function( currency, callback ) {
-        var rates = {};
+        var rates = [];
         var start = new Date();
         if ( this.currencies.indexOf( currency ) === -1 ) {
             logger.log( "Undefined currency: " + currency, scriptName, "e" );
@@ -97,28 +99,80 @@ function Currency( league ) {
         }
         var that = this;
         // For each currency, if the currency is different from the base one
-        async.each( this.currencies, function( current, callbackCurrency ) {
+        async.eachLimit( this.currencies, 1, function( current, callbackCurrency ) {
             if ( current !== currency ) {
                 that.getRate( current, currency, 1, function( value ) {
-                    if ( value !== 0 ) {
-                        rates[current] = 1 / value;
-                    }
+                    rates.push( value );
                     callbackCurrency();
                 });
             } else {
-                rates[current] = 1;
                 callbackCurrency();
             }
         }, function( err ) {
             if ( err ) {
                 logger.log( err, scriptName, "e" );
             }
-            logger.log( "Got last rates (" + (new Date() - start) + "ms)", scriptName );
-            callback( rates );
+            logger.log( "done (" + (new Date() - start) + "ms)", scriptName );
+            setTimeout( function(){
+                callback({
+                    timestamp: Date.now(),
+                    league: league,
+                    sell: currency,
+                    rates: rates
+                });
+            }, 1000 );
         });
-    }
+    };
 
     Currency.prototype.getRate = function( buying, selling, amount, callback ) {
+        /**
+         * Returns the median value of an array
+         *
+         * Sort array, then return its median
+         * @param array
+         * @return median value
+         */
+        var median = function( values ) {
+            values.sort( function( a, b ) { return a - b; });
+            if ( values.length % 2 === 1 ) {
+                return values[( values.length - 1 ) / 2];
+            } else {
+                return ( values[( values.length / 2 - 1 )] + 
+                        values[values.length / 2]) / 2;
+            }
+        };
+
+        var mode = function( values, cb ) {
+            var modes = {};
+            // Count amount of each ratio
+            async.each( values, function( value, cbMode ) {
+                if ( modes[value] ) {
+                    modes[value]++;
+                } else {
+                    modes[value] = 1;
+                }
+                cbMode();
+            }, function( err ) {
+                if ( err ) {
+                    logger.log( err, scriptName, "e" );
+                }
+                // Iterate over object keys
+                var maxValue = 0;
+                var maxRatio = 0;
+                for ( var property in modes ) {
+                    if ( modes.hasOwnProperty( property )) {
+                        if ( modes[property] > maxValue ) {
+                            maxValue = modes[property];
+                            maxRatio = property;
+                        }
+                    }
+                }
+                cb( parseFloat( maxRatio ));
+            });
+        };
+
+        var ratios = [];
+
         /* Check if buying and selling currencies are referenced in currencies 
            object. Just to make sure to do the proper mapping with poe.trade. */
         var buyingIndex  = this.getCurrencyIndex( buying );
@@ -127,7 +181,15 @@ function Currency( league ) {
         if ( buyingIndex === -1 || sellingIndex === -1 ) {
             logger.log( "Unknown currencies: " + selling + " or " + buying,
                         scriptName, "e" );
-            callback( 0 );
+            callback({
+                "buy": buying,
+                "ratios": ratios,
+                "avg": 0,
+                "median": 0,
+                "mode": 0,
+                "min": 0,
+                "max": 0
+            });
         }
 
         // Should we search online
@@ -138,54 +200,84 @@ function Currency( league ) {
             searchOnline = "";
         }
 
-        // Use jsdom to request the poe.trade page and load jQuery
-        jsdom.env (
-            "http://currency.poe.trade/search?league=" + league + "&want=" + 
-            buyingIndex + "&have=" + sellingIndex + "" + searchOnline,
-            ["http://code.jquery.com/jquery.js"],
-            function ( err, window ) {
-                var min = 9999999;
-                var max = -1;
-                var values = [];
-
-                /* Do the scraping and store buy/sell ratios as well as min
-                   and max ratios */
-                window.$( "div.displayoffer-middle" ).each( function() { 
-                    var splitted = window.$( this ).text().split( " ⇐ " ); 
-                    var ratio = splitted[0] / splitted[1]
-                    if ( ratio > max ) {
-                        max = ratio;
-                    } else if ( ratio < min ) {
-                        min = ratio;
-                    }
-                    values.push( ratio );
-                });
-                
-                // Sum all ratios together
-                var sum = values.reduce( 
-                    function( previous, current, index, array ) {
-                        return previous + current;
-                    }, 0 
-                );
-                
-                /* If we have a least a value, compute average ratio by dividing 
-                   the sum by the amount of ratios */
-                if ( values.length !== 0 ) {
-                    var avg = sum / values.length;
-                    // return average ratio value trimmed to 4 numbers precision
-                    callback( avg.toFixed( 4 ) * amount );
-                /* If there is no ratio, then it means we don't have any offers
-                   between these two currencies. Print error message and return 
-                   0 */
+        var url = "http://currency.poe.trade/search?league=" + league + "&want=" + 
+                  buyingIndex + "&have=" + sellingIndex + "" + searchOnline;
+        request({ "url": url, "gzip": true },
+            function( error, response, body ) {
+                if ( error ) {
+                    logger.log( "Error occured" + error, scriptName, "e" );
                 } else {
-                    logger.log( "getRate: No offers for these currencies: " + 
-                                buying + " <- " + selling,
-                                scriptName, "w" );
-                    callback( 0 );
+                    var min = Infinity;
+                    var max = -Infinity;
+                    var values = [];
+                    var mod = Infinity;
+
+                    $( 'body' ).html( body );
+
+                    /* Do the scraping and store buy/sell ratios as well as min
+                        and max ratios */
+                    $( "div.displayoffer-middle" ).each( function() { 
+                        var splitted = $( this ).text().split( " ⇐ " ); 
+                        var ratio = splitted[0] / splitted[1];
+                        if ( ratio > max ) {
+                            max = ratio;
+                        } else if ( ratio < min ) {
+                            min = ratio;
+                        }
+                        values.push( ratio );
+                    });
+                    ratios = values;
+                    
+                    // Compute median
+                    var med = median( values );
+
+                    // Compute mode
+                    mode( values, function( res ) {
+                        mod = res;
+
+                        // Sum all ratios together
+                        var sum = values.reduce( 
+                            function( previous, current, index, array ) {
+                                return previous + current;
+                            }, 0 
+                        );
+                        
+                        /* If we have a least a value, compute average ratio by dividing 
+                            the sum by the amount of ratios */
+                        if ( values.length !== 0 ) {
+                            var avg = sum / values.length;
+                            // return average ratio value trimmed to 4 numbers precision
+                            callback({
+                                "buy": buying,
+                                "ratios": ratios,
+                                "avg": avg.toFixed( 4 ) * amount,
+                                "median": med.toFixed( 4 ) * amount,
+                                "mode": mod.toFixed( 4 ) * amount,
+                                "min": min.toFixed( 4 ) * amount,
+                                "max": max.toFixed( 4 ) * amount
+                            });
+                        /* If there is no ratio, then it means we don't have any offers
+                            between these two currencies. Print error message and return 
+                            0 */
+                        } else {
+                            // logger.log( "getRate: No offers for these currencies: " + 
+                            //             buying + " <- " + selling,
+                            //             scriptName, "w" );
+                            callback({
+                                "buy": buying,
+                                "ratios": ratios,
+                                "avg": 0,
+                                "median": 0,
+                                "mode": 0,
+                                "min": 0,
+                                "max": 0
+                            });
+                        }
+                    });
                 }
             }
         );
-    }
+    };
 }
 
 module.exports = Currency;

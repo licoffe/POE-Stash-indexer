@@ -55,3 +55,10 @@ settings.json
 affixParser.pl
 out.json
 affix_test
+poe-price-helper-darwin-x64
+poe-price-helper-linux-armv7l
+poe-price-helper-linux-ia32
+poe-price-helper-linux-x64
+poe-price-helper-mas-x64
+poe-price-helper-win32-ia32
+poe-price-helper-win32-x64
