@@ -44,10 +44,10 @@ table .title {
 
 #market-rates img.loading {
     width: 20px;
-    position: relative;
-    top: -16px;
-    left: 170px;
-    display: none;
+    position: absolute;
+    top: 0;
+    left: 150px;
+    /*display: none;*/
 }
 
 .container_table {
@@ -453,7 +453,7 @@ td#preview {
     border-width: 0 10px 10px 10px;
     border-color: transparent transparent #000 transparent;
 }
-#tooltip, #tooltip-advice {
+#tooltip, #tooltip-advice, #tooltip-currency {
     display: none;
     position: absolute;
     top: 440px;
@@ -469,7 +469,7 @@ td#preview {
     width: 150px;
     overflow: hidden;
 }
-#tooltip-arrow, #tooltip-advice-arrow {
+#tooltip-arrow, #tooltip-advice-arrow, #tooltip-currency-arrow {
     display: none;
     position: absolute;
     top: 447px;
@@ -480,6 +480,13 @@ td#preview {
     border-bottom: 10px solid transparent; 
     border-right:10px solid black;
     z-index: 10000;
+}
+#tooltip-currency {
+    left: 5%;
+    width: 500px;
+    height: 300px;
+    max-height: 300px;
+    box-shadow: 0 0 20px rgba( 0, 0, 0, 0.36 );
 }
 .online-status:hover {
     cursor: none;
@@ -632,4 +639,26 @@ td#preview {
 ::-webkit-scrollbar-thumb {
   background: rgba(100, 100, 100, 0.5);
   border-radius: 3px;
+}
+span.rate {
+    cursor: pointer;
+}
+#plot-currency-chart {
+    position: relative;
+    top: 20px;
+}
+#tooltip-currency-min {
+    color: rgba(189, 16, 239, 1);
+}
+#tooltip-currency-max {
+    color: rgba(241, 133, 20, 1);
+}
+#tooltip-currency-mean {
+    color: rgba(75, 192, 192, 1);
+}
+#tooltip-currency-mode {
+    color: rgba(17, 234, 106, 1);
+}
+#tooltip-currency-median {
+    color: rgba(222, 228, 9, 1);
 }

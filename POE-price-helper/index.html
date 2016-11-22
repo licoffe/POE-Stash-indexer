@@ -7,7 +7,8 @@
         <link rel="stylesheet" href="./font/stylesheet.css">
         <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-        <!--<script href="https://cdnjs.com/libraries/Chart.js"></script>-->
+        <!-- <script href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script> -->
+        
     </head>
     <body>
         <div id="online-res">
@@ -15,7 +16,7 @@
         <div class="container" id="market-rates">
             <span class="title">Market rates</span><br>
             <img class="loading" src="./media/loading.gif" alt=""><br>
-            <table>
+            <table id="currencies">
                 <tr>
                     <td>
                         <span id="alt">
@@ -488,13 +489,25 @@
         <div id="tooltip-advice"></div>
         <span id="arrow-up-explicit" class="arrow-filter"></span>
         <span id="arrow-down-explicit" class="arrow-filter"></span>
+        <div id="tooltip-currency">
+            <span id="tooltip-currency-title"></span><br><br>
+            <span id="tooltip-currency-min">min: -</span>&nbsp;
+            <span id="tooltip-currency-max">max: -</span>&nbsp;
+            <span id="tooltip-currency-median">median: -</span>&nbsp;
+            <span id="tooltip-currency-mean">mean: -</span>&nbsp;
+            <span id="tooltip-currency-mode">mode: -</span>
+            <div id="plot-currency">
+                <canvas id="plot-currency-chart"></canvas>
+            </div>
+        </div>
+        <div id="tooltip-currency-arrow"></div>
 
         <script type="text/javascript">
             var $ = require('jquery');
             
             $( document ).ready( function() {
                 var league   = "Standard";
-                var Chart    = require('./node_modules/chart.js/src/chart.js')
+                var Chart    = require('./Chart.bundle.min.js');
                 var Currency = require( "./modules/currency" );
                 var currency = new Currency( league );
                 var mongo_client = require( "mongodb" ).MongoClient;
@@ -543,9 +556,36 @@
                     vaal:     1.9770660340055357,
                     wisdom:   0.007426159836208619
                 };
+                var currencyEquivalent = {
+                    alch:     "Orb of Alchemy",
+                    alt:      "Orb of Alteration",
+                    armour:   "Armourer's Scrap",
+                    aug:      "Orb of Augmentation",
+                    bauble:   "Glassblower's Bauble",
+                    bless:    "Blessed Orb",
+                    chance:   "Orb of Chance",
+                    chaos:    "Orb of Chaos",
+                    chisel:   "Cartographer's Chisel",
+                    chrome:   "Chromatic Orb",
+                    divine:   "Divine Orb",
+                    exa:      "Exalted Orb",
+                    fuse:     "Orb of Fusing",
+                    jew:      "Jeweller's Orb",
+                    portal:   "Portal Scroll",
+                    prism:    "Gemcutter's Prism",
+                    regal:    "Regal Orb",
+                    regret:   "Orb of Regret",
+                    scouring: "Orb of Scouring",
+                    stone:    "Blacksmith's Whetstone",
+                    trans:    "Orb of Transmutation",
+                    vaal:     "Vaal Orb",
+                    wisdom:   "Scroll of Wisdom",
+                    mirror:   "Mirror of Kalandra"
+                }
                 var baseCurrency = "chaos";
                 var dbHandler;
                 var myChart;
+                var currencyChart;
                 var dbAddress    = config.dbAddress;
                 var dbPort       = config.dbPort;
                 var dbQueryLimit = config.dbQueryLimit;
@@ -1141,13 +1181,11 @@
                             console.log( "Make sure MongoDB has been started" );
                             $( "#search .loading" ).fadeOut( 'fast' );
                         }
-                        console.log( "Connected to MongoDB" );
                         db.authenticate( config.dbUser, config.dbPass, function( err, res ) {
                             if ( err ) {
                                 console.log( err, script_name, "e" );
                                 process.exit(0);
                             }
-                            console.log( "Logged in " + database, script_name );
                             callback( db );
                         });
                     });
@@ -1666,42 +1704,274 @@
 
                 // Grab market prices for currencies
                 function updateMarketRates( callback ) {
-                    $( "#market-rates .title" ).html( "Market rates<span> (Updating...)</span>" );
-                    $( "#market-rates .loading" ).fadeIn( 'fast' );
-                    currency.getAllRates( baseCurrency, function( rates ) {
-                        $( "#market-rates .loading" ).fadeOut( 'fast' );
-                        leagueRates = rates;
-                        console.log( rates );
-                        $( "#alt .rate" ).text( Math.round( rates.alt * 100 ) / 100 );
-                        $( "#fuse .rate" ).text( Math.round( rates.fuse * 100 ) / 100 );
-                        $( "#alch .rate" ).text( Math.round( rates.alch * 100 ) / 100 );
-                        $( "#chaos .rate" ).text( Math.round( rates.chaos * 100 ) / 100 );
-                        $( "#prism .rate" ).text( Math.round( rates.prism * 100 ) / 100 );
-                        $( "#exa .rate" ).text( Math.round( rates.exa * 100 ) / 100 );
-                        $( "#chrome .rate" ).text( Math.round( rates.chrome * 100 ) / 100 );
-                        $( "#jew .rate" ).text( Math.round( rates.jew * 100 ) / 100 );
-                        $( "#chance .rate" ).text( Math.round( rates.chance * 100 ) / 100 );
-                        $( "#chisel .rate" ).text( Math.round( rates.chisel * 100 ) / 100 );
-                        $( "#scouring .rate" ).text( Math.round( rates.scouring * 100 ) / 100 );
-                        $( "#bless .rate" ).text( Math.round( rates.bless * 100 ) / 100 );
-                        $( "#regret .rate" ).text( Math.round( rates.regret * 100 ) / 100 );
-                        $( "#regal .rate" ).text( Math.round( rates.regal * 100 ) / 100 );
-                        $( "#divine .rate" ).text( Math.round( rates.divine * 100 ) / 100 );
-                        $( "#vaal .rate" ).text( Math.round( rates.vaal * 100 ) / 100 );
-                        $( "#wisdom .rate" ).text( Math.round( rates.wisdom * 100 ) / 100 );
-                        $( "#portal .rate" ).text( Math.round( rates.portal * 100 ) / 100 );
-                        $( "#scrap .rate" ).text( Math.round( rates.scrap * 100 ) / 100 );
-                        $( "#stone .rate" ).text( Math.round( rates.stone * 100 ) / 100 );
-                        $( "#bauble .rate" ).text( Math.round( rates.bauble * 100 ) / 100 );
-                        $( "#trans .rate" ).text( Math.round( rates.trans * 100 ) / 100 );
-                        $( "#aug .rate" ).text( Math.round( rates.aug * 100 ) / 100 );
-                        $( "#eternal .rate" ).text( Math.round( rates.eternal * 100 ) / 100 );
-                        $( "#mirror .rate" ).text( Math.round( rates.mirror * 100 ) / 100 );
-                        var date = new Date();
-                        var dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
-                        $( "#market-rates .title" ).html( "Market rates</span> (" + dateString + ")</span>" );
-                        callback();
+                    connectToDB( function( db ) {
+                        $( "#market-rates .title" ).html( "Market rates<span> (Updating...)</span>" );
+                        $( "#market-rates .loading" ).fadeIn( 'fast' );
+                        $( "span.rate" ).text( "-" );
+                        var rates = {};
+
+                        var done = function( cursor ) {
+                            console.log( "Prices received" );
+                            console.log( cursor );
+                            if ( cursor !== undefined ) {
+                                async.each( cursor[0].rates, function( rate, cbRate ) {
+                                    if ( !rates[cursor[0].sell]) {
+                                        rates[cursor[0].sell] = 1;
+                                    }
+                                    if ( rate.avg !== 0 && rate.avg !== Infinity ) {
+                                        console.log( rate.buy + " = " + rate.avg );
+                                        rates[rate.buy] = 1 / rate.avg;
+                                        $( "#" + rate.buy + " .rate" ).text( Math.round( 1 / rate.avg * 100 ) / 100 );
+                                        $( "#" + rate.buy + " .rate" ).data( "data-item" , rate );
+                                    } else {
+                                        rates[rate.buy] = Infinity;
+                                        $( "#" + rate.buy + " .rate" ).text( "-" );
+                                        $( "#" + rate.buy + " .rate" ).data( "data-item" , rate );
+                                    }
+                                    cbRate();
+                                }, function( err ) {
+                                    if ( err ) {
+                                        console.log( "Error occured: " + err );
+                                    }
+                                    db.close();
+                                    leagueRates = rates;
+                                    var date = new Date( cursor[0].timestamp );
+                                    var dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                                    $( "#market-rates .title" ).html( "Market rates</span> (" + dateString + ")</span>" );
+                                    $( "#market-rates .loading" ).fadeOut( 'fast' );
+                                    console.log( leagueRates );
+
+                                    // When user mouse out of currency, hide tooltip
+                                    $( "body" ).click( function( event ) {
+                                        $( "#tooltip-currency" ).fadeOut( 'fast' );
+                                    });
+                                    // When user mouse over currency, show tooltip
+                                    $( "span.rate" ).mouseenter( function( event ) {
+                                        if ( $(this).text() !== "-" ) {
+                                            var position = $( this ).offset();
+                                            var leftPosition = position.left - 250 > 0 ? position.left - 250 : 0; 
+                                            $( "#tooltip-currency" ).css({
+                                                top: Math.round(position.top + 30) + "px",
+                                                left: Math.round(leftPosition) + "px"
+                                            });
+                                            $( "#tooltip-currency" ).fadeIn( 'fast' );
+                                            var rate = $( this ).data().dataItem;
+                                            var targetCur = rate.buy;
+                                            console.log( rate );
+                                            $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " (loading...)");
+                                            $( "span#tooltip-currency-min" ).html( "Min: <b>" + Math.round( 1/rate.max * 100 ) / 100 + "</b>" );
+                                            $( "span#tooltip-currency-max" ).html( "Max: <b>" + Math.round( 1/rate.min * 100 ) / 100 + "</b>" );
+                                            $( "span#tooltip-currency-mode" ).html( "Mode: <b>" + Math.round( 1/rate.mode * 100 ) / 100 + "</b>" );
+                                            $( "span#tooltip-currency-mean" ).html( "Mean: <b>" + Math.round( 1/rate.avg * 100 ) / 100 + "</b>" );
+                                            $( "span#tooltip-currency-median" ).html( "Median: <b>" + Math.round( 1/rate.median * 100 ) / 100 + "</b>" );
+                                            
+                                            connectToDB( function( db ) {
+                                                var leagueCur = league;
+                                                if ( league === "Hardcore Essence" ) {
+                                                    leagueCur = "Hardcore+Essence";
+                                                }
+                                                db.collection('currency').find({
+                                                    "sell": $( "#base-currency" ).val(),
+                                                    "league": leagueCur
+                                                }).sort({ "timestamp": 1 }).batchSize(dbBatchSize).limit(48)
+                                                .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                                                    if ( err ) {
+                                                        console.log( err );
+                                                    }
+                                                    if ( cursor !== undefined ) {
+                                                        var minValues    = [];
+                                                        var maxValues    = [];
+                                                        var meanValues   = [];
+                                                        var modeValues   = [];
+                                                        var medianValues = [];
+                                                        var timestamps   = [];
+                                                        // Aggregate target currency min, max, ... values for graph plotting
+                                                        async.each( cursor, function( current, cbCursor ) {
+                                                            async.each( current.rates, function( rate, cbRate ) {
+                                                                if ( rate.buy === targetCur ) {
+                                                                    minValues.push( Math.round( 1/rate.min * 100 ) / 100 );
+                                                                    maxValues.push( Math.round( 1/rate.max * 100 ) / 100 );
+                                                                    meanValues.push( Math.round( 1/rate.avg * 100 ) / 100 );
+                                                                    modeValues.push( Math.round( 1/rate.mode * 100 ) / 100 );
+                                                                    medianValues.push( Math.round( 1/rate.median * 100 ) / 100 );
+                                                                    timestamps.push( current.timestamp );
+                                                                }
+                                                                cbRate();
+                                                            }, function( err ) {
+                                                                if ( err ) {
+                                                                    console.log( err );
+                                                                }
+                                                                cbCursor();
+                                                            });
+                                                        }, function( err ) {
+                                                            if ( err ) {
+                                                                console.log( err );
+                                                            }
+                                                            var ctx = $( "#plot-currency-chart" );
+                                                            // var background = [];
+                                                            var labels      = [];
+                                                            for ( var i = 0 ; i < meanValues.length ; i++ ) {
+                                                                // background.push( 'rgba(75, 192, 192, 0.4)' );
+                                                                // minColor.push( 'rgba(189, 16, 239, 1)' );
+                                                                // maxColor.push( 'rgba(241, 133, 20, 1)' );
+                                                                var date = new Date( timestamps[i]);
+                                                                var hours = date.getHours();
+                                                                var minutes = "0" + date.getMinutes();
+                                                                var formattedTime = hours + ':' + minutes.substr(-2);
+                                                                labels.push( formattedTime );
+                                                            }
+                                                            if ( currencyChart ) {
+                                                                currencyChart.destroy();
+                                                                delete currencyChart;
+                                                            }
+                                                            $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " <span style='color: grey; float: right'>Click anywhere to close</span>");
+                                                            currencyChart = new Chart(ctx, {
+                                                                type: 'line',
+                                                                data: {
+                                                                    labels: labels,
+                                                                    datasets: [
+                                                                        {
+                                                                            label: "Average",
+                                                                            data: meanValues,
+                                                                            borderColor: "rgba(75,192,192,1)",
+                                                                            backgroundColor: "rgba(75,192,192, 0.2)",
+                                                                            pointBackgroundColor: "rgb(0, 255, 255)",
+                                                                            pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                                            pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                                            borderWidth: 1,
+                                                                            borderCapStyle: 'butt',
+                                                                            borderJoinStyle: 'bevel',
+                                                                            pointRadius: 3,
+                                                                            pointHitRadius: 10,
+                                                                            lineTension: 0
+                                                                        },
+                                                                        // {
+                                                                        //     label: "Median",
+                                                                        //     data: medianValues,
+                                                                        //     borderColor: "rgba(222, 228, 9, 1)",
+                                                                        //     backgroundColor: "rgba(222, 228, 9, 0.2)",
+                                                                        //     pointBackgroundColor: "rgb(248, 255, 0)",
+                                                                        //     pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                                        //     pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                                        //     borderWidth: 1,
+                                                                        //     borderCapStyle: 'butt',
+                                                                        //     borderJoinStyle: 'bevel',
+                                                                        //     pointRadius: 3,
+                                                                        //     pointHitRadius: 10,
+                                                                        //     lineTension: 0
+                                                                        // },
+                                                                        // {
+                                                                        //     label: "Mode",
+                                                                        //     data: modeValues,
+                                                                        //     borderColor: "rgba(17, 234, 106, 1)",
+                                                                        //     backgroundColor: "rgba(17, 234, 106, 0.2)",
+                                                                        //     pointBackgroundColor: "rgb(0, 255, 105)",
+                                                                        //     pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                                        //     pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                                        //     borderWidth: 1,
+                                                                        //     borderCapStyle: 'butt',
+                                                                        //     borderJoinStyle: 'bevel',
+                                                                        //     pointRadius: 3,
+                                                                        //     pointHitRadius: 10,
+                                                                        //     lineTension: 0
+                                                                        // }
+                                                                    ]
+                                                                },
+                                                                options: {
+                                                                    scales: {
+                                                                        xAxes: [{
+                                                                            gridLines: {
+                                                                                color: "rgba(50, 50, 50, 1)",
+                                                                                borderDash: [5, 2],
+                                                                            },
+                                                                            // ticks: {
+                                                                            //     beginAtZero:true
+                                                                            // }
+                                                                        }],
+                                                                        yAxes: [{
+                                                                            gridLines: {
+                                                                                color: "rgba(50, 50, 50, 1)",
+                                                                                borderDash: [5, 2],
+                                                                            },
+                                                                            // ticks: {
+                                                                            //     beginAtZero:true
+                                                                            // }
+                                                                        }]
+                                                                    }
+                                                                }
+                                                            });
+                                                        })
+                                                    }
+                                                });
+                                            });
+                                        }
+                                    })
+                                    
+
+                                    callback();
+                                });
+                                    
+                                    // otherwise close DB and cursor
+                                    // $( ".search-status" ).text( "Found " + entries.length + " entries" );
+                                    // console.log( "Found " + entries.length + " entries (" + 
+                                                // ( new Date() - start ) + "ms)" );
+                                    
+                                    // $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
+
+                            }
+                        };
+
+                        // Grab prices from database
+                        var leagueCur = league;
+                        if ( league === "Hardcore Essence" ) {
+                            leagueCur = "Hardcore+Essence";
+                        }
+                        db.collection('currency').find({
+                            "sell": $( "#base-currency" ).val(),
+                            "league": leagueCur
+                        }).sort({ "timestamp": -1 }).batchSize(dbBatchSize).limit(1)
+                          .maxTimeMS(dbQueryTimeOut).toArray( function( err, cursor ) {
+                            if ( err ) {
+                                console.log( err );
+                            }
+                            done( cursor );
+                        });
                     });
+
+                    // currency.getAllRates( baseCurrency, function( rates ) {
+                    //     $( "#market-rates .loading" ).fadeOut( 'fast' );
+                    //     leagueRates = rates;
+                    //     console.log( rates );
+                    //     $( "#alt .rate" ).text( Math.round( rates.alt * 100 ) / 100 );
+                    //     $( "#fuse .rate" ).text( Math.round( rates.fuse * 100 ) / 100 );
+                    //     $( "#alch .rate" ).text( Math.round( rates.alch * 100 ) / 100 );
+                    //     $( "#chaos .rate" ).text( Math.round( rates.chaos * 100 ) / 100 );
+                    //     $( "#prism .rate" ).text( Math.round( rates.prism * 100 ) / 100 );
+                    //     $( "#exa .rate" ).text( Math.round( rates.exa * 100 ) / 100 );
+                    //     $( "#chrome .rate" ).text( Math.round( rates.chrome * 100 ) / 100 );
+                    //     $( "#jew .rate" ).text( Math.round( rates.jew * 100 ) / 100 );
+                    //     $( "#chance .rate" ).text( Math.round( rates.chance * 100 ) / 100 );
+                    //     $( "#chisel .rate" ).text( Math.round( rates.chisel * 100 ) / 100 );
+                    //     $( "#scouring .rate" ).text( Math.round( rates.scouring * 100 ) / 100 );
+                    //     $( "#bless .rate" ).text( Math.round( rates.bless * 100 ) / 100 );
+                    //     $( "#regret .rate" ).text( Math.round( rates.regret * 100 ) / 100 );
+                    //     $( "#regal .rate" ).text( Math.round( rates.regal * 100 ) / 100 );
+                    //     $( "#divine .rate" ).text( Math.round( rates.divine * 100 ) / 100 );
+                    //     $( "#vaal .rate" ).text( Math.round( rates.vaal * 100 ) / 100 );
+                    //     $( "#wisdom .rate" ).text( Math.round( rates.wisdom * 100 ) / 100 );
+                    //     $( "#portal .rate" ).text( Math.round( rates.portal * 100 ) / 100 );
+                    //     $( "#scrap .rate" ).text( Math.round( rates.scrap * 100 ) / 100 );
+                    //     $( "#stone .rate" ).text( Math.round( rates.stone * 100 ) / 100 );
+                    //     $( "#bauble .rate" ).text( Math.round( rates.bauble * 100 ) / 100 );
+                    //     $( "#trans .rate" ).text( Math.round( rates.trans * 100 ) / 100 );
+                    //     $( "#aug .rate" ).text( Math.round( rates.aug * 100 ) / 100 );
+                    //     $( "#eternal .rate" ).text( Math.round( rates.eternal * 100 ) / 100 );
+                    //     $( "#mirror .rate" ).text( Math.round( rates.mirror * 100 ) / 100 );
+                    //     var date = new Date();
+                    //     var dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                    //     $( "#market-rates .title" ).html( "Market rates</span> (" + dateString + ")</span>" );
+                    //     callback();
+                    // });
                 }
 
                 /***
@@ -2813,6 +3083,10 @@
                     baseCurrency = $( "#base-currency" ).val();
                     updateMarketRates( function() {});
                 });
+
+                // Update market prices when clicked
+                baseCurrency = $( "#base-currency" ).val( "chaos" );
+                updateMarketRates( function() {});
 
                 // Update league value when changed
                 $( "#league" ).change( function() {
