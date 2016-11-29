@@ -905,6 +905,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                             commonItem.parsedExplicitMods  = explicit;
                                             commonItem.parsedCraftedMods   = crafted;
                                             commonItem.parsedEnchantedMods = enchanted;
+                                            var socketAmount        = commonItem.sockets.length;
                                             var name                = commonItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                             var typeLine            = commonItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                             var verified            = commonItem.verified ? 1 : 0;
@@ -920,7 +921,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                 connection.query( 
                                                     "UPDATE `Items` SET " + 
                                                     "`w` = ?, `h` = ?, `ilvl` = ?, `icon` = ?, `league` = ?, `name` = ?, `typeLine` = ?, `identified` = ?, `verified` = ?, `corrupted` = ?, `lockedToCharacter` = ?, `frameType` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `updatedTs` = ? WHERE `itemId` = ?", 
-                                                    [commonItem.w, commonItem.h, commonItem.ilvl, commonItem.icon, commonItem.league, name, typeLine, identified, verified, corrupted, lockedToCharacter, commonItem.frameType, commonItem.x, commonItem.y, commonItem.inventoryId, stash.accountName, stash.id, commonItem.socketAmount, commonItem.linkAmount, updatedDate, commonItem.id], function( err, rows ) {
+                                                    [commonItem.w, commonItem.h, commonItem.ilvl, commonItem.icon, commonItem.league, name, typeLine, identified, verified, corrupted, lockedToCharacter, commonItem.frameType, commonItem.x, commonItem.y, commonItem.inventoryId, stash.accountName, stash.id, socketAmount, commonItem.linkAmount, updatedDate, commonItem.id], function( err, rows ) {
                                                     if ( err ) {
                                                         logger.log( "Stash update -> kept: There was an error inserting value: " + err, scriptName, "w" );
                                                         insertionError++;
