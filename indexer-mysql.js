@@ -77,25 +77,25 @@ var cleanupDB = function( db, callback ) {
                     return db.rollback( function() {});
                 }
                 logger.log( "Cleaning up 'properties' table" );
-                db.query( "DELETE FROM `properties`", function( err, rows ) {
+                db.query( "DELETE FROM `Properties`", function( err, rows ) {
                     if ( err ) {
                         logger.log( err + ", rolling back", scriptName, "e" );
                         return db.rollback( function() {});
                     }
                     logger.log( "Cleaning up 'requirements' table" );
-                    db.query( "DELETE FROM `requirements`", function( err, rows ) {
+                    db.query( "DELETE FROM `Requirements`", function( err, rows ) {
                         if ( err ) {
                             logger.log( err + ", rolling back", scriptName, "e" );
                             return db.rollback( function() {});
                         }
                         logger.log( "Cleaning up 'sockets' table" );
-                        db.query( "DELETE FROM `sockets`", function( err, rows ) {
+                        db.query( "DELETE FROM `Sockets`", function( err, rows ) {
                             if ( err ) {
                                 logger.log( err + ", rolling back", scriptName, "e" );
                                 return db.rollback( function() {});
                             }
                             logger.log( "Cleaning up 'items' table" );
-                            db.query( "DELETE FROM `items`", function( err, rows ) {
+                            db.query( "DELETE FROM `Items`", function( err, rows ) {
                                 if ( err ) {
                                     logger.log( err + ", rolling back", scriptName, "e" );
                                     return db.rollback( function() {});
@@ -674,7 +674,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                 getStashByID( connection, stash.id, function( results ) {
                     // console.log( results );
                     // If the stash does not exist, store all items
-                    if ( results.length === 0 ) {
+                    if ( results && results.length === 0 ) {
                         logger.log( "Stash " + stash.id + " does not exist, creating it", scriptName, "", true );
                         logger.log( "Stash contains " + stash.items.length + " items", scriptName, "", true );
 

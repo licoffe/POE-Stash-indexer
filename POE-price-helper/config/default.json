@@ -1,7 +1,0 @@
-{
-    "db": {
-        "address": "server.local",
-        "db": "POE_price",
-        "port": 27017
-    }
-}

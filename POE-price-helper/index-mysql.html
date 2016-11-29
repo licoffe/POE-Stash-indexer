@@ -1029,13 +1029,13 @@
                     var query;
                     // Name and mods
                     if ( name && validMods.length > 0 ) {
-                        query = "SELECT * FROM `mods`, `items`, `Accounts` WHERE `mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `name` = \"" + name + "\"  AND `items`.`itemId` = `mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        query = "SELECT * FROM `Mods`, `Items`, `Accounts` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `name` = \"" + name + "\"  AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
                     // mods only
                     } else if ( !name ) {
-                        query = "SELECT * FROM `mods`, `items`, `Accounts` WHERE `mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `items`.`itemId` = `mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        query = "SELECT * FROM `Mods`, `Items`, `Accounts` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
                     // Name only
                     } else if ( validMods.length === 0 ) {
-                        query = "SELECT * FROM `items`, `Accounts` WHERE `name` = \"" + name + "\" AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName`";
+                        query = "SELECT * FROM `Items`, `Accounts` WHERE `name` = \"" + name + "\" AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName`";
                     // Neither
                     } else {
                         return;
@@ -1086,7 +1086,7 @@
                         }, function( err ) {
                             // Get the affixes of these objects
                             connection.query(
-                                "SELECT DISTINCT `itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType` FROM `mods` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
+                                "SELECT DISTINCT `itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType` FROM `Mods` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
                                 async.each( rows, function( row, cbMods ) {
                                     // Match mod type
                                     // console.log( row );
@@ -1750,7 +1750,7 @@
                                         if ( league === "Hardcore Essence" ) {
                                             leagueCur = "Hardcore+Essence";
                                         }
-                                        connection.query( "SELECT * FROM `currencyStats`,`Currencies` WHERE `Currencies`.`league` = ? AND `CurrencyStats`.`buy` = ? AND `Currencies`.`sell` = ? AND `Currencies`.`currencyKey` = `CurrencyStats`.`currencyKey`", [leagueCur, rate.buy, $( "#base-currency" ).val()], function( err, rows ) {
+                                        connection.query( "SELECT * FROM `CurrencyStats`, `Currencies` WHERE `Currencies`.`league` = ? AND `CurrencyStats`.`buy` = ? AND `Currencies`.`sell` = ? AND `Currencies`.`currencyKey` = `CurrencyStats`.`currencyKey`", [leagueCur, rate.buy, $( "#base-currency" ).val()], function( err, rows ) {
                                             if ( err ) {
                                                 console.log( err );
                                             }
@@ -1891,7 +1891,7 @@
                     }
 
                     var connection = mysql.createConnection( credentials );
-                    connection.query( "SELECT * FROM `currencies` WHERE `league` = ? AND `sell` = ? ORDER BY Id DESC LIMIT 1", [leagueCur, $( "#base-currency" ).val()], function( err, rows ) {
+                    connection.query( "SELECT * FROM `Currencies` WHERE `league` = ? AND `sell` = ? ORDER BY Id DESC LIMIT 1", [leagueCur, $( "#base-currency" ).val()], function( err, rows ) {
                         if ( err ) {
                             console.log( err );
                         }
@@ -1902,7 +1902,7 @@
                             rates: []
                         };
                         var key = rows[0].currencyKey;
-                        connection.query( "SELECT * FROM `currencyStats` WHERE `currencyKey` = ?", [key], function( err, rows ) {
+                        connection.query( "SELECT * FROM `CurrencyStats` WHERE `currencyKey` = ?", [key], function( err, rows ) {
                             if ( err ) {
                                 console.log( err );
                             }
