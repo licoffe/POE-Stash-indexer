@@ -1,8 +1,8 @@
 {
     "dbAddress": "localhost",
-    "dbPort": 27017,
-    "dbName": "POE_price",
+    "dbPort": 8889,
+    "dbName": "POE",
     "authenticate": true,
-    "user": "indexer",
-    "pass": "indexer"
+    "dbUser": "POE-indexer",
+    "dbPass": "ICanIndexStuff"
 }

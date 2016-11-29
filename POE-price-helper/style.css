@@ -79,6 +79,7 @@ input[type="text"], input[type="number"], textarea {
     color: white;
     transition: border 0.2s;
     font-size: 1em;
+    width: 80%;
 }
 
 option {
@@ -91,7 +92,7 @@ option {
 
 textarea {
     resize: none;
-    height: 200px;
+    height: 100%;
     width: 90%;
     line-height: 1.5;
     font-family: "Roboto", "Arial", "helvetica";
@@ -118,6 +119,7 @@ select, input[type="button"] {
     transition: border 0.2s;
     text-shadow: 0 1px 1px black;
     font-size: 1em;
+    width: 100px;
 }
 
 select:hover, input:hover, textarea:hover {
@@ -175,6 +177,15 @@ table {
     font-size: 0.8em;
 }
 
+.table-ui {
+    border: none;
+    background: none;
+    font-size: 1em;
+    box-shadow: none;
+    padding: 0;
+    border-collapse: collapse;
+}
+
 table th {
     border-radius: 2px;
     background-image: -o-linear-gradient(-90deg, #272727 0%, #353535 100%);
@@ -191,6 +202,15 @@ table th {
 #search table td, #settings table td {
     padding: 10px;
     text-align: left;
+}
+
+#settings table {
+    padding: 10px;
+}
+
+#settings table td {
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 #results tr:hover td, #results td.selected {

@@ -1,0 +1,3334 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>POE-price-helper</title>
+        <link rel="stylesheet" href="./style.css">
+        <link rel="stylesheet" href="./font/stylesheet.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+        <!-- <script href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script> -->
+        
+    </head>
+    <body>
+        <div id="online-res">
+        </div>
+        <div class="container" id="market-rates">
+            <span class="title">Market rates</span><br>
+            <img class="loading" src="./media/loading.gif" alt=""><br>
+            <table id="currencies">
+                <tr>
+                    <td>
+                        <span id="alt">
+                            <img src="./media/alt.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="alch">
+                            <img src="./media/alch.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="fuse">
+                            <img src="./media/fuse.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chaos">
+                            <img src="./media/chaos.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="exa">
+                            <img src="./media/exa.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chisel">
+                            <img src="./media/chisel.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="prism">
+                            <img src="./media/prism.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chrome">
+                            <img src="./media/chrome.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="jew">
+                            <img src="./media/jew.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="chance">
+                            <img src="./media/chance.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="scouring">
+                            <img src="./media/scouring.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="bless">
+                            <img src="./media/bless.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="regret">
+                            <img src="./media/regret.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="regal">
+                            <img src="./media/regal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="divine">
+                            <img src="./media/divine.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="vaal">
+                            <img src="./media/vaal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="wisdom">
+                            <img src="./media/wisdom.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="portal">
+                            <img src="./media/portal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="scrap">
+                            <img src="./media/scrap.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="stone">
+                            <img src="./media/stone.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="bauble">
+                            <img src="./media/bauble.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="trans">
+                            <img src="./media/trans.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="aug">
+                            <img src="./media/aug.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="eternal">
+                            <img src="./media/eternal.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span id="mirror">
+                            <img src="./media/mirror.png" alt=""><br>
+                            <span class="rate">-</span>
+                        </span>
+                    </td>
+                    <td>
+                        <label>
+                            <select id="base-currency">
+                                <option selected disabled>Base curreny</option>
+                                <option value="scrap">Armourer's Scrap</option>
+                                <option value="stone">Blacksmith's Whetstone</option>
+                                <option value="bless">Blessed Orb</option>
+                                <option value="chisel">Cartographer's Chisel</option>
+                                <option value="chaos">Chaos Orb</option>
+                                <option value="chrome">Chromatic Orb</option>
+                                <option value="divine">Divine Orb</option>
+                                <option value="eternal">Eternal Orb</option>
+                                <option value="exa">Exalted Orb</option>
+                                <option value="prism">Gemcutter's Prism</option>
+                                <option value="bauble">Glassblower's Bauble</option>
+                                <option value="jew">Jeweller's Orb</option>
+                                <option value="mirror">Mirror of Kalandra</option>
+                                <option value="alch">Orb of Alchemy</option>
+                                <option value="alt">Orb of Alteration</option>
+                                <option value="aug">Orb of Augmentation</option>
+                                <option value="chance">Orb of Chance</option>
+                                <option value="fuse">Orb of Fusing</option>
+                                <option value="regret">Orb of Regret</option>
+                                <option value="scouring">Orb of Scouring</option>
+                                <option value="trans">Orb of Transmutation</option>
+                                <option value="portal">Portal Scroll</option>
+                                <option value="regal">Regal Orb</option>
+                                <option value="wisdom">Scroll of Wisdom</option>
+                                <option value="vaal">Vaal Orb</option>
+                            </select>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br>
+
+        <div class="container" id="settings">
+            <table style="border-collapse" id="table-settings">
+                <tr>
+                    <td>
+                        <input id="item-name-search" type="text" placeholder="Item name">
+                    </td>
+                    <td rowspan="4">
+                        <textarea rows="" cols="" placeholder="Affixes"></textarea>
+                    </td>
+                    <td>
+                        <input type="number" id="item-level" min="1" max="100" placeholder="Item level">
+                    </td>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Corrupted</span></td>
+                                <td><label>
+                                    <select id="corrupted">
+                                        <option value="either" selected>Either</option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <input id="account-name-search" type="text" placeholder="Account Name">
+                    </td>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>League</span></td>
+                                <td><label>
+                                    <select id="league">
+                                        <option selected value="Standard">Standard</option>
+                                        <option value="Hardcore">Hardcore</option>
+                                        <option value="Essence">Essence</option>
+                                        <option value="Hardcore Essence">Hardcore Essence</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Item type</span></td>
+                                <td><label>
+                                    <select id="item-type">
+                                        <option selected value="any">Any</option>
+                                        <option disabled>Weapons</option>
+                                        <option value="bow">Bow</option>
+                                        <option value="claw">Claw</option>
+                                        <option value="dagger">Dagger</option>
+                                        <option value="sceptre">Sceptre</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="wand">Wand</option>
+                                        <option disabled>Armor</option>
+                                        <option value="body-armor">Body armor</option>
+                                        <option value="boots">Boots</option>
+                                        <option value="gloves">Gloves</option>
+                                        <option value="helmet">Helmet</option>
+                                        <option value="shield">Shield</option>
+                                        <option disabled>Misc</option>
+                                        <option value="amulet">Amulet</option>
+                                        <option value="belt">Belt</option>
+                                        <option value="currency">Currency</option>
+                                        <option value="divination-card">Divination Card</option>
+                                        <option value="flask">Flask</option>
+                                        <option value="gem">Gem</option>
+                                        <option value="jewel">Jewel</option>
+                                        <option value="map">Map</option>
+                                        <option value="prophecy">Prophecy</option>
+                                        <option value="quiver">Quiver</option>
+                                        <option value="ring">Ring</option>
+                                        <option value="map">Map</option>
+                                        <option value="fragment">Fragment</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <input id="socket-amount" type="number" min="1" max="6" placeholder="Socket amount">
+                    </td>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Crafted</span></td>
+                                <td><label>
+                                    <select id="crafted">
+                                        <option value="either" selected>Either</option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <input id="last-character-name-search" type="text" placeholder="Last Character Name">
+                    </td>
+                    <td>
+                        <input id="query-limit" type="number" min="100" max="1000" step="100" placeholder="Query limit: default 100">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Item subtype</span></td>
+                                <td><label>
+                                    <select id="item-subtype">
+                                        <option value="any">Any</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <input id="link-amount" type="number" min="0" max="6" placeholder="Linked sockets">
+                    </td>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Enchanted</span></td>
+                                <td><label>
+                                    <select id="enchanted">
+                                        <option value="either" selected>Either</option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <div class="search-status-hidden" style="word-wrap: break-word;">no value</div>
+                    </td>
+                    <td>
+                        <input type="checkbox" id="auto-refresh">Auto-refresh
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Rarity</span></td>
+                                <td><label>
+                                    <select id="rarity">
+                                        <option value="any" selected>Any</option>
+                                        <option value="0">Standard</option>
+                                        <option value="1">Magic</option>
+                                        <option value="2">Rare</option>
+                                        <option value="3">Unique</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Available</span></td>
+                                <td><label>
+                                    <select id="verified">
+                                        <option value="either">Either</option>
+                                        <option value="true" selected>Yes</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table class="table-ui">
+                            <tr>
+                                <td width="50%"><span>Online</span></td>
+                                <td><label>
+                                    <select id="online">
+                                        <option value="either" selected>Either</option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                </label></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td></td>
+                    <td>
+                        <input type="button" id="search-item" value="Search">
+                        <img class="loading" src="./media/loading.gif" alt="">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br>
+
+        <div class="container" id="search">
+            <table>
+                <tr>
+                    <th>
+                        <span class="title">Search</span>
+                    </th>
+                    <th>
+                        <span class="title">Price stats</span>
+                    </th>
+                    <th>
+                        <span class="title">Results</span>
+                    </th>
+                    <th>
+                        <span class="title">Item preview</span>
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <!--<label>
+                            <select id="search-by">
+                                <option value="name">Item Name</option>
+                                <option value="lastCharacterName">character</option>
+                                <option value="accountName">Account</option>
+                                <option value="mods">Mods</option>
+                            </select>
+                        </label><br><br>-->
+                    </td>
+                    <td>
+                        Kept <span id="kept-items">0</span> items out of <span id="total-items">0</span>
+                    </td>
+                    <td rowspan="3" style="padding: 0">
+                        <div id="results">
+                            <table>
+                            </table>
+                        </div>
+                    </td>
+                    <td id="preview" rowspan="3" width="20%">
+                        <div id="item-overlay">
+                            <div id="price">
+                                2
+                                <img src="./media/exa.png">
+                            </div>
+                            <span id="item-name">Roth's Reach</span><br>
+                            <span id="item-type-prev">Recurve Bow</span><br>
+                            <span id="item-prophecy-text"></span><br>
+                            <div id="item-properties">
+                                <span class="item-property">Bow</span><br>
+                                <span class="item-property">Quality</span>
+                                <span class="item-value">+17%</span>
+                                <br>
+                                <span class="item-property">Physical Damage:</span>
+                                <span class="item-value">20-63</span><br>
+                                <span class="item-property">Critical Strike Chance:</span>
+                                <span class="item-value">6.50%</span><br>
+                                <span class="item-property">Attacks per Second:</span>
+                                <span class="item-value">1.31</span><br>
+                            </div><br>
+                            <span id="item-enchant-mods">20% for Discharge not to Consume a Charge</span>
+                            <div id="item-implicit-mods">
+                            </div><br>
+                            <div id="item-explicit-mods">
+                                <span>68% increased Physical Damage</span><br>
+                                <span>34% increased Elemental Damage with Weapons</span><br>
+                                <span>5% increased Attack Speed</span><br>
+                                <span>Skills Chain +1 times</span><br>
+                                <span>30% increased Projectile Speed</span>
+                            </div>
+                            <div id="item-crafted-mods">
+                                <span>Causes Bleeding on Hit</span><br>
+                            </div><br>
+                            <div id="item-corrupted">
+                                Corrupted
+                            </div>
+                            <div id="item-flavor">
+                                <span>"Exiled to the sea; what a joke.</span><br>
+                                <span>I'm more free than I've ever been."
+</span><br>
+                                <span>- Captain Weylam "Rot-tooth" Roth of the Black Crest</span>
+                            </div>
+                        </div>
+                        <div id="sockets">
+                            <img class="socket" id="socket1" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket2" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket3" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket4" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket5" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket6" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket-vert-1" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket-vert-2" src="./media/socket_dex.png" alt="">
+                            <img class="socket" id="socket-vert-3" src="./media/socket_dex.png" alt="">
+                            <img class="link" id="link1" src="./media/socket_link_horiz.png" alt="">
+                            <img class="link" id="link2" src="./media/socket_link_vert.png" alt="">
+                            <img class="link" id="link3" src="./media/socket_link_horiz.png" alt="">
+                            <img class="link" id="link4" src="./media/socket_link_vert.png" alt="">
+                            <img class="link" id="link5" src="./media/socket_link_horiz.png" alt="">
+                            <img class="link" id="link-vert-1" src="./media/socket_link_vert.png" alt="">
+                            <img class="link" id="link-vert-2" src="./media/socket_link_vert.png" alt="">
+                        </div>
+                        <!--<img class="loading" src="./media/loading.gif" alt="">-->
+                        <img id="item-picture" src="http://web.poecdn.com/image/Art/2DItems/Weapons/TwoHandWeapons/Bows/SarkhamsReach.png?scale=1&w=2&h=4&v=f333c2e4005ee20a84270731baa5fa6a3" alt="">
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <div id="plot">
+                            <canvas id="myChart" width="300" height="200"></canvas>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    </td>
+                    <td>
+                        <table id="prices">
+                            <tr>
+                                <td>Average price:</td>
+                                <td><span id="avg-price"></span></td>
+                            </tr>
+                            <tr>
+                                <td>Median price:</td>
+                                <td><span id="median-price"></span></td>
+                            </tr>
+                            <tr>
+                                <td>Mode price:</td>
+                                <td><span id="mode-price"></span></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!--<div id="auto-complete-arrow"></div>-->
+        <div id="auto-complete"></div>
+        <div id="tooltip-arrow"></div>
+        <div id="tooltip"></div>
+        <div id="tooltip-advice-arrow"></div>
+        <div id="tooltip-advice"></div>
+        <span id="arrow-up-explicit" class="arrow-filter"></span>
+        <span id="arrow-down-explicit" class="arrow-filter"></span>
+        <div id="tooltip-currency">
+            <span id="tooltip-currency-title"></span><br><br>
+            <span id="tooltip-currency-min">min: -</span>&nbsp;
+            <span id="tooltip-currency-max">max: -</span>&nbsp;
+            <span id="tooltip-currency-median">median: -</span>&nbsp;
+            <span id="tooltip-currency-mean">mean: -</span>&nbsp;
+            <span id="tooltip-currency-mode">mode: -</span>
+            <div id="plot-currency">
+                <canvas id="plot-currency-chart"></canvas>
+            </div>
+        </div>
+        <div id="tooltip-currency-arrow"></div>
+
+        <script type="text/javascript">
+            var $ = require('jquery');
+            
+            $( document ).ready( function() {
+                var league   = "Standard";
+                var Chart    = require('./Chart.bundle.min.js');
+                var Currency = require( "./modules/currency" );
+                var currency = new Currency( league );
+                var mongo_client = require( "mongodb" ).MongoClient;
+                var mysql        = require( "mysql" );
+                const notifier   = require('node-notifier');
+                var Logger       = require( "./modules/logger.js" );
+                var logger       = new Logger();
+                logger.set_use_timestamp( true );
+                logger.set_file_path( "log.txt" );
+                var async        = require( "async" );
+                var ncp          = require( "copy-paste" );
+                var itemTypes    = require( "./itemTypes.json" );
+                var autocomplete = require( "./autocomplete.json" );
+                var affixes      = require( "./affixes.json" );
+                var config       = require( "./config.json" );
+                const os         = require('os');
+                var cr           = "\n";
+                // On windows, carriage return is not like in the usual world
+                console.log( "OS type is: " + os.type());
+                if ( os.type() === "Windows_NT" ) {
+                    // cr = "\r\n";
+                    console.log( "Setting line break to '\r\n'" );
+                }
+                var lastResults  = [];
+                var leagueRates  = {
+                    alch:     0.3655772464721796,
+                    alt:      0.10982493904715883,
+                    armour:   0.017393724344256595,
+                    aug:      0.03528681120144535,
+                    bauble:   0.20452825557850815,
+                    bless:    0.7427213309566251,
+                    chance:   0.30819490245631337,
+                    chaos:    1,
+                    chisel:   0.47952431188261246,
+                    chrome:   0.1860153648691382,
+                    divine:   30.030030030030026,
+                    exa:      77.51937984496124,
+                    fuse:     0.8206138191367143,
+                    jew:      0.18509606485766114,
+                    portal:   0.013979503252331433,
+                    prism:    2.0815986677768525,
+                    regal:    1.6207455429497568,
+                    regret:   2.2696323195642307,
+                    scouring: 1.1482374555057986,
+                    stone:    0.03330824112501915,
+                    trans:    0.02465963538263123,
+                    vaal:     1.9770660340055357,
+                    wisdom:   0.007426159836208619
+                };
+                var currencyEquivalent = {
+                    alch:     "Orb of Alchemy",
+                    alt:      "Orb of Alteration",
+                    armour:   "Armourer's Scrap",
+                    aug:      "Orb of Augmentation",
+                    bauble:   "Glassblower's Bauble",
+                    bless:    "Blessed Orb",
+                    chance:   "Orb of Chance",
+                    chaos:    "Orb of Chaos",
+                    chisel:   "Cartographer's Chisel",
+                    chrome:   "Chromatic Orb",
+                    divine:   "Divine Orb",
+                    exa:      "Exalted Orb",
+                    fuse:     "Orb of Fusing",
+                    jew:      "Jeweller's Orb",
+                    portal:   "Portal Scroll",
+                    prism:    "Gemcutter's Prism",
+                    regal:    "Regal Orb",
+                    regret:   "Orb of Regret",
+                    scouring: "Orb of Scouring",
+                    stone:    "Blacksmith's Whetstone",
+                    trans:    "Orb of Transmutation",
+                    vaal:     "Vaal Orb",
+                    wisdom:   "Scroll of Wisdom",
+                    mirror:   "Mirror of Kalandra"
+                }
+                var baseCurrency = "chaos";
+                var dbHandler;
+                var myChart;
+                var currencyChart;
+                var dbAddress    = config.dbAddress;
+                var dbPort       = config.dbPort;
+                var dbQueryLimit = config.dbQueryLimit;
+                var dbBatchSize  = config.dbBatchSize;
+                var dbQueryTimeOut = config.dbQueryTimeOut;
+                var indexerIP    = config.indexerIP;
+                var indexerPort  = config.indexerPort;
+                var onlineDelayS = config.onlineDelayS;
+                var database     = "POE_price";
+                var script_name  = "index.html";
+                var fields       = {
+                    "name": 1,
+                    "typeLine": 1,
+                    "implicitMods": 1,
+                    "explicitMods": 1,
+                    "craftedMods": 1,
+                    "enchantMods": 1,
+                    "flavourText": 1,
+                    "icon": 1,
+                    "note": 1,
+                    "stashName": 1,
+                    "properties": 1,
+                    "frameType": 1,
+                    "corrupted": 1,
+                    "identified": 1,
+                    "sockets": 1,
+                    "accountName": 1,
+                    "lastCharacterName": 1,
+                    "ilvl": 1,
+                    "w": 1,
+                    "addedTs": 1,
+                    "updatedTs": 1,
+                    "available": 1,
+                    "prophecyText": 1,
+                    "prophecyDiffText": 1,
+                    "artFilename": 1,
+                    "socketAmount": 1
+                };
+                var autorefreshInterval;
+                var $                  = require("jquery");
+                var completionMinChar  = 2;
+                var selectedEntryIndex = 0;
+                var sortBy             = "status";
+                var ascending          = true;
+                var sortOrder          = {
+                    "price": true,
+                    "status": true,
+                    "explicit": false
+                };
+                var explicitSort       = "";
+                var modPosition        = "";
+                var credentials        = {
+                    host     : config.dbAddress,
+                    port     : config.dbPort,
+                    user     : config.dbUser,
+                    password : config.dbPass,
+                    database : 'POE'
+                };
+
+                if ( config.monitorIndexerStatus ) {
+                    // Connect to the indexer backend and check availability
+                    var socket = io( "http://" + indexerIP + ":" + indexerPort );
+                    socket.on( "connect", function() {
+                        console.log( "Frontend connected" );
+                        $( ".indexer-status" ).text( "Indexer online" );
+                        $( ".indexer-status-icon-offline" ).removeClass( "indexer-status-icon-offline" )
+                                                        .addClass( "indexer-status-icon-online" );
+                    });
+                    socket.on( "message", function( data ) {
+                        console.log( "message received: " + data );
+                    });
+                    socket.on( "disconnect", function() {
+                        console.log( "Frontend disconnected" );
+                        $( ".indexer-status" ).text( "Indexer offline" );
+                        $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                        .addClass( "indexer-status-icon-offline" );
+                    });
+                    socket.on( "connect_error", function() {
+                        console.log( "Connection error" );
+                        $( ".indexer-status" ).text( "Indexer offline" );
+                        $( ".indexer-status-icon-online" ).removeClass( "indexer-status-icon-online" )
+                                                        .addClass( "indexer-status-icon-offline" );
+                    })
+                } else {
+                    $( ".indexer-status-icon-offline" ).css({ "background-color": "rgba( 0, 0, 0, 0 )", "box-shadow": "none" });
+                    $( ".indexer-status" ).css({ "color": "rgba( 0, 0, 0, 0 )" });
+                }
+
+                /**
+                * Check when input account last published some modifications.
+                *
+                * For each account name in the array, check when it last
+                * updated its status using the online_status table.
+                * @param db, an array of accounts to check, callback function
+                * @return object containing last seen timestamp for each account
+                */
+                var checkLastSeen = function( accountList, cb ) {
+                    var connection = mysql.createConnection( credentials );
+                    var entries = {};
+                    console.log( accountList.join("', '") );
+                    var query = "SELECT `accountName`, `lastSeen` FROM `Accounts` WHERE `accountName` IN ( '" + accountList.join("', '") + "')"; 
+                    connection.query( query, function( err, rows ) {
+                        async.each( rows, function( row, cbRow ) {
+                            entries[row.accountName] = row.lastSeen;
+                            cbRow();
+                        }, function( err ) {
+                            if ( err ) {
+                                console.log( err );
+                            }
+                            console.log( entries );
+                            connection.end();
+                            cb( entries );
+                        });
+                    });
+                }
+
+                /**
+                * Piggyback on poe.trade online status
+                *
+                * Craft a request to poll poe.trade to see all the online items
+                * for a specific account. If page total length is more than 
+                * 750000 char long (empty page length), there are some items and 
+                * the user is therefore online. Takes long to execute though and
+                * feels wrong to use without proper API or rights. 
+                * @param account, league and callback
+                * @return boolean
+                */
+                var isOnline = function( account, league, cb ) {
+                    console.log( "Getting online status for " + account );
+                    $.ajax({
+                        type: "POST",
+                        url: "http://poe.trade/search",
+                        data: { 
+                            league: league,
+                            type: "", 
+                            base: "",
+                            name: "",
+                            dmg_min: "",
+                            dmg_max: "",
+                            aps_min: "",
+                            aps_max: "",
+                            crit_min: "",
+                            crit_max: "",
+                            dps_min: "",
+                            dps_max: "",
+                            edps_min: "",
+                            edps_max: "",
+                            pdps_min: "",
+                            pdps_max: "",
+                            armour_min: "",
+                            armour_max: "",
+                            evasion_min: "",
+                            evasion_max: "",
+                            shield_min: "",
+                            shield_max: "",
+                            block_min: "",
+                            block_max: "",
+                            sockets_min: "",
+                            sockets_max: "",
+                            link_min: "",
+                            link_max: "",
+                            sockets_r: "",
+                            sockets_g: "",
+                            sockets_b: "",
+                            sockets_w: "",
+                            linked_r: "",
+                            linked_g: "",
+                            linked_b: "",
+                            linked_w: "",
+                            rlevel_min: "",
+                            rlevel_max: "",
+                            rstr_min: "",
+                            rstr_max: "",
+                            rdex_min: "",
+                            rdex_max: "",
+                            rint_min: "",
+                            rint_max: "",
+                            mod_name: "",
+                            mod_min: "",
+                            mod_max: "",
+                            group_type: "And",
+                            group_min: "",
+                            group_max: "",
+                            group_count: 1,
+                            q_min: "",
+                            q_max: "",
+                            level_min: "",
+                            level_max: "",
+                            ilvl_min: "",
+                            ilvl_max: "",
+                            rarity: "",
+                            seller: account,
+                            thread: "",
+                            identified: "",
+                            corrupted: "",
+                            online: "x",
+                            buyout: "",
+                            altart: "",
+                            capquality: "",
+                            buyout_min: "",
+                            buyout_max: "",
+                            buyout_currency: "",
+                            crafted: "",
+                            enchanted: ""
+                        },
+                    }).done( function( data, textStatus, jqXHR ) {
+                        cb( jqXHR.responseText.length > 750000 );
+                    });
+                }
+
+                /**
+                 * Query DB
+                 *
+                 * @param MySQL connection, callback the results will be sent to
+                 * @return DB results matching the criteria
+                */
+                function queryDB( callback ) {
+                    var entries = [];
+                    // console.log( "Querying by " + queryBy );
+                    $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
+                    $( ".search-status" ).text( "Querying ..." );
+                    // console.log( criteria );
+                    // Check if query-limit field holds a value
+                    var queryLimit = $( "#query-limit" ).val();
+                    if ( queryLimit !== "" ) {
+                        dbQueryLimit = parseInt( queryLimit );
+                        console.log( "Setting query limit to " + queryLimit );
+                    }
+                    var start      = new Date();
+                    var name              = $( "#item-name-search" ).val();
+                    var rarity            = $( "#rarity" ).val();
+                    var type;
+                    var subtype           = $( "#item-subtype" ).val();
+                    var corrupted         = $( "#corrupted" ).val();
+                    var crafted           = $( "#crafted" ).val();
+                    var enchanted         = $( "#enchanted" ).val();
+                    var verified          = $( "#verified" ).val();
+                    var online            = $( "#online" ).val();
+                    var level             = $( "#item-level" ).val();
+                    var accountName       = $( "#account-name-search" ).val();
+                    var lastCharacterName = $( "#last-character-name-search" ).val();
+                    var mods              = $( "textarea" ).val().split( "\n" )
+                    // Remove empty lines from mods array
+                    var validMods         = [];
+                    async.each( mods, function( mod, cbMod ) {
+                        var mod = mod.trim();
+                        if ( mod !== "" ) {
+                            validMods.push( mod );
+                        }
+                        cbMod();
+                    }, function( err ) {});
+                    
+                    level            = level !== "" ? level : 0;
+                    var socketAmount = 0;
+                    var socketField  = parseInt( $( "#socket-amount" ).val());
+                    if ( socketField > 0 ) {
+                        socketAmount = socketField;
+                    }
+                    var linkAmount = 0;
+                    var linkField  = parseInt( $( "#link-amount" ).val());
+                    if ( linkField > 0 ) {
+                        linkAmount = linkField;
+                    }
+                    if ( corrupted === "either" ) {
+                        corrupted = [0, 1];
+                    } else if ( corrupted === "false" ) {
+                        corrupted = [0];
+                    } else {
+                        corrupted = [1];
+                    }
+                    if ( crafted === "either" ) {
+                        crafted = [0, 1];
+                    } else if ( crafted === "false" ) {
+                        crafted = [0];
+                    } else {
+                        crafted = [1];
+                    }
+                    if ( enchanted === "either" ) {
+                        enchanted = [0, 1];
+                    } else if ( enchanted === "false" ) {
+                        enchanted = [0];
+                    } else {
+                        enchanted = [1];
+                    }
+                    if ( verified === "either" ) {
+                        verified = [0, 1];
+                    } else if ( verified === "false" ) {
+                        verified = [0];
+                    } else {
+                        verified = [1];
+                    }
+                    if ( online === "either" ) {
+                        online = [0, 1];
+                    } else if ( online === "false" ) {
+                        online = [0];
+                    } else {
+                        online = [1];
+                    }
+                    
+                    if ( rarity === "any" ) {
+                        rarity = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+                    } else {
+                        rarity = [parseInt( rarity)];
+                    }
+
+                    var done = function( cursor ) {
+                        if ( cursor !== undefined ) {
+                            async.each( cursor, function( doc, cb ) {
+                                $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
+                                $( ".search-status" ).text( entries.length + " entries found ..." );
+                                // console.log( "Found " + entries.length + " entries so far" );
+                                entries.push( doc );
+                                cb();
+                            }, function( err ) {
+                                // otherwise close DB and cursor
+                                $( ".search-status" ).text( "Found " + entries.length + " entries" );
+                                console.log( "Found " + entries.length + " entries (" + 
+                                            ( new Date() - start ) + "ms)" );
+                                // cursor.close();
+                                var filterOnline = $( "#online" ).val();
+                                var entriesOnline = [];
+                                var checkedOnline = {};
+                                
+                                // Set online status for each item
+                                $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
+                                // Create array of account names
+                                var accountNames = [];
+                                async.each( entries, function( entry, cbEntry ) {
+                                    console.log( entry );
+                                    if ( accountNames.indexOf( entry.accountName ) === -1 ) {
+                                        accountNames.push( entry.accountName );
+                                        cbEntry();
+                                    } else {
+                                        cbEntry();
+                                    }
+                                }, function( err ) {
+                                    /* Send the list of accounts to check 
+                                    for their availability */
+                                    checkLastSeen( accountNames, function( lastSeen ) {
+                                        console.log( lastSeen );
+                                        async.each( entries, function( result, callbackOnline ) {
+                                            /* If the user has a last seen 
+                                            timestamp */
+                                            if ( lastSeen[result.accountName]) {
+                                                result.lastSeen = lastSeen[result.accountName];
+                                                result.online   = 
+                                                    ( Date.now() - result.lastSeen ) < ( onlineDelayS * 1000 );
+                                            } else {
+                                                result.lastSeen = null;
+                                                result.online   = false;
+                                            }
+                                            if ( filterOnline === "either" ) {
+                                                entriesOnline.push( result );
+                                            } else if ( filterOnline === "true" ) {
+                                                if ( result.online ) {
+                                                    entriesOnline.push( result );
+                                                }
+                                            } else if ( filterOnline === "false" ) {
+                                                if ( !result.online ) {
+                                                    entriesOnline.push( result );
+                                                }
+                                            }
+                                            callbackOnline();
+                                        }, function( err ) {
+                                            if ( err ) {
+                                                console.log( err );
+                                            }
+                                            /* Send array containing filtered 
+                                            entries to averagePrice function */
+                                            callback( entriesOnline, averagePrice );
+                                        });
+                                    });
+                                });
+                            });
+                        } else {
+                            console.log( "Query timed out" );
+                            $( "#table-settings .loading" ).fadeOut( 'fast' );
+                            $( ".search-status" ).text( "Query timed out" );
+                        }
+                    };
+
+                    var connection = mysql.createConnection( credentials );
+                    var query;
+                    // Name and mods
+                    if ( name && validMods.length > 0 ) {
+                        query = "SELECT * FROM `mods`, `items`, `Accounts` WHERE `mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `name` = \"" + name + "\"  AND `items`.`itemId` = `mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                    // mods only
+                    } else if ( !name ) {
+                        query = "SELECT * FROM `mods`, `items`, `Accounts` WHERE `mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `items`.`itemId` = `mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                    // Name only
+                    } else if ( validMods.length === 0 ) {
+                        query = "SELECT * FROM `items`, `Accounts` WHERE `name` = \"" + name + "\" AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName`";
+                    // Neither
+                    } else {
+                        return;
+                    }
+                    // If account name is given
+                    if ( accountName ) {
+                        query += " AND `accountName` = '" + accountName + "'";
+                    }
+                    // If last character name is given
+                    if ( lastCharacterName ) {
+                        query += " AND `lastCharacterName` = '" + lastCharacterName + "'";
+                    }
+                    // All subtypes of type
+                    if ( $( "#item-subtype" ).val() === "any" && 
+                         $( "#item-type" ).val()    !== "any" ) {
+                        subtype = itemTypes[$( "#item-type" ).val()].types;
+                        query += " AND `typeLine` IN ('" + subtype.join( "', '" ) + "')";
+                    // a specific subtype
+                    } else if ( $( "#item-subtype" ).val() !== "any" ) {
+                        subtype = $( "#item-subtype" ).val();
+                        query += " AND `typeLine` = '" + subtype + "'";
+                    }
+
+                    query += " LIMIT " + dbQueryLimit;
+
+                    console.log( query );
+
+                    // SELECT * FROM `mods`, `items` WHERE `mods`.`modName` = "#% increased Physical Damage" AND `items`.`itemId` = `mods`.`itemId`;
+                    connection.query( 
+                        // "SELECT * FROM `items` WHERE `name` = ? AND `league` = ? AND `socketAmount` >= ? AND `linkAmount` >= ? AND `ilvl` >= ? AND `verified` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "')",
+                        // [name, league, socketAmount, linkAmount, level], function( err, rows ) {
+                        query, function( err, rows ) {
+                            console.log( name + " " + socketAmount + " " + linkAmount );
+                        var itemIds = [];
+                        var entries = {};
+                        console.log( "Printing rows" );
+                        console.log( rows );
+                        async.each( rows, function( row, cbRow ) {
+                            entries[row.itemId] = row;
+                            entries[row.itemId].parsedImplicitMods  = [];
+                            entries[row.itemId].parsedExplicitMods  = [];
+                            entries[row.itemId].parsedCraftedMods   = [];
+                            entries[row.itemId].parsedEnchantedMods = [];
+                            entries[row.itemId].properties          = [];
+                            entries[row.itemId].sockets             = [];
+                            itemIds.push( row.itemId );
+                            cbRow();
+                        }, function( err ) {
+                            // Get the affixes of these objects
+                            connection.query(
+                                "SELECT DISTINCT `itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType` FROM `mods` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
+                                async.each( rows, function( row, cbMods ) {
+                                    // Match mod type
+                                    // console.log( row );
+                                    var mod = {
+                                        "mod": row.modName,
+                                        "values": [row.modValue1, row.modValue2, row.modValue3, row.modValue4]
+                                    };
+                                    if ( row.modType === "IMPLICIT" ) {
+                                        entries[row.itemId].parsedImplicitMods.push( mod );
+                                    } else if ( row.modType === "EXPLICIT" ) {
+                                        entries[row.itemId].parsedExplicitMods.push( mod );
+                                    } else if ( row.modType === "CRAFTED" ) {
+                                        entries[row.itemId].parsedCraftedMods.push( mod );
+                                    } else if ( row.modType === "ENCHANTED" ) {
+                                        entries[row.itemId].parsedEnchantedMods.push( mod );
+                                    }
+                                    cbMods();
+                                }, function( err ) {
+                                    // Get the item properties
+                                    connection.query(
+                                        "SELECT DISTINCT `itemId`, `propertyName`, `propertyValue1`, `propertyValue2` FROM `properties` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
+                                            async.each( rows, function( row, cbProperties ) {
+                                                entries[row.itemId].properties.push({
+                                                    "name": row.propertyName,
+                                                    "values": [row.propertyValue1, row.propertyValue2]
+                                                });
+                                                cbProperties();
+                                            }, function( err ) {
+                                                // Get sockets
+                                                connection.query(
+                                                    "SELECT `itemId`, `socketGroup`, `socketAttr` FROM `Sockets` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function ( err, rows ) {
+                                                        async.each( rows, function( row, cbSockets ) {
+                                                            entries[row.itemId].sockets.push({
+                                                                "group": row.socketGroup,
+                                                                "attr":  row.socketAttr
+                                                            });
+                                                            cbSockets();
+                                                        }, function( err ) {
+                                                            console.log( "Entries" );
+                                                            console.log( entries );
+                                                            connection.end();
+                                                            done( entries );
+                                                        });
+                                                    }
+                                                )
+                                            });
+                                        }
+                                    )
+                                });
+                            });
+                        })
+                    });
+                }
+
+                /**
+                 * Connect to MongoDB. If successfull, run provided callback function
+                 * 
+                 * @param Callback function
+                 * @return None
+                 */
+                function connectToDB( callback ) {
+                    // Connect to the db
+                    mongo_client.connect( "mongodb://" + dbAddress + ":" + dbPort + "/" + database, 
+                                        function( err, db ) {
+                        if ( err ) {
+                            console.log( err );
+                            console.log( "Make sure MongoDB has been started" );
+                            $( "#table-settings .loading" ).fadeOut( 'fast' );
+                        }
+                        db.authenticate( config.dbUser, config.dbPass, function( err, res ) {
+                            if ( err ) {
+                                console.log( err, script_name, "e" );
+                                process.exit(0);
+                            }
+                            callback( db );
+                        });
+                    });
+                }
+
+                /**
+                 * Filter list of items to only keep valid price expression
+                 *
+                 * For each item in the list, check if it matches the price
+                 * regexp. If it does, store its price with the currency it is
+                 * in.
+                 * @param a list of item, a callback to send the list to
+                 * @return nothing
+                 */
+                function filterValidPrice( items, callback ) {
+                    $( ".search-status" ).text( "Filtering non b/o prices ..." );
+                    var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew)/;
+                    var results         = [];
+                    
+                    for ( var i = 0 ; i < items.length ; i++ ) {
+                        var item = items[i];
+                        var price = item.price;
+                        // console.log( "Trying to match: " + price );
+                        var match = priceReg.exec( price );
+                        // Check if we have a valid poe price (exemple: ~b/o 2 chaos)
+                        if ( match != null && match[1] != "0" ) {
+                            item.price    = match[1];
+                            item.currency = match[2];
+                            results.push( item );
+                            // console.log( "Keeping " + item.name + " " + item.note + " " + item.stashName );
+                        } else {
+                            // console.log( "Discarding " + item.name + " " + item.note + " " + item.stashName );
+                        }
+                    }
+                    console.log( "Kept " + results.length + " items" );
+                    $( "#kept-items" ).text( results.length );
+                    /* If we have as many items as the query limit, it means
+                       we have likely more items in the db */
+                    if ( items.length === parseInt( $( "#query-limit" ).val()) || 
+                         items.length === dbQueryLimit ) {
+                        console.log( items.length + " " + dbQueryLimit + " " + parseInt( $( "#query-limit" ).val()) )
+                        $( "#total-items" ).text( items.length );
+                        $( "#total-items" ).css({ "color": "red" });
+                        var position = $( "#total-items" ).offset();
+                        $( "#tooltip-advice" ).html( "Change the query limit to show more results" );
+                        // Change tooltip position
+                        $( "#tooltip-advice" ).css({
+                            "top": ( position.top - 15 ) + "px",
+                            "left": ( position.left - 50 ) + "px"
+                        });
+                        $( "#tooltip-advice-arrow" ).css({
+                            "top": ( position.top - 3 ) + "px",
+                            "left": ( position.left - 60 ) + "px"
+                        });
+                        $( "#total-items" ).mouseenter( function() {
+                            $( "#tooltip-advice" ).stop().show( 'fast' );
+                            $( "#tooltip-advice-arrow" ).stop().show( 'fast' );
+                        });
+                        $( "#total-items" ).mouseout( function() {
+                            $( "#tooltip-advice" ).stop().hide( 'fast' );
+                            $( "#tooltip-advice-arrow" ).stop().hide( 'fast' );
+                        });
+                    } else {
+                        $( "#total-items" ).css({ "color": "white" });
+                        $( "#total-items" ).text( items.length );
+                    }
+                    lastResults = results;
+                    updateInterface( results );
+                    callback( results );
+                }
+
+                /**
+                 * Returns the median value of an array
+                 *
+                 * Sort array, then return its median
+                 * @param array
+                 * @return median value
+                 */
+                var median = function( values ) {
+                    values.sort( function( a, b ) { return a - b });
+                    if ( values.length % 2 === 1 ) {
+                        return values[( values.length - 1 ) / 2];
+                    } else {
+                        return ( values[( values.length / 2 - 1 )] + 
+                                values[values.length / 2]) / 2;
+                    }
+                }
+
+                /**
+                 * Return average and median prices of a set of items
+                 * 
+                 * For each item of the set, sum its price in chaos to a global sum and
+                 * divide by the number of items. Then sort the prices and extract the 
+                 * median value. Print the average and median prices.
+                 * @param sets of items
+                 * @return nothing 
+                 */
+                var averagePrice = function( results ) {
+                    $( ".search-status" ).text( "Computing distribution ..." );
+                    var shouldNotify = true;
+                    var sum          = 0;
+                    var medians      = [];
+                    var modes        = {};
+                    var unit         = "chaos";
+                    var unitAverage  = "chaos";
+                    var unitMedian   = "chaos";
+                    var unitMode     = "chaos";
+                    results.sort( function( a, b ) {
+                        return a.price * leagueRates[a.currency] - 
+                               b.price * leagueRates[b.currency];
+                    })
+                    for ( var i = 0 ; i < results.length ; i++ ) {
+                        // console.log( results[i].price + " : " + results[i].currency + " -> " + 
+                                    //  parseFloat( results[i].price ) + " * " + leagueRates[results[i].currency] );
+                        var price = parseFloat( results[i].price ) * leagueRates[results[i].currency];
+                        sum += price;
+                        medians.push( price );
+                        if ( modes["" + price + ""]) {
+                            modes["" + price + ""]++;
+                        } else {
+                            modes["" + price + ""] = 1;
+                        }
+                    }
+                    // Computes the median
+                    var med = median( medians );
+                    var avg = sum / results.length;
+                    var medProportion = 0;
+                    for ( var i = 0 ; i < medians.length ; i++ ) {
+                        if ( medians[i] <= med ) {
+                            medProportion++;
+                        }
+                    }
+                    medProportion = medProportion * 100 / medians.length;
+                    // Computes the mode
+                    var mode    = { "amount": 0, "value": 0 };
+                    var values  = [];
+                    var amounts = [];
+                    // sort modes
+                    var keys    = [];
+                    for ( var val in modes ) {
+                        if ( modes.hasOwnProperty( val )) {
+                            keys.push( val );
+                        }
+                    }
+                    keys.sort( function( a, b ) {
+                        return a - b;
+                    });
+                    // console.log( keys );
+                    // var modesSorted = {};
+                    for ( var i = 0 ; i < keys.length ; i++ ) {
+                        // modesSorted["" + keys[i] + ""] = modes[keys[i]];
+                        // console.log( modes[keys[i]] );
+                        values.push( keys[i]);
+                        amounts.push( modes[keys[i]]);
+                    }
+                    // console.log( modesSorted );
+                    for ( var val in modes ) {
+                        if ( modes.hasOwnProperty( val )) {
+                            if ( modes[val] > mode.amount ) {
+                                mode.value = val;
+                                mode.amount = modes[val];
+                            }
+                        }
+                    }
+                    var chartParam = { 
+                        "values": values, 
+                        "amounts": amounts, 
+                        "currency": "chaos"
+                    };
+                    if ( avg > leagueRates.exa ) {
+                        avg /= leagueRates.exa;
+                        unitAverage = "exalt";
+                    }
+                    if ( med > leagueRates.exa ) {
+                        med /= leagueRates.exa;
+                        unitMedian = "exalt";
+                    }
+                    if ( mode.value > leagueRates.exa ) {
+                        mode.value /= leagueRates.exa;
+                        unitMode = "exalt";
+                        values = values.map( function( e ) {
+                            return e / leagueRates.exa;
+                        });
+                        chartParam.currency = "exa";
+                        chartParam.values   = values;
+                    }
+
+                    if ( results.length === 0 ) {
+                        $( "#avg-price" ).text( "- " + unitAverage );
+                        $( "#median-price" ).text( "- " + unitMedian );
+                        $( "#mode-price" ).text( "- " + unitMode );
+                    } else {
+                        $( "#avg-price" ).text( Math.round( avg * 100 ) / 100 + " " + unitAverage );
+                        $( "#median-price" ).text( Math.round( med * 100 ) / 100 + " " + unitMedian );
+                        $( "#mode-price" ).text( Math.round( mode.value * 100 ) / 100 + " " + unitMode );
+                        console.log( "Average price is " + Math.round( avg * 100 ) / 100 + " " + unitAverage );
+                        console.log( "Median price is " + Math.round( med * 100 ) / 100 + " " + unitMedian +
+                                    " ( " + Math.round( medProportion * 100 ) / 100 + " % items)" );
+                        console.log( "Mode price is " + Math.round( mode.value * 100 ) / 100 + " " + unitMode );
+                    }
+                    if ( shouldNotify ) {
+                        if ( results.length === 0 ) {
+                            notifier.notify({
+                                'title': "No items found",
+                                'message': "No items could be found with input criteria"
+                            });
+                        } else {
+                            if ( os.type() === "Windows_NT" ) {
+                                notifier.notify({
+                                    'title': 'Price based on ' + results.length + " items",
+                                    'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + ". " + 
+                                                "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + ". " +
+                                                "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode
+                                });
+                            } else {
+                                notifier.notify({
+                                    'title': 'Price based on ' + results.length + " items",
+                                    'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + "." + cr + 
+                                                "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + "." + cr +
+                                                "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode,
+                                });
+                            }
+                        }
+                    }
+                    drawChart( chartParam );
+                }
+
+                /***
+                 * secToNsec
+                 * Converts a second amount to a higer unit (min, hour, day...) if possible.
+                 * @param Second amount to convert
+                 * @return JSON object with the converted value and corresponding unit
+                 */
+                function secToNsec( secAmount ) {
+                    var units = [ "ms", "sec", "min", "hour", "day", "week", "month", "year" ];
+                    var counter = 0;
+                    if ( secAmount > 1000 ) {
+                        secAmount /= 1000; // sec
+                        counter++;
+                        if ( secAmount > 60 ) {
+                            secAmount /= 60; // minutes
+                            counter++;
+                            if ( secAmount > 60 ) {
+                                secAmount /= 60; // hours
+                                counter++;
+                                if ( secAmount > 24 ) {
+                                    secAmount /= 24; // days
+                                    counter++;
+                                    if ( secAmount > 365 ) {
+                                        secAmount /= 365; // years
+                                        counter = 6;
+                                    } else if ( secAmount > 30 ) {
+                                        secAmount /= 30; // month
+                                        counter = 5;
+                                    } else if ( secAmount > 7 ) {
+                                        secAmount /= 7; // weeks
+                                        counter++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return { "amount": secAmount, "unit": units[counter]};
+                }
+
+                /***
+                 * Generate result lists after search
+                 *
+                 * @param search result list
+                 * @return nothing
+                 */
+                function updateInterface( results ) {
+                    // $( ".search-status" ).text( "Returning result list ..." );
+                    var current = Date.now();
+                    $( "#table-settings .loading" ).fadeOut( 'fast' );
+                    $( "#results table" ).empty();
+                    $( "#results table" ).append( 
+                        "<tr>" + 
+                            "<th>Price" + 
+                                "<span id='arrow-up-price' class='arrow-filter'></span>" +
+                                "<span id='arrow-down-price' class='arrow-filter'></span>" + 
+                            "</th><th>Status" + 
+                                "<span id='arrow-up-status' class='arrow-filter'></span>" +
+                                "<span id='arrow-down-status' class='arrow-filter'></span>" +
+                            "</th></tr>" );
+                    itemPreview( results[0]);
+                    var direction = ascending ? "up" : "down";
+                    var border    = ascending ? "border-bottom" : "border-top";
+                    $( "#arrow-up-price"      ).css({ "border-bottom": "8px solid #888" });
+                    $( "#arrow-down-price"    ).css({ "border-top": "8px solid #888" });
+                    $( "#arrow-up-status"     ).css({ "border-bottom": "8px solid #888" });
+                    $( "#arrow-down-status"   ).css({ "border-top": "8px solid #888" });
+                    $( "#arrow-up-explicit"   ).css({ "border-bottom": "8px solid #888" });
+                    $( "#arrow-down-explicit" ).css({ "border-top": "8px solid #888" });
+                    if ( $( this ).text() === "Price" ) {
+                        $( "#arrow-" + direction + "-" + sortBy ).css( border, "8px solid #ffad17" );
+                    } else if ( $( this ).text() === "Status" ) {
+                        $( "#arrow-" + direction + "-" + sortBy ).css( border, "8px solid #ffad17" );
+                    } else {
+                        $( "#arrow-" + direction + "-" + sortBy ).css( border, "8px solid #ffad17" );
+                    }
+                    // Sort results by price
+                    if ( sortBy === "price" ) {
+                        results.sort( function( a, b ) {
+                            if ( !ascending ) {
+                                var c = a;
+                                a = b;
+                                b = c;
+                            }
+                            // console.log( leagueRates[a.currency] );
+                            return a.price * leagueRates[a.currency] - 
+                                   b.price * leagueRates[b.currency];
+                        });
+                    // Sort result by online status
+                    } else if ( sortBy === "status" ) {
+                        results.sort( function( a, b ) {
+                            if ( !ascending ) {
+                                var c = a;
+                                a = b;
+                                b = c;
+                            }
+                            // console.log( leagueRates[a.currency] );
+                            return ( Date.now() - a.lastSeen ) - 
+                                   ( Date.now() - b.lastSeen );
+                        });
+                    } else if ( sortBy === "explicit" ) {
+                        results.sort( function( a, b ) {
+                            console.log( a );
+                            if ( !ascending ) {
+                                var c = a;
+                                a = b;
+                                b = c;
+                            }
+                            var indexA = -1;
+                            var indexB = -1;
+                            for ( var i = 0 ; i < a.parsedExplicitMods.length ; i++ ) {
+                                if ( a.parsedExplicitMods[i].mod === explicitSort ) {
+                                    indexA = i;
+                                    break;
+                                }
+                            }
+                            for ( var i = 0 ; i < b.parsedExplicitMods.length ; i++ ) {
+                                if ( b.parsedExplicitMods[i].mod === explicitSort ) {
+                                    indexB = i;
+                                    break;
+                                }
+                            }
+                            if ( indexA !== -1 && indexB !== -1 ) {
+                                return a.parsedExplicitMods[indexA].values[0] - 
+                                       b.parsedExplicitMods[indexB].values[0];
+                            /* probably asked to filter something across 
+                               rare items which have different mods. Nothing 
+                               we can do here */
+                            } else {
+                                return a;
+                            }
+                        });
+                    }
+                    
+                    var counter = 0;
+                    /* If we don't have any results, still fill the table with
+                       empty div */
+                    if ( results.length === 0 ) {
+                        $( "#results table" ).append( 
+                            "<tr>" + 
+                                "<td><div style='height: 500px;'></div></td>" + 
+                            "</tr>"
+                        );
+                    }
+                    async.each( results, function( result, callbackUpdate ) {
+                        var opacity = 1;
+                        // console.log( result.accountName );
+
+                        if ( !result.available ) {
+                            opacity = 0.3;
+                        }
+                        var color = "rgba(255, 255, 255, " + opacity + ")";
+                        switch ( result.frameType ) {
+                            case 1:
+                                color = "rgba(135, 135, 254, " + opacity + ")";
+                                break;
+                            case 2:
+                                color = "rgba(243, 243, 113, " + opacity + ")";
+                                break;
+                            case 3:
+                                color = "rgba(175, 96, 37, " + opacity + ")";
+                                break;
+                            case 4:
+                                color = "rgba(0, 255, 0, " + opacity + ")";
+                                break;
+                            case 5:
+                                color = "rgba(170, 158, 130, " + opacity + ")";
+                                break;
+                            case 8:
+                                color = "rgba(181, 75, 255, " + opacity + ")";
+                                break;
+                            default:
+                        }
+                        if ( result.corrupted ) {
+                            color = "rgba(255, 0, 0, " + opacity + ")";
+                        }
+                        var time = "";
+                        // If item has been updated, use updated ts
+                        if ( result.addedTs !== result.updatedTs ) {
+                            var conv = secToNsec( current - result.updatedTs );
+                            time = Math.round( conv.amount ) + " " + conv.unit;
+                        // Otherwise use added ts
+                        } else {
+                            var conv = secToNsec( current - result.addedTs );
+                            time = Math.round( conv.amount ) + " " + conv.unit;
+                        }
+                        var onlineStatus = result.online ? "online" : "offline";
+                        counter++;
+                        var lastUpdateStatus = false; // Not seen by default
+                        var tooltipLastSeen = "Last seen: never";
+                        var statusColor = "rgb( 100, 100, 100 )";
+                        // If this user has an entry in the db
+                        if ( result.lastSeen ) {
+                            var lastUpdate = secToNsec( Date.now() - result.lastSeen );
+                            // console.log( "time: " + truc.amount + " " + truc.unit );
+                            lastUpdateStatus = ( Date.now() - result.lastSeen ) < onlineDelayS * 1000;
+                            // console.log( "lastUpdateStatus: " + (Date.now() - result.lastSeen ));
+                            tooltipLastSeen = "Last seen: " + Math.round( lastUpdate.amount ) + " " + lastUpdate.unit;
+                            var diffSec = ( Date.now() - result.lastSeen ) / 1000;
+                            var maxDuration = 3600; // 1 h
+                            if ( diffSec < maxDuration / 2 ) {
+                                statusColor = "rgb( " + Math.round( diffSec * 255 / ( maxDuration / 2 )) + ", 255, 0 )";
+                            } else if ( diffSec <= maxDuration ) {
+                                statusColor = "rgb( 255, " + Math.round( Math.abs( diffSec - maxDuration ) * 255 / ( maxDuration / 2 ))  + ", 0 )";
+                            } else {
+                                statusColor = "rgb( 255, 0, 0 )";
+                            }
+                            // console.log( statusColor );
+                        }
+                        lastUpdateStatus = lastUpdateStatus ? "online" : "offline";
+
+                        if ( result.frameType <= 1 || result.frameType > 3 ) {
+                            $( "#results table" ).append(
+                                "<tr>" +
+                                    "<td class='item-entry' id='" + counter + "' style='color: " + color + 
+                                    "'>" + 
+                                    result.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                    " (" + result.price + 
+                                    " <img class='currency-result' src='./media/" + 
+                                    result.currency + ".png'>)" + 
+                                    "<span class='ago'>" + time + "</span>" +
+                                    "</td>" +
+                                    "<td class='online-status'>" + 
+                                    "<div style='background-color: " + statusColor + "' class='online'></div>" +
+                                    "</td>" +
+                                "</tr>"
+                            );
+                        } else {
+                            $( "#results table" ).append(
+                                "<tr>" +
+                                    "<td class='item-entry' id='" + counter + "' style='color: " + color + 
+                                    "'>" + 
+                                    result.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ) + 
+                                    " (" + result.price + 
+                                    " <img class='currency-result' src='./media/" + 
+                                    result.currency + ".png'>)" +
+                                    "<span class='ago'>" + time + "</span>" +
+                                    "</td>" +
+                                    "<td class='online-status'>" + 
+                                    "<div style='background-color: " + statusColor + "' class='online'></div>" +
+                                    "</td>" +
+                                "</tr>"
+                            );
+                        }
+                        $( "table td#" + counter ).data( "data-item" , result );
+                        callbackUpdate();
+                    }, function( err ) {
+                        bindPreviewOnClick();
+                        bindContactOnClick();
+
+                        // Show tooltip when hovering status
+                        $( ".online-status" ).mouseover( function( e ) { 
+                            var item = $( this ).parent()
+                                                .children( ".item-entry" )
+                                                .data().dataItem;
+                            var position = $( this ).offset();
+                            var lastUpdate = secToNsec( Date.now() - item.lastSeen );
+                            $( "#tooltip" ).html( "<strong>" + item.accountName + 
+                                                "</strong> " + Math.round( lastUpdate.amount ) + 
+                                                " " + lastUpdate.unit + " ago" );
+                            // Change tooltip position
+                            $( "#tooltip" ).css({
+                                "top": position.top + "px",
+                                "left": ( position.left + 70 ) + "px"
+                            });
+                            $( "#tooltip-arrow" ).css({
+                                "top": ( position.top + 7 ) + "px",
+                                "left": ( position.left + 60 ) + "px"
+                            });
+                            $( "#tooltip" ).stop().show( 'fast' );
+                            $( "#tooltip-arrow" ).stop().show( 'fast' );
+                        });
+                        // Hide tooltip, when mouse exits
+                        $( ".online-status" ).mouseleave( function() {
+                            $( "#tooltip" ).stop().hide( 'fast' );
+                            $( "#tooltip-arrow" ).stop().hide( 'fast' );
+                        });
+                        // If user clicks on table header, filter by price or online status
+                        $( "#results th" ).click( function() {
+                            if ( $( this ).text().toLowerCase() === sortBy ) {
+                                ascending         = !ascending;
+                                sortOrder[sortBy] = ascending;
+                            } else {
+                                sortOrder[sortBy] = ascending;
+                                ascending = sortOrder[$( this ).text().toLowerCase()];
+                            }
+                            
+                            if ( $( this ).text() === "Price" ) {
+                                sortBy = "price";
+                            } else if ( $( this ).text() === "Status" ) {
+                                sortBy = "status";
+                            }
+                            console.log( "Sorting in " + ascending + " order by " + sortBy );
+                            updateInterface( lastResults );
+                        })
+                    });
+                }
+
+                // Grab market prices for currencies
+                function updateMarketRates( callback ) {
+                    $( "#market-rates .title" ).html( "Market rates<span> (Updating...)</span>" );
+                    $( "#market-rates .loading" ).fadeIn( 'fast' );
+                    $( "span.rate" ).text( "-" );
+                    var rates = {};
+
+                    var done = function( cursor ) {
+                        // console.log( "Prices received" );
+                        // console.log( cursor );
+                        if ( cursor !== undefined ) {
+                            async.each( cursor.rates, function( rate, cbRate ) {
+                                if ( !rates[cursor.sell]) {
+                                    rates[cursor.sell] = 1;
+                                }
+                                if ( rate.avg !== 0 && rate.avg !== Infinity ) {
+                                    // console.log( rate.buy + " = " + rate.avg );
+                                    rates[rate.buy] = 1 / rate.avg;
+                                    $( "#" + rate.buy + " .rate" ).text( Math.round( 1 / rate.avg * 100 ) / 100 );
+                                    $( "#" + rate.buy + " .rate" ).data( "data-item" , rate );
+                                } else {
+                                    rates[rate.buy] = Infinity;
+                                    $( "#" + rate.buy + " .rate" ).text( "-" );
+                                    $( "#" + rate.buy + " .rate" ).data( "data-item" , rate );
+                                }
+                                cbRate();
+                            }, function( err ) {
+                                if ( err ) {
+                                    console.log( "Error occured: " + err );
+                                }
+                                leagueRates = rates;
+                                var date = new Date( cursor.timestamp );
+                                var dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                                $( "#market-rates .title" ).html( "Market rates</span> (" + dateString + ")</span>" );
+                                $( "#market-rates .loading" ).fadeOut( 'fast' );
+                                // console.log( leagueRates );
+
+                                // When user mouse out of currency, hide tooltip
+                                $( "body" ).click( function( event ) {
+                                    $( "#tooltip-currency" ).fadeOut( 'fast' );
+                                });
+                                // When user mouse over currency, show tooltip
+                                $( "span.rate" ).mouseenter( function( event ) {
+                                    if ( $(this).text() !== "-" ) {
+                                        var position = $( this ).offset();
+                                        var leftPosition = position.left - 250 > 0 ? position.left - 250 : 0; 
+                                        $( "#tooltip-currency" ).css({
+                                            top: Math.round(position.top + 30) + "px",
+                                            left: Math.round(leftPosition) + "px"
+                                        });
+                                        $( "#tooltip-currency" ).fadeIn( 'fast' );
+                                        var rate = $( this ).data().dataItem;
+                                        var targetCur = rate.buy;
+                                        console.log( rate );
+                                        $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " (loading...)");
+                                        $( "span#tooltip-currency-min" ).html( "Min: <b>" + Math.round( 1/rate.max * 100 ) / 100 + "</b>" );
+                                        $( "span#tooltip-currency-max" ).html( "Max: <b>" + Math.round( 1/rate.min * 100 ) / 100 + "</b>" );
+                                        $( "span#tooltip-currency-mode" ).html( "Mode: <b>" + Math.round( 1/rate.mode * 100 ) / 100 + "</b>" );
+                                        $( "span#tooltip-currency-mean" ).html( "Mean: <b>" + Math.round( 1/rate.avg * 100 ) / 100 + "</b>" );
+                                        $( "span#tooltip-currency-median" ).html( "Median: <b>" + Math.round( 1/rate.median * 100 ) / 100 + "</b>" );
+                                        
+                                        var connection = mysql.createConnection( credentials );
+                                        var leagueCur = league;
+                                        if ( league === "Hardcore Essence" ) {
+                                            leagueCur = "Hardcore+Essence";
+                                        }
+                                        connection.query( "SELECT * FROM `currencyStats`,`Currencies` WHERE `Currencies`.`league` = ? AND `CurrencyStats`.`buy` = ? AND `Currencies`.`sell` = ? AND `Currencies`.`currencyKey` = `CurrencyStats`.`currencyKey`", [leagueCur, rate.buy, $( "#base-currency" ).val()], function( err, rows ) {
+                                            if ( err ) {
+                                                console.log( err );
+                                            }
+                                            var minValues    = [];
+                                            var maxValues    = [];
+                                            var meanValues   = [];
+                                            var modeValues   = [];
+                                            var medianValues = [];
+                                            var timestamps   = [];
+                                            async.eachLimit( rows, 1, function( row, cbRow ) {
+                                                minValues.push( Math.round( 1/row.min * 100 ) / 100 );
+                                                maxValues.push( Math.round( 1/row.max * 100 ) / 100 );
+                                                meanValues.push( Math.round( 1/row.mean * 100 ) / 100 );
+                                                modeValues.push( Math.round( 1/row.mode * 100 ) / 100 );
+                                                medianValues.push( Math.round( 1/row.median * 100 ) / 100 );
+                                                timestamps.push( row.timestamp );
+                                                cbRow();
+                                            }, function( err ) {
+                                                if ( err ) {
+                                                    console.log( err );
+                                                }
+                                                console.log( "plop" );
+                                                var ctx = $( "#plot-currency-chart" );
+                                                // var background = [];
+                                                var labels      = [];
+                                                for ( var i = 0 ; i < meanValues.length ; i++ ) {
+                                                    // background.push( 'rgba(75, 192, 192, 0.4)' );
+                                                    // minColor.push( 'rgba(189, 16, 239, 1)' );
+                                                    // maxColor.push( 'rgba(241, 133, 20, 1)' );
+                                                    var date = new Date( timestamps[i]);
+                                                    var hours = date.getHours();
+                                                    var minutes = "0" + date.getMinutes();
+                                                    var formattedTime = hours + ':' + minutes.substr(-2);
+                                                    labels.push( formattedTime );
+                                                }
+                                                if ( currencyChart ) {
+                                                    currencyChart.destroy();
+                                                    delete currencyChart;
+                                                }
+                                                $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " <span style='color: grey; float: right'>Click anywhere to close</span>");
+                                                currencyChart = new Chart(ctx, {
+                                                    type: 'line',
+                                                    data: {
+                                                        labels: labels,
+                                                        datasets: [
+                                                            {
+                                                                label: "Average",
+                                                                data: meanValues,
+                                                                borderColor: "rgba(75,192,192,1)",
+                                                                backgroundColor: "rgba(75,192,192, 0.2)",
+                                                                pointBackgroundColor: "rgb(0, 255, 255)",
+                                                                pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                                pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                                borderWidth: 1,
+                                                                borderCapStyle: 'butt',
+                                                                borderJoinStyle: 'bevel',
+                                                                pointRadius: 3,
+                                                                pointHitRadius: 10,
+                                                                lineTension: 0
+                                                            },
+                                                            // {
+                                                            //     label: "Median",
+                                                            //     data: medianValues,
+                                                            //     borderColor: "rgba(222, 228, 9, 1)",
+                                                            //     backgroundColor: "rgba(222, 228, 9, 0.2)",
+                                                            //     pointBackgroundColor: "rgb(248, 255, 0)",
+                                                            //     pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                            //     pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                            //     borderWidth: 1,
+                                                            //     borderCapStyle: 'butt',
+                                                            //     borderJoinStyle: 'bevel',
+                                                            //     pointRadius: 3,
+                                                            //     pointHitRadius: 10,
+                                                            //     lineTension: 0
+                                                            // },
+                                                            // {
+                                                            //     label: "Mode",
+                                                            //     data: modeValues,
+                                                            //     borderColor: "rgba(17, 234, 106, 1)",
+                                                            //     backgroundColor: "rgba(17, 234, 106, 0.2)",
+                                                            //     pointBackgroundColor: "rgb(0, 255, 105)",
+                                                            //     pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                            //     pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                            //     borderWidth: 1,
+                                                            //     borderCapStyle: 'butt',
+                                                            //     borderJoinStyle: 'bevel',
+                                                            //     pointRadius: 3,
+                                                            //     pointHitRadius: 10,
+                                                            //     lineTension: 0
+                                                            // }
+                                                        ]
+                                                    },
+                                                    options: {
+                                                        scales: {
+                                                            xAxes: [{
+                                                                gridLines: {
+                                                                    color: "rgba(50, 50, 50, 1)",
+                                                                    borderDash: [5, 2],
+                                                                },
+                                                                // ticks: {
+                                                                //     beginAtZero:true
+                                                                // }
+                                                            }],
+                                                            yAxes: [{
+                                                                gridLines: {
+                                                                    color: "rgba(50, 50, 50, 1)",
+                                                                    borderDash: [5, 2],
+                                                                },
+                                                                // ticks: {
+                                                                //     beginAtZero:true
+                                                                // }
+                                                            }]
+                                                        }
+                                                    }
+                                                });
+                                                connection.end();
+                                            });
+                                        });
+                                    }
+                                })
+                                callback();
+                            });
+                                
+                                // otherwise close DB and cursor
+                                // $( ".search-status" ).text( "Found " + entries.length + " entries" );
+                                // console.log( "Found " + entries.length + " entries (" + 
+                                            // ( new Date() - start ) + "ms)" );
+                                
+                                // $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
+
+                        }
+                    };
+
+                    // Grab prices from database
+                    var leagueCur = league;
+                    if ( league === "Hardcore Essence" ) {
+                        leagueCur = "Hardcore+Essence";
+                    }
+
+                    var connection = mysql.createConnection( credentials );
+                    connection.query( "SELECT * FROM `currencies` WHERE `league` = ? AND `sell` = ? ORDER BY Id DESC LIMIT 1", [leagueCur, $( "#base-currency" ).val()], function( err, rows ) {
+                        if ( err ) {
+                            console.log( err );
+                        }
+                        var cursor = {
+                            timestamp: rows[0].timestamp,
+                            league: rows[0].league,
+                            sell: rows[0].sell,
+                            rates: []
+                        };
+                        var key = rows[0].currencyKey;
+                        connection.query( "SELECT * FROM `currencyStats` WHERE `currencyKey` = ?", [key], function( err, rows ) {
+                            if ( err ) {
+                                console.log( err );
+                            }
+                            async.eachLimit( rows, 1, function( row, cbRow ) {
+                                cursor.rates.push({
+                                    buy: row.buy,
+                                    avg: row.mean,
+                                    median: row.median,
+                                    mode: row.mode,
+                                    min: row.min,
+                                    max: row.max
+                                });
+                                cbRow();
+                            }, function( err ) {
+                                connection.end();
+                                done( cursor );
+                            });
+                        });
+                    });
+                }
+
+                /***
+                 * Update the item preview
+                 *
+                 * @param Item
+                 * @return nothing
+                 */
+                function itemPreview( item ) {
+                    console.log( item );
+                    if ( !item ) {
+                        return;
+                    }
+                    var itemPrefixes  = [];
+                    var itemSuffixes  = [];
+                    var itemCorrupted = [];
+                    var itemSections = [
+                        "One Handed Axe", "Claw", "Dagger", "One Handed Mace",
+                        "One Handed Sword", "Wand", "Two Handed Axe", "Bow",
+                        "Fishing Rod", "Two Handed Mace", "Staff", 
+                        "Two Handed Sword"
+                    ];
+                    var utilityFlasks = [
+                        "Amethyst Flask", "Aquamarine Flask", "Basalt Flask",
+                        "Bismuth Flask", "Granite Flask", "Jade Flask",
+                        "Quartz Flask", "Quicksilver Flask", "Ruby Flask",
+                        "Sapphire Flask", "Silver Flask", "Stibnite Flask",
+                        "Sulphur Flask", "Topaz Flask"
+                    ];
+                    var boots   = {
+                        "Iron Greaves": "AR",
+                        "Steel Greaves": "AR",
+                        "Plated Greaves": "AR",
+                        "Reinforced Greaves": "AR",
+                        "Antique Greaves": "AR",
+                        "Ancient Greaves": "AR",
+                        "Goliath Greaves": "AR",
+                        "Vaal Greaves": "AR",
+                        "Titan Greaves": "AR",
+                        "Rawhide Boots": "EV",
+                        "Goathide Boots": "EV",
+                        "Deerskin Boots": "EV",
+                        "Nubuck Boots": "EV",
+                        "Eelskin Boots": "EV",
+                        "Sharkskin Boots": "EV",
+                        "Shagreen Boots": "EV",
+                        "Stealth Boots": "EV",
+                        "Slink Boots": "EV",
+                        "Wool Shoes": "ES",
+                        "Velvet Slippers": "ES",
+                        "Silk Slippers": "ES",
+                        "Scholar Boots": "ES",
+                        "Satin Slippers": "ES",
+                        "Samite Slippers": "ES",
+                        "Conjurer Boots": "ES",
+                        "Arcanist Slippers": "ES",
+                        "Sorcerer Boots": "ES",
+                        "Leatherscale Boots": "AR/EV",
+                        "Ironscale Boots": "AR/EV",
+                        "Bronzescale Boots": "AR/EV",
+                        "Steelscale Boots": "AR/EV",
+                        "Serpentscale Boots": "AR/EV",
+                        "Wyrmscale Boots": "AR/EV",
+                        "Hydrascale Boots": "AR/EV",
+                        "Dragonscale Boots": "AR/EV",
+                        "Two-Toned Boots": "AR/EV",
+                        "Chain Boots": "AR/ES",
+                        "Ringmail Boots": "AR/ES",
+                        "Mesh Boots": "AR/ES",
+                        "Riveted Boots": "AR/ES",
+                        "Zealot Boots": "AR/ES",
+                        "Soldier Boots": "AR/ES",
+                        "Legion Boots": "AR/ES",
+                        "Crusader Boots": "AR/ES",
+                        "Two-Toned Boots": "AR/ES",
+                        "Wrapped Boots": "EV/ES",
+                        "Strapped Boots": "EV/ES",
+                        "Clasped Boots": "EV/ES",
+                        "Shackled Boots": "EV/ES",
+                        "Trapper Boots": "EV/ES",
+                        "Ambush Boots": "EV/ES",
+                        "Carnal Boots": "EV/ES",
+                        "Assassin's Boots": "EV/ES",
+                        "Murder Boots": "EV/ES",
+                        "Two-Toned Boots": "EV/ES"
+                    };
+                    var helmets = {
+                        "Iron Hat": "AR",
+                        "Cone Helmet": "AR",
+                        "Barbute Helmet": "AR",
+                        "Close Helmet": "AR",
+                        "Gladiator Helmet": "AR",
+                        "Reaver Helmet": "AR",
+                        "Siege Helmet": "AR",
+                        "Samite Helmet": "AR",
+                        "Ezomyte Burgonet": "AR",
+                        "Royal Burgonet": "AR",
+                        "Eternal Burgonet": "AR",
+                        "Leather Cap": "EV",
+                        "Tricorne": "EV",
+                        "Leather Hood": "EV",
+                        "Wolf Pelt": "EV",
+                        "Hunter Hood": "EV",
+                        "Noble Tricorne": "EV",
+                        "Ursine Pelt": "EV",
+                        "Silken Hood": "EV",
+                        "Sinner Tricorne": "EV",
+                        "Lion Pelt": "EV",
+                        "Vine Circlet": "ES",
+                        "Iron Circlet": "ES",
+                        "Torture Cage": "ES",
+                        "Tribal Circlet": "ES",
+                        "Bone Circlet": "ES",
+                        "Lunaris Circlet": "ES",
+                        "Steel Circlet": "ES",
+                        "Necromancer Circlet": "ES",
+                        "Solaris Circlet": "ES",
+                        "Mind Cage": "ES",
+                        "Hubris Circlet": "ES",
+                        "Battered Helm": "AR/EV",
+                        "Sallet": "AR/EV",
+                        "Visored Sallet": "AR/EV",
+                        "Gilded Sallet": "AR/EV",
+                        "Secutor Helm": "AR/EV",
+                        "Fencer Helm": "AR/EV",
+                        "Lacquered Helmet": "AR/EV",
+                        "Fluted Bascinet": "AR/EV",
+                        "Pig-Faced Bascinet": "AR/EV",
+                        "Nightmare Bascinet": "AR/EV",
+                        "Rusted Coif": "AR/ES",
+                        "Soldier Helmet": "AR/ES",
+                        "Great Helmet": "AR/ES",
+                        "Crusader Helmet": "AR/ES",
+                        "Aventail Helmet": "AR/ES",
+                        "Zealot Helmet": "AR/ES",
+                        "Great Crown": "AR/ES",
+                        "Magistrate Crown": "AR/ES",
+                        "Prophet Crown": "AR/ES",
+                        "Praetor Crown": "AR/ES",
+                        "Bone Helmet": "AR/ES",
+                        "Scare Mask": "EV/ES",
+                        "Plague Mask": "EV/ES",
+                        "Iron Mask": "EV/ES",
+                        "Festival Mask": "EV/ES",
+                        "Golden Mask": "EV/ES",
+                        "Raven Mask": "EV/ES",
+                        "Callous Mask": "EV/ES",
+                        "Regicide Mask": "EV/ES",
+                        "Harlequin Mask": "EV/ES",
+                        "Vaal Mask": "EV/ES",
+                        "Deicide Mask": "EV/ES"
+                    };
+                    var shields = { 
+                        "Alder Spiked Shield": "EV/ES",
+                        "Alloyed Spiked Shield": "EV/ES",
+                        "Ancient Spirit Shield": "ES",
+                        "Angelic Kite Shield": "AR/ES",
+                        "Archon Kite Shield": "AR/ES",
+                        "Baroque Round Shield": "AR/EV",
+                        "Battle Buckler": "EV",
+                        "Bone Spirit Shield": "ES",
+                        "Branded Kite Shield": "AR/ES",
+                        "Brass Spirit Shield": "ES",
+                        "Bronze Tower Shield": "AR",
+                        "Buckskin Tower Shield": "AR",
+                        "Burnished Spiked Shield": "EV/ES",
+                        "Cardinal Round Shield": "AR/EV",
+                        "Cedar Tower Shield": "AR",
+                        "Ceremonial Kite Shield": "AR/ES",
+                        "Champion Kite Shield": "AR/ES",
+                        "Chiming Spirit Shield": "ES",
+                        "Colossal Tower Shield": "AR",
+                        "Compound Spiked Shield": "EV/ES",
+                        "Copper Tower Shield": "AR",
+                        "Corroded Tower Shield": "AR",
+                        "Corrugated Buckler": "EV",
+                        "Crested Tower Shield": "AR",
+                        "Crimson Round Shield": "AR/EV",
+                        "Crusader Buckler": "EV",
+                        "Driftwood Spiked Shield": "EV/ES",
+                        "Ebony Tower Shield": "AR",
+                        "Elegant Round Shield": "AR/EV",
+                        "Enameled Buckler": "EV",
+                        "Etched Kite Shield": "AR/ES",
+                        "Ezomyte Spiked Shield": "EV/ES",
+                        "Ezomyte Tower Shield": "AR",
+                        "Fir Round Shield": "AR/EV",
+                        "Fossilised Spirit Shield": "ES",
+                        "Gilded Buckler": "EV",
+                        "Girded Tower Shield": "AR",
+                        "Goathide Buckler": "EV",
+                        "Golden Buckler": "EV",
+                        "Hammered Buckler": "EV",
+                        "Harmonic Spirit Shield": "ES",
+                        "Imperial Buckler": "EV",
+                        "Ironwood Buckler": "EV",
+                        "Ivory Spirit Shield": "ES",
+                        "Jingling Spirit Shield": "ES",
+                        "Lacewood Spirit Shield": "ES",
+                        "Lacquered Buckler": "EV",
+                        "Laminated Kite Shield": "AR/ES",
+                        "Layered Kite Shield": "AR/ES",
+                        "Linden Kite Shield": "AR/ES",
+                        "Mahogany Tower Shield": "AR",
+                        "Maple Round Shield": "AR/EV",
+                        "Mirrored Spiked Shield": "EV/ES",
+                        "Mosaic Kite Shield": "AR/ES",
+                        "Oak Buckler": "EV",
+                        "Ornate Spiked Shield": "EV/ES",
+                        "Painted Buckler": "EV",
+                        "Painted Tower Shield": "AR",
+                        "Pine Buckler": "EV",
+                        "Pinnacle Tower Shield": "AR",
+                        "Plank Kite Shield": "AR/ES",
+                        "Polished Spiked Shield": "EV/ES",
+                        "Rawhide Tower Shield": "AR",
+                        "Redwood Spiked Shield": "EV/ES",
+                        "Reinforced Kite Shield": "AR/ES",
+                        "Reinforced Tower Shield": "AR",
+                        "Rotted Round Shield": "AR/EV",
+                        "Scarlet Round Shield": "AR/EV",
+                        "Shagreen Tower Shield": "AR",
+                        "Sovereign Spiked Shield": "EV/ES",
+                        "Spiked Bundle": "EV/ES",
+                        "Spiked Round Shield": "AR/EV",
+                        "Spiny Round Shield": "AR/EV",
+                        "Splendid Round Shield": "AR/EV",
+                        "Splintered Tower Shield": "AR",
+                        "Steel Kite Shield": "AR/ES",
+                        "Studded Round Shield": "AR/EV",
+                        "Supreme Spiked Shield": "EV/ES",
+                        "Tarnished Spirit Shield": "ES",
+                        "Teak Round Shield": "AR/EV",
+                        "Thorium Spirit Shield": "ES",
+                        "Titanium Spirit Shield": "ES",
+                        "Twig Spirit Shield": "ES",
+                        "Vaal Buckler": "EV",
+                        "Vaal Spirit Shield": "ES",
+                        "Walnut Spirit Shield": "ES",
+                        "War Buckler": "EV",
+                        "Yew Spirit Shield": "ES",
+                    };
+                    var gloves  = {
+                        "Iron Gauntlets": "AR",
+                        "Plated Gauntlets": "AR",
+                        "Bronze Gauntlets": "AR",
+                        "Steel Gauntlets": "AR",
+                        "Antique Gauntlets": "AR",
+                        "Ancient Gauntlets": "AR",
+                        "Goliath Gauntlets": "AR",
+                        "Vaal Gauntlets": "AR",
+                        "Titan Gauntlets": "AR",
+                        "Spiked Gloves": "AR",
+                        "Rawhide Gloves": "EV",
+                        "Goathide Gloves": "EV",
+                        "Deerskin Gloves": "EV",
+                        "Nubuck Gloves": "EV",
+                        "Eelskin Gloves": "EV",
+                        "Sharkskin Gloves": "EV",
+                        "Shagreen Gloves": "EV",
+                        "Stealth Gloves": "EV",
+                        "Slink Gloves": "EV",
+                        "Gripped Gloves": "EV",
+                        "Wool Gloves": "ES",
+                        "Velvet Gloves": "ES",
+                        "Silk Gloves": "ES",
+                        "Embroidered Gloves": "ES",
+                        "Satin Gloves": "ES",
+                        "Samite Gloves": "ES",
+                        "Conjurer Gloves": "ES",
+                        "Arcanist Gloves": "ES",
+                        "Sorcerer Gloves": "ES",
+                        "Fingerless Silk Gloves": "ES",
+                        "Fishscale Gauntlets": "AR/EV",
+                        "Ironscale Gauntlets": "AR/EV",
+                        "Bronzescale Gauntlets": "AR/EV",
+                        "Steelscale Gauntlets": "AR/EV",
+                        "Serpentscale Gauntlets": "AR/EV",
+                        "Wyrmscale Gauntlets": "AR/EV",
+                        "Hydrascale Gauntlets": "AR/EV",
+                        "Dragonscale Gauntlets": "AR/EV",
+                        "Chain Gloves": "AR/ES",
+                        "Ringmail Gloves": "AR/ES",
+                        "Mesh Gloves": "AR/ES",
+                        "Riveted Gloves": "AR/ES",
+                        "Zealot Gloves": "AR/ES",
+                        "Soldier Gloves": "AR/ES",
+                        "Legion Gloves": "AR/ES",
+                        "Crusader Gloves": "AR/ES",
+                        "Wrapped Mitts": "EV/ES",
+                        "Strapped Mitts": "EV/ES",
+                        "Clasped Mitts": "EV/ES",
+                        "Trapper Mitts": "EV/ES",
+                        "Ambush Mitts": "EV/ES",
+                        "Carnal Mitts": "EV/ES",
+                        "Assassin's Mitts": "EV/ES",
+                        "Murder Mitts": "EV/ES"
+                    };
+                    var armors  = {
+                        "Plate Vest": "AR",
+                        "Chestplate": "AR",
+                        "Copper Plate": "AR",
+                        "War Plate": "AR",
+                        "Full Plate": "AR",
+                        "Arena Plate": "AR",
+                        "Lordly Plate": "AR",
+                        "Bronze Plate": "AR",
+                        "Battle Plate": "AR",
+                        "Sun Plate": "AR",
+                        "Colosseum Plate": "AR",
+                        "Majestic Plate": "AR",
+                        "Golden Plate": "AR",
+                        "Crusader Plate": "AR",
+                        "Astral Plate": "AR",
+                        "Gladiator Plate": "AR",
+                        "Glorious Plate": "AR",
+                        "Shabby Jerkin": "EV",
+                        "Strapped Leather": "EV",
+                        "Buckskin Tunic": "EV",
+                        "Wild Leather": "EV",
+                        "Full Leather": "EV",
+                        "Sun Leather": "EV",
+                        "Thief's Garb": "EV",
+                        "Eelskin Tunic": "EV",
+                        "Frontier Leather": "EV",
+                        "Glorious Leather": "EV",
+                        "Coronal Leather": "EV",
+                        "Cutthroat's Garb": "EV",
+                        "Sharkskin Tunic": "EV",
+                        "Destiny Leather": "EV",
+                        "Exquisite Leather": "EV",
+                        "Zodiac Leather": "EV",
+                        "Assassin's Garb": "EV",
+                        "Simple Robe": "ES",
+                        "Silken Vest": "ES",
+                        "Scholar's Robe": "ES",
+                        "Silken Garb": "ES",
+                        "Mage's Vestment": "ES",
+                        "Silk Robe": "ES",
+                        "Cabalist Regalia": "ES",
+                        "Sage's Robe": "ES",
+                        "Silken Wrap": "ES",
+                        "Conjurer's Vestment": "ES",
+                        "Spidersilk Robe": "ES",
+                        "Destroyer Regalia": "ES",
+                        "Savant's Robe": "ES",
+                        "Necromancer Silks": "ES",
+                        "Occultist's Vestment": "ES",
+                        "Widowsilk Robe": "ES",
+                        "Vaal Regalia": "ES",
+                        "Scale Vest": "AR/EV",
+                        "Light Brigandine": "AR/EV",
+                        "Scale Doublet": "AR/EV",
+                        "Infantry Brigandine": "AR/EV",
+                        "Full Scale Armour": "AR/EV",
+                        "Soldier's Brigandine": "AR/EV",
+                        "Field Lamellar": "AR/EV",
+                        "Wyrmscale Doublet": "AR/EV",
+                        "Hussar Brigandine": "AR/EV",
+                        "Full Wyrmscale": "AR/EV",
+                        "Commander's Brigandine": "AR/EV",
+                        "Battle Lamellar": "AR/EV",
+                        "Dragonscale Doublet": "AR/EV",
+                        "Desert Brigandine": "AR/EV",
+                        "Full Dragonscale": "AR/EV",
+                        "General's Brigandine": "AR/EV",
+                        "Triumphant Lamellar": "AR/EV",
+                        "Chainmail Vest": "AR/ES",
+                        "Chainmail Tunic": "AR/ES",
+                        "Ringmail Coat": "AR/ES",
+                        "Chainmail Doublet": "AR/ES",
+                        "Full Ringmail": "AR/ES",
+                        "Full Chainmail": "AR/ES",
+                        "Holy Chainmail": "AR/ES",
+                        "Latticed Ringmail": "AR/ES",
+                        "Crusader Chainmail": "AR/ES",
+                        "Ornate Ringmail": "AR/ES",
+                        "Chain Hauberk": "AR/ES",
+                        "Devout Chainmail": "AR/ES",
+                        "Loricated Ringmail": "AR/ES",
+                        "Conquest Chainmail": "AR/ES",
+                        "Elegant Ringmail": "AR/ES",
+                        "Saint's Hauberk": "AR/ES",
+                        "Saintly Chainmail": "AR/ES",
+                        "Padded Vest": "EV/ES",
+                        "Oiled Vest": "EV/ES",
+                        "Padded Jacket": "EV/ES",
+                        "Oiled Coat": "EV/ES",
+                        "Scarlet Raiment": "EV/ES",
+                        "Waxed Garb": "EV/ES",
+                        "Bone Armour": "EV/ES",
+                        "Quilted Jacket": "EV/ES",
+                        "Sleek Coat": "EV/ES",
+                        "Crimson Raiment": "EV/ES",
+                        "Lacquered Garb": "EV/ES",
+                        "Crypt Armour": "EV/ES",
+                        "Sentinel Jacket": "EV/ES",
+                        "Varnished Coat": "EV/ES",
+                        "Blood Raiment": "EV/ES",
+                        "Sadist Garb": "EV/ES",
+                        "Carnal Armour": "EV/ES",
+                        "Sacrificial Garb": "AR/EV/ES"
+                    };
+
+                    console.log( "Item type: " + item.typeLine );
+
+                   /* Setup item prefix, suffix and corrupt affixes */
+                    // Scepter
+                    if ( item.typeLine.match( /(?!Superior|<<).+ (?:Sceptre|Fetish|Sekhem)/ )) {
+                        console.log( "Scepter" );
+                        itemPrefixes  = affixes["Scepter"].prefix;
+                        itemSuffixes  = affixes["Scepter"].suffix;
+                        itemCorrupted = affixes["Scepter"].corrupted;
+                    // Shields
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Shield|Buckler)/ )) {
+                        var type = shields[item.typeLine];
+                        console.log( "Shield - " + type );
+                        itemPrefixes  = affixes["Shield"][type].prefix;
+                        itemSuffixes  = affixes["Shield"][type].suffix;
+                        itemCorrupted = affixes["Shield"][type].corrupted;
+                    // Helmets
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Helmet|Helm|Circlet|Mask|BurgonetBascinet|Sallet|Crown|Wreath|Hood|Hat|Cap|Pelt|Cage|Tricorne|Coif)/ )) {
+                        var type = helmets[item.typeLine];
+                        console.log( "Helmet - " + type );
+                        itemPrefixes  = affixes["Helmet"][type].prefix;
+                        itemSuffixes  = affixes["Helmet"][type].suffix;
+                        itemCorrupted = affixes["Helmet"][type].corrupted;
+                    // Boots
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Boots|Greaves|Slippers|Caligae|Shoes)/ )) {
+                        var type = boots[item.typeLine];
+                        console.log( "Boots - " + type );
+                        itemPrefixes  = affixes["Boots"][type].prefix;
+                        itemSuffixes  = affixes["Boots"][type].suffix;
+                        itemCorrupted = affixes["Boots"][type].corrupted;
+                    // Gloves
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Mitts|Gauntlets|Gloves|Bracers)/ )) {
+                        var type = gloves[item.typeLine];
+                        console.log( "Gloves - " + type );
+                        itemPrefixes  = affixes["Gloves"][type].prefix;
+                        itemSuffixes  = affixes["Gloves"][type].suffix;
+                        itemCorrupted = affixes["Gloves"][type].corrupted;
+                    // Armor
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Plate|Garb|Lamellar|Raiment|Armour|Tunic|Regalia|Hauberk|Doublet|Vest|Chestplate|Brigandine|Vestment|Chainmail|Leather|Ringmail|Dragonscale|Wyrmscale|Mantle|Silks|Coat|Jacket|Robe|Jerkin|Wrap)/ )) {
+                        var type = armors[item.typeLine];
+                        console.log( "Armor - " + type );
+                        itemPrefixes  = affixes["Armor"][type].prefix;
+                        itemSuffixes  = affixes["Armor"][type].suffix;
+                        itemCorrupted = affixes["Armor"][type].corrupted;
+                    // Amulets
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ Amulet/ )) {
+                        console.log( "Amulet" );
+                        itemPrefixes  = affixes["Amulet"].prefix;
+                        itemSuffixes  = affixes["Amulet"].suffix;
+                        itemCorrupted = affixes["Amulet"].corrupted;
+                    // Belts
+                    } else if ( item.typeLine.match( /^(?!Superior|<<).+ (?:Belt|Obi|Sash)/ )) {
+                        console.log( "Belt" );
+                        itemPrefixes  = affixes["Belt"].prefix;
+                        itemSuffixes  = affixes["Belt"].suffix;
+                        itemCorrupted = affixes["Belt"].corrupted;
+                    // Quivers
+                    } else if ( itemTypes["quiver"].types.indexOf( item.typeLine ) !== -1 ) {
+                        console.log( "Quiver" );
+                        itemPrefixes  = affixes["Quiver"].prefix;
+                        itemSuffixes  = affixes["Quiver"].suffix;
+                        itemCorrupted = affixes["Quiver"].corrupted;
+                    // Rings
+                    } else if ( item.typeLine.match( new RegExp( itemTypes["ring"].types.join( "|" )))) {
+                        console.log( "Ring" );
+                        itemPrefixes  = affixes["Ring"].prefix;
+                        itemSuffixes  = affixes["Ring"].suffix;
+                        itemCorrupted = affixes["Ring"].corrupted;
+                    // Life flasks
+                    } else if ( item.typeLine.match( /Life Flask/ )) {
+                        console.log( "Life Flask" );
+                        itemPrefixes  = affixes["Life"].prefix;
+                        itemSuffixes  = affixes["Life"].suffix;
+                        itemCorrupted = affixes["Life"].corrupted;
+                    // Mana flasks
+                    } else if ( item.typeLine.match( /Mana Flask/ )) {
+                        console.log( "Mana Flask" );
+                        itemPrefixes  = affixes["Mana"].prefix;
+                        itemSuffixes  = affixes["Mana"].suffix;
+                        itemCorrupted = affixes["Mana"].corrupted;
+                    // Hybrid flasks
+                    } else if ( item.typeLine.match( /Hybrid Flask/ )) {
+                        console.log( "Hybrid Flask" );
+                        itemPrefixes  = affixes["Hybrid"].prefix;
+                        itemSuffixes  = affixes["Hybrid"].suffix;
+                        itemCorrupted = affixes["Hybrid"].corrupted;
+                    // Utility flasks
+                    } else if ( utilityFlasks.indexOf( item.typeLine ) !== -1 ) {
+                        console.log( "Utility Flask" );
+                        itemPrefixes  = affixes["Utility"].prefix;
+                        itemSuffixes  = affixes["Utility"].suffix;
+                        itemCorrupted = affixes["Utility"].corrupted;
+                    // Critical Utility flasks
+                    } else if ( item.typeLine.indexOf( "Diamond Flask" ) !== -1 ) {
+                        console.log( "Diamond Flask" );
+                        itemPrefixes  = affixes["Utility"].prefix;
+                        itemSuffixes  = affixes["Utility"].suffix;
+                        itemCorrupted = affixes["Utility"].corrupted;
+                    // Cobalt
+                    } else if ( item.typeLine.indexOf( "Cobalt Jewel" ) !== -1 ) {
+                        console.log( "Cobalt Jewel" );
+                        itemPrefixes  = affixes["Cobalt"].prefix;
+                        itemSuffixes  = affixes["Cobalt"].suffix;
+                        itemCorrupted = affixes["Cobalt"].corrupted;
+                    // Crimson
+                    } else if ( item.typeLine.indexOf( "Crimson Jewel" ) !== -1 ) {
+                        console.log( "Crimson Jewel" );
+                        itemPrefixes  = affixes["Crimson"].prefix;
+                        itemSuffixes  = affixes["Crimson"].suffix;
+                        itemCorrupted = affixes["Crimson"].corrupted;
+                    // Veridian
+                    } else if ( item.typeLine.indexOf( "Veridian Jewel" ) !== -1 ) {
+                        console.log( "Veridian Jewel" );
+                        itemPrefixes  = affixes["Veridian"].prefix;
+                        itemSuffixes  = affixes["Veridian"].suffix;
+                        itemCorrupted = affixes["Veridian"].corrupted;
+                    // Prismatic
+                    } else if ( item.typeLine.indexOf( "Prismatic Jewel" ) !== -1 ) {
+                        console.log( "Prismatic Jewel" );
+                        itemPrefixes  = affixes["Prismatic"].prefix;
+                        itemSuffixes  = affixes["Prismatic"].suffix;
+                        itemCorrupted = affixes["Prismatic"].corrupted;
+                    } else if ( item.properties && 
+                                itemSections.indexOf( item.properties[0].name ) !== -1 ) {
+                        console.log( item.properties[0].name );
+                        itemPrefixes  = affixes[item.properties[0].name].prefix;
+                        itemSuffixes  = affixes[item.properties[0].name].suffix;
+                        itemCorrupted = affixes[item.properties[0].name].corrupted;
+                    }
+                    
+                    $( "#price" ).empty();
+                    $( "#price" ).html(
+                        item.price + "<img src='./media/" + item.currency + ".png'>"
+                    );
+                    // Depending on the item width, change the left offset
+                    $( "td#preview img.loading" ).show();
+                    if ( item.frameType === 6 ) {
+                        $( "#item-picture" ).css({ "left": "0%", "width": "200px" });
+                    } else {
+                        $( "#item-picture" ).css( "width", "initial" );
+                        if ( item.w === 1 ) {
+                            $( "#item-picture" ).css( "left", "40%" );
+                        } else {
+                            $( "#item-picture" ).css( "left", "30%" );
+                        }
+                    }
+                    
+                    // If it's a divination card, show the card art
+                    if ( item.frameType === 6 ) {
+                        $( "#item-picture" ).attr( 
+                            "src", 
+                            "http://web.poecdn.com/image/gen/divination_cards/" + item.artFilename + ".png" 
+                        );
+                    } else {
+                        $( "#item-picture" ).attr( "src", item.icon );
+                    }
+                    
+                    $( "td#preview img.loading" ).hide();
+                    $( "#item-name" ).empty();
+                    if ( item.frameType <= 1 || item.frameType > 3 ) {
+                        $( "#item-name" ).text( item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
+                    } else {
+                        $( "#item-name" ).text( item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" ));
+                    }
+                    var color = "rgba(255, 255, 255, 1)";
+                    switch ( item.frameType ) {
+                        case 1:
+                            color = "rgba(135, 135, 254, 1)";
+                            break;
+                        case 2:
+                            color = "rgba(243, 243, 113, 1)";
+                            break;
+                        case 3:
+                            color = "rgba(175, 96, 37, 1)";
+                            break;
+                        case 4:
+                            color = "rgba(0, 255, 0, 1)";
+                            break;
+                        case 5:
+                            color = "rgba(170, 158, 130, 1)";
+                            break;
+                        case 8:
+                            color = "rgba(181, 75, 255, 1)";
+                            break;
+                        default:
+                    }
+                    if ( item.frameType !== 8 ) {
+                        $( "#item-prophecy-text" ).hide();
+                    } else {
+                        $( "#item-prophecy-text" ).text( item.prophecyText );
+                        $( "#item-prophecy-text" ).show();
+                    }
+                    $( "#item-name" ).css( "color", color );
+                    $( "#item-type-prev" ).empty();
+                    if ( item.frameType !== 1 && item.frameType !== 4 && 
+                         item.frameType !== 5 && item.frameType !== 8 && 
+                         item.frameType !== 0 && item.frameType !== 6 ) {
+                        $( "#item-type-prev" ).text( item.typeLine );
+                        // console.log( item.frameType );
+                    }
+                    // Item enchant mods
+                    $( "#item-enchant-mods" ).empty();
+                    if ( item.enchantMods ) {
+                        for ( var i = 0 ; i < item.enchantMods.length; i++ ) {
+                            var mod = item.enchantMods[i];
+                            $( "#item-enchant-mods" ).append(
+                                "<span>" + mod + "</span>"
+                            );
+                            if ( i !== item.enchantMods.length - 1 ) {
+                                $( "#item-enchant-mods" ).append( "<br>" );
+                            }
+                        }
+                        $( "#item-enchant-mods" ).show();
+                    } else {
+                        $( "#item-enchant-mods" ).hide();
+                    }
+                    // Item properties
+                    $( "#item-properties" ).empty();
+                    if ( item.properties ) {
+                        for ( var i = 0 ; i < item.properties.length; i++ ) {
+                            var property = item.properties[i];
+                                if ( property.values.length > 0 && property.values[0] !== "0" ) {
+                                    $( "#item-properties" ).append(
+                                        "<span class='item-property'>" + property.name + ": </span>" +
+                                        "<span class='item-value'>" + property.values[0] + "</span>"
+                                    );
+                                } else {
+                                    $( "#item-properties" ).append(
+                                        "<span class='item-property'>" + property.name + "</span>"
+                                    );
+                                }
+                            if ( i !== item.properties.length - 1 ) {
+                                $( "#item-properties" ).append( "<br>" );
+                            }
+                        }
+                    }
+                    // Implicit mods
+                    $( "#item-implicit-mods" ).empty();
+                    if ( item.parsedImplicitMods ) {
+                        console.log( item.parsedImplicitMods );
+                        $( "#item-implicit-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.parsedImplicitMods, function( mod, cbMod ) {
+                            var match = mod.mod;
+                            var extract = [];
+                            for ( var i = 0; i < mod.values.length; i++ ) {
+                                if ( mod.values[i] && mod.values[i] !== 0 ) {
+                                    extract.push( mod.values[i]);
+                                }
+                            }
+                            var val = extract[0];
+                            var affix   = "";
+                            var affRank = 0;
+                            var counter = 0;
+                            /* For implicit mods, check if the affix is a 
+                               corrupted one */ 
+                            if ( itemCorrupted[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                async.each( itemCorrupted[match], function( aff, cbAff ) {
+                                    counter++;
+                                    if ( val >= aff.min && val <= aff.max ) {
+                                        affRank = counter;
+                                    }
+                                    cbAff();
+                                }, function( err ) {
+                                    var val = Math.round( affRank 
+                                              * 100 / itemCorrupted[match].length + 100 );
+                                    affix = "<span class='affix'><span class='affix-type'>C</span>[" + 
+                                            "<span style='color: rgb(0, " + 
+                                            val + ", 0 )'>" + affRank + 
+                                            "</span>/<span class='mod-max'>" +
+                                            itemCorrupted[match].length + 
+                                            "</span>]</span>";
+                                })
+                            }
+                            $( "#item-implicit-mods table" ).append(
+                                "<tr><td>" +
+                                mod.mod.replace( "#", mod.values[0] ) + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function ( err ) {
+                            $( "#item-implicit-mods" ).append(
+                                "</table>"
+                            );
+                        });
+                    }
+
+                    // Explicit mods
+                    $( "#item-explicit-mods" ).empty();
+                    if ( item.parsedExplicitMods ) {
+                        $( "#item-explicit-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.parsedExplicitMods, function( mod, cbMod ) {
+                            var match = mod.mod;
+                            var extract = [];
+                            for ( var i = 0; i < mod.values.length; i++ ) {
+                                if ( mod.values[i] && mod.values[i] !== 0 ) {
+                                    extract.push( mod.values[i]);
+                                }
+                            }
+                            var affix   = "";
+                            if (( item.frameType ===  1 || item.frameType === 2 )) {
+                                affix   = "<span class='affix'>Legacy?</span>";
+                            }
+                            // console.log( match );
+                            if ( extract.length > 0 ) {
+                                var val = extract[0];
+                                var affRank = 0;
+                                var counter = 0;
+                                /* For explicit mods, check if the affix
+                                    is prefix or suffix */
+                                if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemPrefixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemPrefixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemPrefixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemSuffixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemSuffixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemSuffixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                }
+                            } else {
+                                console.log( mod );
+                            }
+
+                            var formatted = mod.mod;
+                            var counter = 0;
+                            while ( formatted.search( "#" ) !== -1 ) {
+                                formatted = formatted.replace( "#", mod.values[counter]);
+                                counter++;
+                            }
+                            $( "#item-explicit-mods table" ).append(
+                                "<tr><td>" +
+                                formatted + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function( err ) {
+                            $( "#item-explicit-mods" ).append(
+                                "</table>"
+                            );
+                        });
+                    }
+                    // Crafted Mods
+                    $( "#item-crafted-mods" ).empty();
+                    if ( item.craftedMods ) {
+                        $( "#item-crafted-mods" ).append(
+                            "<table>"
+                        );
+                        async.each( item.parsedCraftedMods, function( mod, cbMod ) {
+                            var reg = /([0-9]+)/g;
+                            var match = mod.replace( /([0-9]+)/g, "#" );
+                            // console.log( match );
+                            var extract = reg.exec( mod );
+                            var affix   = "";
+                            if ( extract && extract.length > 2 ) {
+                                var val = extract[1];
+                                if (( item.frameType ===  1 || item.frameType === 2 )) {
+                                    affix   = "<span class='affix'>Legacy?</span>";
+                                }
+                                var affRank = 0;
+                                var counter = 0;
+                                /* For crafted mods, check if the affix
+                                is prefix or suffix */
+                                if ( itemPrefixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemPrefixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemPrefixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>P</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemPrefixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                } else if ( itemSuffixes[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                                    async.each( itemSuffixes[match], function( aff, cbAff ) {
+                                        counter++;
+                                        if ( val >= aff.min && val <= aff.max ) {
+                                            affRank = counter;
+                                        }
+                                        cbAff();
+                                    }, function( err ) {
+                                        var val = Math.round( affRank 
+                                                    * 100 / itemSuffixes[match].length + 100 );
+                                        affix = "<span class='affix'><span class='affix-type'>S</span>[" + 
+                                                "<span style='color: rgb(0, " + 
+                                                val + ", 0 )'>" + affRank + 
+                                                "</span>/<span class='mod-max'>" +
+                                                itemSuffixes[match].length + 
+                                                "</span>]</span>";
+                                    })
+                                }
+                            }
+                            
+                            $( "#item-crafted-mods table" ).append(
+                                "<tr><td>" +
+                                mod + "</td><td>" +
+                                affix + "</td></tr>"
+                            );
+                            cbMod();
+                        }, function( err ) {
+                            $( "#item-crafted-mods" ).append(
+                                "</table>"
+                            );
+                        });
+                        $( "#item-crafted-mods" ).show();
+                    } else {
+                        $( "#item-crafted-mods" ).hide();
+                    }
+                    
+                    // Corrupted
+                    if ( item.corrupted ) {
+                        $( "#item-corrupted" ).show();
+                    } else {
+                        $( "#item-corrupted" ).hide();
+                    }
+                    // Item sockets
+                    $( ".socket" ).hide();
+                    $( ".link" ).hide();
+                    var currentSocketGroup = 0;
+                    var lastSocketGroup = 0;
+                    if ( item.sockets && item.sockets.length > 0 ) {
+                        if ( item.properties ) {
+                            if ( item.properties[0].name !== "Wand" && 
+                                 item.properties[0].name !== "Dagger" ) {
+                                for ( var i = 0 ; i < item.sockets.length ; i++ ) {
+                                    var socketImg;
+                                    switch ( item.sockets[i].attr ) {
+                                        case "D":
+                                            socketImg = "./media/socket_dex.png";
+                                            break;
+                                        case "I":
+                                            socketImg = "./media/socket_int.png";
+                                            break;
+                                        case "S":
+                                            socketImg = "./media/socket_str.png";
+                                            break;
+                                        case "G":
+                                            socketImg = "./media/socket_white.png";
+                                            break;
+                                        default:
+                                            socketImg = "./media/socket_white.png";
+                                    }
+                                    $( "#socket" + ( i + 1 )).attr( "src", socketImg );
+                                    $( "#socket" + ( i + 1 )).show();
+                                    currentSocketGroup = item.sockets[i].group;
+                                    if ( i > 0 && currentSocketGroup == lastSocketGroup ) {
+                                        $( "#link" + i ).show();
+                                    } else if ( i > 0 && currentSocketGroup != lastSocketGroup ) {
+                                    }
+                                    lastSocketGroup = currentSocketGroup;
+                                }
+                            // Wands and daggers
+                            } else {
+                                for ( var i = 0 ; i < item.sockets.length ; i++ ) {
+                                    var socketImg;
+                                    switch ( item.sockets[i].attr ) {
+                                        case "D":
+                                            socketImg = "./media/socket_dex.png";
+                                            break;
+                                        case "I":
+                                            socketImg = "./media/socket_int.png";
+                                            break;
+                                        case "S":
+                                            socketImg = "./media/socket_str.png";
+                                            break;
+                                        case "G":
+                                            socketImg = "./media/socket_white.png";
+                                            break;
+                                        default:
+                                            socketImg = "./media/socket_white.png";
+                                    }
+                                    $( "#socket-vert-" + ( i + 1 )).attr( "src", socketImg );
+                                    $( "#socket-vert-" + ( i + 1 )).show();
+                                    currentSocketGroup = item.sockets[i].group;
+                                    if ( i > 0 && currentSocketGroup == lastSocketGroup ) {
+                                        $( "#link-vert-" + i ).show();
+                                    } else if ( i > 0 && currentSocketGroup != lastSocketGroup ) {
+                                    }
+                                    lastSocketGroup = currentSocketGroup;
+                                }
+                            }
+                        }
+                    }
+                    // Item flavor
+                    $( "#item-flavor" ).empty();
+                    if ( item.flavourText ) {
+                        for ( var i = 0 ; i < item.flavourText.length; i++ ) {
+                            var line = item.flavourText[i];
+                            $( "#item-flavor" ).append(
+                                "<span>" + line + "</span>"
+                            );
+                        }
+                    }
+
+                    // If user clicks on affix
+                    $( "#item-explicit-mods td" ).unbind();
+                    // If user hovers explicit mod 
+                    $( "#item-explicit-mods td" ).mouseenter( function() {
+                        var position = $( this ).offset();
+                        // Change arrow positions
+                        $( "#arrow-up-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 25 ) + "px"
+                        });
+                        $( "#arrow-down-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 15 ) + "px"
+                        });
+                    });
+                    $( "#item-explicit-mods td" ).mouseleave( function() {
+                        var position = $( this ).offset();
+                        $( "#arrow-up-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 25 ) + "px"
+                        });
+                        $( "#arrow-down-explicit" ).css({
+                            "top": ( position.top + 2 ) + "px",
+                            "left": ( position.left - 15 ) + "px"
+                        });
+                    });
+                    $( "#item-explicit-mods td" ).click( function( event ) {
+                        modPosition = $( this ).offset();
+                        // If left click, sort by explicit mods
+                        if ( event.which === 1 ) {
+                            sortBy = "explicit";
+                            explicitSort = $( this ).text().replace( /[0-9]+/g, "#" );
+                            /* If we replaced numbers, sort. Otherwise, no need
+                               to order anything */
+                            if ( explicitSort !== $( this ).text()) {
+                                console.log( lastResults );
+                                updateInterface( lastResults );
+                            }
+                        // Otherwise add the mod to the search
+                        } else {
+                            var text = $( "textarea" ).val();
+                            var splitted = text.split( cr );
+                            console.log( splitted );
+                            var newEntry = $( this ).text();
+                            var replaced = false;
+                            var newEntries = [];
+                            async.each( splitted, function( line, cbLine ) {
+                                console.log( "Comparing " + line.replace( /[0-9]+/g, "#" ) + " and " + newEntry );
+                                if ( line.replace( /[0-9]+/g, "#" ) === newEntry.replace( /[0-9]+/g, "#" )) {
+                                    newEntries.push( newEntry );
+                                    replaced = true;
+                                    console.log( "replaced entry" );
+                                } else {
+                                    newEntries.push( line );
+                                }
+                                cbLine();
+                            }, function( err ) {
+                                if ( replaced ) {
+                                    $( "textarea" ).val( newEntries.join( cr ));
+                                } else {
+                                    var txt = $( "textarea" ).val() + newEntry + cr; 
+                                    $( "textarea" ).val( txt );
+                                }
+                            });
+                        }
+                    });
+                    /* If user clicks on object name, set the search to name,
+                       replace search terms by the name of the object clicked
+                       and launch the search
+                    */
+                    $( "#item-name" ).unbind();
+                    $( "#item-name" ).click( function() {
+                        $( "#item-name-search" ).val( $( this ).text());
+                        $( "#search-item" ).click();
+                    });
+                }
+
+                function bindPreviewOnClick() {
+                    $( "#results table td.item-entry" ).mouseenter( function() {
+                        var item = $( this ).data().dataItem;
+                        // console.log( item );
+                        itemPreview( item );
+                        // Restore arrow position when sorted by explicit
+                        if ( sortBy === "explicit" ) {
+                            // browse explicit mods for mod position
+                            $( "div#item-explicit-mods td" ).each( function() {
+                                if ( $( this ).text().replace( /([0-9]+)/g, "#" ) === explicitSort ) {
+                                    var position = $( this ).offset();
+                                    // Change arrow positions
+                                    $( "#arrow-up-explicit" ).css({
+                                        "top": ( position.top + 2 ) + "px",
+                                        "left": ( position.left - 25 ) + "px"
+                                    });
+                                    $( "#arrow-down-explicit" ).css({
+                                        "top": ( position.top + 2 ) + "px",
+                                        "left": ( position.left - 15 ) + "px"
+                                    });
+                                    $( "#arrow-down-explicit" ).show();
+                                    $( "#arrow-up-explicit" ).show();
+                                    $( this ).css({ 
+                                        "color": "yellow",
+                                        "text-shadow": "0 0 10px rgb(228, 255, 0)" 
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                function bindContactOnClick() {
+                    // When clicking on item in results
+                    $( "#results table td.item-entry" ).click( function() {
+                        var item = $( this ).data().dataItem;
+                        var str = config.contactMessage;
+                        // Replace placeholder by values
+                        str = str.replace( /<charName>/g, item.lastCharacterName );
+                        str = str.replace( /<itemName>/g, item.name );
+                        str = str.replace( /<itemPrice>/g, item.price + " " + item.currency );
+                        str = str.replace( /<stashName>/g, item.stashName );
+                        ncp.copy( str, function() {
+                            console.log( "copied to clipboard" );
+                            notifier.notify({
+                                'title': 'Message copied to clipboard',
+                                'message': str,
+                            });
+                        });
+                    })
+                }
+
+                function drawChart( items ) {
+                    // console.log( items );
+                    var ctx = $( "#myChart" );
+                    var background = [];
+                    var border     = [];
+                    for ( var i = 0 ; i < items.values.length ; i++ ) {
+                        background.push( 'rgba(75, 192, 192, 0.4)' );
+                        border.push( 'rgba(75, 192, 192, 1)' );
+                        items.values[i] = Math.round( items.values[i] * 100 ) / 100;
+                    }
+                    if ( myChart ) {
+                        myChart.destroy();
+                        delete myChart;
+                    }
+                    myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: items.values,
+                            datasets: [{
+                                label: 'Price distribution in ' + items.currency,
+                                data: items.amounts,
+                                backgroundColor: background,
+                                borderColor: border,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero:true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                    var date = new Date();
+                    var time = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                    $( ".search-status" ).text( "Search complete: " + time );
+                    // setTimeout( function() {
+                    //     $( ".search-status" ).removeClass( "search-status" ).addClass( "search-status-hidden" );
+                    // }, 500 );
+                }
+
+                // GUI binding
+                // Update market prices when clicked
+                $( "#base-currency" ).change( function() {
+                    baseCurrency = $( "#base-currency" ).val();
+                    updateMarketRates( function() {});
+                });
+
+                // Update market prices when clicked
+                baseCurrency = $( "#base-currency" ).val( "chaos" );
+                updateMarketRates( function() {});
+
+                // Update league list when clicked
+                $( "#league" ).mouseover( function() {
+                    var connection = mysql.createConnection( credentials );
+                    var query = "SELECT `leagueName` FROM `Leagues` WHERE `active` = '1' ORDER BY ID"; 
+                    connection.query( query, function( err, rows ) {
+                        $( "#league" ).empty();
+                        async.each( rows, function( row, cbRow ) {
+                            if ( row.leagueName === config.defaultLeague ) {
+                                $( "#league" ).append( "<option selected value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                            } else {
+                                $( "#league" ).append( "<option value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                            }
+                        }, function( err ) {
+                            if ( err ) {
+                                console.log( err );
+                            }
+                            connection.end();
+                        });
+                    });
+                });
+
+                // Update league value when changed
+                $( "#league" ).change( function() {
+                    league = $( this ).val();
+                    console.log( league );
+                });
+
+                // WHen clicking on search button
+                $( "#search-item" ).click( function() {
+                    if ( sortBy === "explicit" ) {
+                        sortBy = "status";
+                    }
+                    
+                    // console.log( "Setting back to status" );
+                    var searchDelay = 10000;
+                    var search = function() {
+                        var text  = $( "textarea" ).val();
+                        var lines = text.split( cr );
+                        var entries = [];
+                        var searchBy = $( "#search-by" ).val();
+                        
+                        $( "#auto-complete" ).fadeOut( "fast" );
+                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                        var re = /([0-9.]+)/g;
+                        if ( searchBy === "mods" ) {
+                             for ( var i = 0 ; i < lines.length ; i++ ) {
+                                if ( lines[i].length !== 0 ) {
+                                    var mod = lines[i];
+                                    var match = re.exec( mod );
+                                    var matches = [];
+                                    while ( match !== null ) {
+                                        matches.push( parseFloat( match[1]));
+                                        match = re.exec( mod );
+                                    }
+                                    mod = mod.replace( re, "#" );
+                                    var entry = { 
+                                        "$elemMatch" : { 
+                                            "mod": mod, 
+                                            "values.0": { $gte: matches[0]} 
+                                        }
+                                    };
+                                    entries.push( entry );
+                                }
+                        //         console.log( lines[i] );
+                        //         var splitted = lines[i].split( " " );
+                        //         for ( var j = 0 ; j < splitted.length ; j++ ) {
+                        //             var char     = splitted[j].charAt(0);
+                        //             var charCode = splitted[j].charCodeAt(0);
+                        //             var newChar;
+                        //             var newCharCode;
+                        //             if ( charCode > 90 ) {
+                        //                 // We need to fetch the upper case char
+                        //                 newCharCode = charCode - 32;
+                        //             } else {
+                        //                 // We fetch the lower case char
+                        //                 newCharCode = charCode + 32;
+                        //             }
+                        //             newChar = String.fromCharCode( newCharCode );
+                        //             splitted[j] = "[" + char + newChar + "]" + splitted[j].substr( 1, splitted[j].length - 1 );
+                        //         }
+                        //         var str = splitted.join( " " );
+                        //         console.log( str );
+                        //         lines[i] = new RegExp( lines[i] );
+                             }
+                         }
+                        $( "#table-settings .loading" ).fadeIn( 'fast' );
+                        queryDB( filterValidPrice );
+                    }
+                    search();
+                    if ( $( "#auto-refresh" ).is( ':checked' )) {
+                        clearInterval( autorefreshInterval );
+                        autorefreshInterval = setInterval( search, searchDelay );
+                    } else {
+                        clearInterval( autorefreshInterval );
+                    }
+                });
+
+                $( "#item-type" ).change( function() {
+                    $( "#item-subtype" ).empty();
+
+                    if ( $( this ).val() !== "any" ) {
+                        var types = itemTypes[$( this ).val()].types;
+                        types.sort();
+                    }
+                    $( "#item-subtype" ).append(
+                        "<option value='any'>Any</option>"
+                    );
+                    for ( var i = 0 ; i < types.length ; i++ ) {
+                        $( "#item-subtype" ).append(
+                            "<option value='" + types[i] + "'>" + types[i] + " </option>"
+                        );
+                    }
+                })
+
+                // When typing in textarea
+                $( "textarea, #item-name-search" ).keydown( function( event ) {
+                    var that = $( this );
+                    console.log( that );
+                    // If press on ESC
+                    if ( event.keyCode === 27 ) {
+                        $( "#auto-complete" ).fadeOut( "fast" );
+                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                    // Go up in the completion list if left/up arrow pressed
+                    } else if ( event.keyCode === 37 || event.keyCode === 38 ) {
+                        selectedEntryIndex = selectedEntryIndex > 0 ? selectedEntryIndex - 1 : 0;
+                        $( "#auto-complete span" ).removeClass( "selected" );
+                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
+                        $( "div#auto-complete" ).animate({ scrollTop: 28 * selectedEntryIndex }, 150 );
+                    // Go down in the completion list if right/down arrow pressed
+                    } else if ( event.keyCode === 39 || event.keyCode === 40 ) {
+                        var entryAmount = $( "#auto-complete span" ).length - 1;
+                        selectedEntryIndex = selectedEntryIndex < entryAmount ? selectedEntryIndex + 1 : entryAmount;
+                        $( "#auto-complete span" ).removeClass( "selected" );
+                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
+                        $( "div#auto-complete" ).animate({ scrollTop: 28 * selectedEntryIndex }, 150 );
+                    // On ENTER validate input
+                    } else if ( event.keyCode === 13 ) {
+                        event.preventDefault(); // Do not add return char
+                        // If autocomplete opened, validate selection
+                        if ( $( "#auto-complete:visible" ).length === 1 ) {
+                            $( "#auto-complete span" ).eq([selectedEntryIndex]).click();
+                        // Otherwise, launch search
+                        } else {
+                            $( "#search-item" ).click();
+                        }
+                    // Ignore ctrl, shift, alt, meta and enter
+                    } else if ( !event.ctrlKey && !event.altKey && 
+                                !event.shiftKey && !event.metaKey ) {
+                        selectedEntryIndex = 0;
+                        // get current text
+                        var currentText    = $( that ).val();
+                        // Get cursor position in text
+                        var cursorPosition = $( that ).prop( "selectionStart" );
+                        // console.log( cursorPosition );
+                        // Split text by line break
+                        var splitted = currentText.split( cr );
+                        // console.log( splitted );
+                        var currentLine  = "";
+                        var currentIndex = 0;
+                        var lineIndex    = 0;
+                        // Find content of current line
+                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                            if ( cursorPosition >= currentIndex && 
+                                 cursorPosition <= ( currentIndex + splitted[i].length )) {
+                                currentLine = splitted[i];
+                                lineIndex = i;
+                                break;
+                            } else {
+                                currentIndex += splitted[i].length;
+                            }
+                        }
+                        if ( currentLine === "" ) {
+                            currentLine = splitted[splitted.length - 1];
+                            lineIndex   = splitted.length - 1;
+                        }
+                        // console.log( "Current line: " + currentLine );
+                        // console.log( currentText.length );
+                        var propositions = [];
+                        if (( currentLine.length + 1 ) > completionMinChar ) {
+                            if ( that[0].id === "item-name-search" ) {
+                                async.each( autocomplete.uniques, function( unique, cb ) {
+                                    if ( unique.toLowerCase().includes( currentLine.toLowerCase())) {
+                                        propositions.push( "<span>" + unique + "</span>" );
+                                    }
+                                    cb();
+                                }, function( err ) {
+                                    if ( propositions.length === 0 ) {
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    } else {
+                                        $( "#auto-complete" ).html( propositions.join( "<br><br>" ));
+                                        $( "#auto-complete" ).fadeIn( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeIn( "fast" );
+                                        $( "#auto-complete" ).css({ 
+                                            "left": ($(that).offset().left + 100 + currentLine.length * 6) + "px",
+                                            "top": ($(that).offset().top + lineIndex * 16) + "px"
+                                        });
+                                        $( "#auto-complete span" ).removeClass( "selected" );
+                                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
+                                    }
+                                    // When clicking on auto-complete entry
+                                    $( "#auto-complete span" ).click( function() {
+                                        var str = ""; 
+                                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                                            if ( i !== lineIndex ) {
+                                                str += splitted[i] + cr;
+                                            } else {
+                                                str += $( this ).text() + cr;
+                                            }
+                                        }
+                                        $( that ).val( str );
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    });
+                                })
+                            } else if ( that[0].localName === "textarea" ) {
+                                async.each( autocomplete["implicit-mods"], function( implicit, cb ) {
+                                    if ( implicit.toLowerCase().includes( currentLine.toLowerCase())) {
+                                        propositions.push( "<span>" + implicit + "</span>" );
+                                    }
+                                    cb();
+                                }, function( err ) {
+                                    if ( propositions.length === 0 ) {
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    } else {
+                                        $( "#auto-complete" ).html( propositions.join( "<br><br>" ));
+                                        $( "#auto-complete" ).fadeIn( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeIn( "fast" );
+                                        $( "#auto-complete" ).css({ 
+                                            "left": ($(that).offset().left + 100 + currentLine.length * 6) + "px",
+                                            "top":  ($(that).offset().top + lineIndex * 16) + "px" 
+                                        });
+                                        $( "#auto-complete span" ).removeClass( "selected" );
+                                        $( "#auto-complete span" ).eq([selectedEntryIndex]).addClass( "selected" );
+                                    }
+                                    // When clicking on auto-complete entry
+                                    $( "#auto-complete span" ).click( function() {
+                                        var str = ""; 
+                                        for ( var i = 0 ; i < splitted.length ; i++ ) {
+                                            if ( i !== lineIndex ) {
+                                                str += splitted[i] + cr;
+                                            } else {
+                                                str += $( this ).text() + cr;
+                                            }
+                                        }
+                                        $( that ).val( str );
+                                        $( "#auto-complete" ).fadeOut( "fast" );
+                                        $( "#auto-complete-arrow" ).fadeOut( "fast" );
+                                    });
+                                })
+                            }
+                        }
+                    }
+                });
+
+                // Update league list at startup
+                var connection = mysql.createConnection( credentials );
+                var query = "SELECT `leagueName` FROM `Leagues` WHERE `active` = '1' ORDER BY ID"; 
+                connection.query( query, function( err, rows ) {
+                    $( "#league" ).empty();
+                    async.each( rows, function( row, cbRow ) {
+                        if ( row.leagueName === config.defaultLeague ) {
+                            $( "#league" ).append( "<option selected value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                        } else {
+                            $( "#league" ).append( "<option value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                        }
+                    }, function( err ) {
+                        if ( err ) {
+                            console.log( err );
+                        }
+                        connection.end();
+                    });
+                });
+
+                // When pressing ENTER in any textfield, run search
+                $( "input" ).keydown( function( event ) {
+                    if ( event.keyCode === 13 ) {
+                        $( "#search-item" ).click();
+                    }
+                });
+
+                process.on('SIGINT', cleanup );
+                process.on('SIGTERM', cleanup );
+
+                function cleanup() {
+                    dbHandler.close();
+                }
+
+            });
+        </script>
+    </body>
+</html>
