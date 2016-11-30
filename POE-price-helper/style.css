@@ -341,9 +341,9 @@ td#preview {
     width: 160px;
 }
 #item-corrupted {
-    color: rgba( 210, 0, 0, 1 );
+    color: rgba( 210, 0, 0, 0 );
     margin-bottom: 10px;
-    display: none;
+    /*display: none;*/
 }
 #sockets {
     position: relative;
@@ -428,7 +428,7 @@ td#preview {
     width: 100%;
 }
 #search-item {
-    width: 80%;
+    width: 90%;
 }
 .ago {
     position: relative;
@@ -532,6 +532,9 @@ td#preview {
     width: 180px;
     padding: 0;
     margin: 0;
+    left: 10px;
+    position: relative;
+    height: 0;
 }
 .search-status-hidden {
     color: rgba( 100, 200, 100, 0 );

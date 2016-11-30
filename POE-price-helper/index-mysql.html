@@ -862,6 +862,7 @@
                 */
                 function queryDB( callback ) {
                     var entries = [];
+                    // var queryStartTime = Date.now
                     // console.log( "Querying by " + queryBy );
                     $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
                     $( ".search-status" ).text( "Querying ..." );
@@ -958,8 +959,9 @@
                                 entries.push( doc );
                                 cb();
                             }, function( err ) {
+                                var queryTime = secToNsec( new Date() - start );
                                 // otherwise close DB and cursor
-                                $( ".search-status" ).text( "Found " + entries.length + " entries" );
+                                $( ".search-status" ).text( "Found " + entries.length + " entries in " + Math.round( queryTime.amount * 100 ) / 100 + " " + queryTime.unit );
                                 console.log( "Found " + entries.length + " entries (" + 
                                             ( new Date() - start ) + "ms)" );
                                 // cursor.close();
@@ -968,11 +970,11 @@
                                 var checkedOnline = {};
                                 
                                 // Set online status for each item
-                                $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
+                                // $( ".search-status" ).text( "Checking online status for " + entries.length + " items ..." );
                                 // Create array of account names
                                 var accountNames = [];
                                 async.each( entries, function( entry, cbEntry ) {
-                                    console.log( entry );
+                                    // console.log( entry );
                                     if ( accountNames.indexOf( entry.accountName ) === -1 ) {
                                         accountNames.push( entry.accountName );
                                         cbEntry();
@@ -1020,7 +1022,7 @@
                             });
                         } else {
                             console.log( "Query timed out" );
-                            $( "#table-settings .loading" ).fadeOut( 'fast' );
+                            // $( "#table-settings .loading" ).fadeOut( 'fast' );
                             $( ".search-status" ).text( "Query timed out" );
                         }
                     };
@@ -1029,24 +1031,24 @@
                     var query;
                     // Name and mods
                     if ( name && validMods.length > 0 ) {
-                        query = "SELECT * FROM `Mods`, `Items`, `Accounts` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `name` = \"" + name + "\"  AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND (`name` = \"" + name + "\" OR `typeLine` = \"" + name + "\")  AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
                     // mods only
-                    } else if ( !name ) {
-                        query = "SELECT * FROM `Mods`, `Items`, `Accounts` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                    } else if ( !name && validMods.length > 0 ) {
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
                     // Name only
-                    } else if ( validMods.length === 0 ) {
-                        query = "SELECT * FROM `Items`, `Accounts` WHERE `name` = \"" + name + "\" AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName`";
+                    } else if ( name && validMods.length === 0 ) {
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE (`name` = \"" + name + "\" OR `typeLine` = \"" + name + "\") AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     // Neither
                     } else {
-                        return;
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE 1";
                     }
                     // If account name is given
                     if ( accountName ) {
-                        query += " AND `accountName` = '" + accountName + "'";
+                        query += " AND `Items`.`accountName` = '" + accountName + "' AND `Items`.`accountName` = `Accounts`.`accountName`";
                     }
                     // If last character name is given
                     if ( lastCharacterName ) {
-                        query += " AND `lastCharacterName` = '" + lastCharacterName + "'";
+                        query += " AND `Accounts`.`accountName` = '" + lastCharacterName + "' AND `Items`.`accountName` = `Accounts`.`accountName`";
                     }
                     // All subtypes of type
                     if ( $( "#item-subtype" ).val() === "any" && 
@@ -1107,7 +1109,7 @@
                                 }, function( err ) {
                                     // Get the item properties
                                     connection.query(
-                                        "SELECT DISTINCT `itemId`, `propertyName`, `propertyValue1`, `propertyValue2` FROM `properties` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
+                                        "SELECT DISTINCT `itemId`, `propertyName`, `propertyValue1`, `propertyValue2` FROM `Properties` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
                                             async.each( rows, function( row, cbProperties ) {
                                                 entries[row.itemId].properties.push({
                                                     "name": row.propertyName,
@@ -1126,7 +1128,7 @@
                                                             cbSockets();
                                                         }, function( err ) {
                                                             console.log( "Entries" );
-                                                            console.log( entries );
+                                                            // console.log( entries );
                                                             connection.end();
                                                             done( entries );
                                                         });
@@ -1154,7 +1156,7 @@
                         if ( err ) {
                             console.log( err );
                             console.log( "Make sure MongoDB has been started" );
-                            $( "#table-settings .loading" ).fadeOut( 'fast' );
+                            // $( "#table-settings .loading" ).fadeOut( 'fast' );
                         }
                         db.authenticate( config.dbUser, config.dbPass, function( err, res ) {
                             if ( err ) {
@@ -1176,7 +1178,7 @@
                  * @return nothing
                  */
                 function filterValidPrice( items, callback ) {
-                    $( ".search-status" ).text( "Filtering non b/o prices ..." );
+                    // $( ".search-status" ).text( "Filtering non b/o prices ..." );
                     var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew)/;
                     var results         = [];
                     
@@ -1209,23 +1211,27 @@
                         // Change tooltip position
                         $( "#tooltip-advice" ).css({
                             "top": ( position.top - 15 ) + "px",
-                            "left": ( position.left - 50 ) + "px"
+                            "left": Math.round( position.left + $( "#total-items" ).outerWidth() + 10 ) + "px"
                         });
                         $( "#tooltip-advice-arrow" ).css({
                             "top": ( position.top - 3 ) + "px",
-                            "left": ( position.left - 60 ) + "px"
+                            "left": Math.round( position.left + $( "#total-items" ).outerWidth() ) + "px"
                         });
-                        $( "#total-items" ).mouseenter( function() {
-                            $( "#tooltip-advice" ).stop().show( 'fast' );
-                            $( "#tooltip-advice-arrow" ).stop().show( 'fast' );
-                        });
-                        $( "#total-items" ).mouseout( function() {
-                            $( "#tooltip-advice" ).stop().hide( 'fast' );
-                            $( "#tooltip-advice-arrow" ).stop().hide( 'fast' );
-                        });
+                        $( "#tooltip-advice" ).stop().fadeIn( 'fast' );
+                        $( "#tooltip-advice-arrow" ).stop().fadeIn( 'fast' );
+                        // $( "#total-items" ).mouseenter( function() {
+                        //     $( "#tooltip-advice" ).stop().show( 'fast' );
+                        //     $( "#tooltip-advice-arrow" ).stop().show( 'fast' );
+                        // });
+                        // $( "#total-items" ).mouseout( function() {
+                        //     $( "#tooltip-advice" ).stop().hide( 'fast' );
+                        //     $( "#tooltip-advice-arrow" ).stop().hide( 'fast' );
+                        // });
                     } else {
                         $( "#total-items" ).css({ "color": "white" });
                         $( "#total-items" ).text( items.length );
+                        $( "#tooltip-advice" ).stop().fadeOut( 'fast' );
+                        $( "#tooltip-advice-arrow" ).stop().fadeOut( 'fast' );
                     }
                     lastResults = results;
                     updateInterface( results );
@@ -1259,7 +1265,7 @@
                  * @return nothing 
                  */
                 var averagePrice = function( results ) {
-                    $( ".search-status" ).text( "Computing distribution ..." );
+                    // $( ".search-status" ).text( "Computing distribution ..." );
                     var shouldNotify = true;
                     var sum          = 0;
                     var medians      = [];
@@ -1435,7 +1441,7 @@
                 function updateInterface( results ) {
                     // $( ".search-status" ).text( "Returning result list ..." );
                     var current = Date.now();
-                    $( "#table-settings .loading" ).fadeOut( 'fast' );
+                    // $( "#table-settings .loading" ).fadeOut( 'fast' );
                     $( "#results table" ).empty();
                     $( "#results table" ).append( 
                         "<tr>" + 
@@ -1721,12 +1727,16 @@
                                 $( "#market-rates .loading" ).fadeOut( 'fast' );
                                 // console.log( leagueRates );
 
-                                // When user mouse out of currency, hide tooltip
+                                $( "span.rate" ).on( 'click', function( e ) {
+                                    e.stopPropagation();
+                                });
+
+                                // When user clicks out of currency, hide tooltip
                                 $( "body" ).click( function( event ) {
                                     $( "#tooltip-currency" ).fadeOut( 'fast' );
                                 });
-                                // When user mouse over currency, show tooltip
-                                $( "span.rate" ).mouseenter( function( event ) {
+                                // When user clicks currency, show tooltip
+                                $( "span.rate" ).click( function( event ) {
                                     if ( $(this).text() !== "-" ) {
                                         var position = $( this ).offset();
                                         var leftPosition = position.left - 250 > 0 ? position.left - 250 : 0; 
@@ -1750,10 +1760,11 @@
                                         if ( league === "Hardcore Essence" ) {
                                             leagueCur = "Hardcore+Essence";
                                         }
-                                        connection.query( "SELECT * FROM `CurrencyStats`, `Currencies` WHERE `Currencies`.`league` = ? AND `CurrencyStats`.`buy` = ? AND `Currencies`.`sell` = ? AND `Currencies`.`currencyKey` = `CurrencyStats`.`currencyKey`", [leagueCur, rate.buy, $( "#base-currency" ).val()], function( err, rows ) {
+                                        connection.query( "SELECT * FROM `CurrencyStats`, `Currencies` WHERE `Currencies`.`league` = ? AND `CurrencyStats`.`buy` = ? AND `Currencies`.`sell` = ? AND `Currencies`.`currencyKey` = `CurrencyStats`.`currencyKey` ORDER BY `Currencies`.`id` DESC LIMIT 30", [leagueCur, rate.buy, $( "#base-currency" ).val()], function( err, rows ) {
                                             if ( err ) {
                                                 console.log( err );
                                             }
+                                            rows.reverse();
                                             var minValues    = [];
                                             var maxValues    = [];
                                             var meanValues   = [];
@@ -1826,12 +1837,27 @@
                                                             //     pointHitRadius: 10,
                                                             //     lineTension: 0
                                                             // },
+                                                            {
+                                                                label: "Mode",
+                                                                data: modeValues,
+                                                                borderColor: "rgba(17, 234, 106, 1)",
+                                                                backgroundColor: "rgba(17, 234, 106, 0.2)",
+                                                                pointBackgroundColor: "rgb(0, 255, 105)",
+                                                                pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                                pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                                borderWidth: 1,
+                                                                borderCapStyle: 'butt',
+                                                                borderJoinStyle: 'bevel',
+                                                                pointRadius: 3,
+                                                                pointHitRadius: 10,
+                                                                lineTension: 0
+                                                            },
                                                             // {
-                                                            //     label: "Mode",
-                                                            //     data: modeValues,
-                                                            //     borderColor: "rgba(17, 234, 106, 1)",
-                                                            //     backgroundColor: "rgba(17, 234, 106, 0.2)",
-                                                            //     pointBackgroundColor: "rgb(0, 255, 105)",
+                                                            //     label: "Min",
+                                                            //     data: minValues,
+                                                            //     borderColor: "rgba(189, 16, 239, 1)",
+                                                            //     backgroundColor: "rgba(189, 16, 239, 0.2)",
+                                                            //     pointBackgroundColor: "rgba(189, 16, 239, 1)",
                                                             //     pointHoverBackgroundColor: "rgba(255,255,255,1)",
                                                             //     pointHoverBorderColor: "rgba(255,255,255,1)",
                                                             //     borderWidth: 1,
@@ -1886,9 +1912,6 @@
 
                     // Grab prices from database
                     var leagueCur = league;
-                    if ( league === "Hardcore Essence" ) {
-                        leagueCur = "Hardcore+Essence";
-                    }
 
                     var connection = mysql.createConnection( credentials );
                     connection.query( "SELECT * FROM `Currencies` WHERE `league` = ? AND `sell` = ? ORDER BY Id DESC LIMIT 1", [leagueCur, $( "#base-currency" ).val()], function( err, rows ) {
@@ -2326,6 +2349,7 @@
                         "Sacrificial Garb": "AR/EV/ES"
                     };
 
+                    console.log( item );
                     console.log( "Item type: " + item.typeLine );
 
                    /* Setup item prefix, suffix and corrupt affixes */
@@ -2343,7 +2367,7 @@
                         itemSuffixes  = affixes["Shield"][type].suffix;
                         itemCorrupted = affixes["Shield"][type].corrupted;
                     // Helmets
-                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Helmet|Helm|Circlet|Mask|BurgonetBascinet|Sallet|Crown|Wreath|Hood|Hat|Cap|Pelt|Cage|Tricorne|Coif)/ )) {
+                    } else if ( item.typeLine.match( /(?!Superior|<<).+ (?:Helmet|Helm|Circlet|Mask|BurgonetBascinet|Sallet|Crown|Wreath|Hood|Hat$|Cap|Pelt|Cage|Tricorne|Coif)/ )) {
                         var type = helmets[item.typeLine];
                         console.log( "Helmet - " + type );
                         itemPrefixes  = affixes["Helmet"][type].prefix;
@@ -2448,7 +2472,7 @@
                         itemPrefixes  = affixes["Prismatic"].prefix;
                         itemSuffixes  = affixes["Prismatic"].suffix;
                         itemCorrupted = affixes["Prismatic"].corrupted;
-                    } else if ( item.properties && 
+                    } else if ( item.properties && item.properties.length > 0 && 
                                 itemSections.indexOf( item.properties[0].name ) !== -1 ) {
                         console.log( item.properties[0].name );
                         itemPrefixes  = affixes[item.properties[0].name].prefix;
@@ -2463,7 +2487,7 @@
                     // Depending on the item width, change the left offset
                     $( "td#preview img.loading" ).show();
                     if ( item.frameType === 6 ) {
-                        $( "#item-picture" ).css({ "left": "0%", "width": "200px" });
+                        $( "#item-picture" ).css({ "left": "15%", "width": "200px" });
                     } else {
                         $( "#item-picture" ).css( "width", "initial" );
                         if ( item.w === 1 ) {
@@ -2475,9 +2499,19 @@
                     
                     // If it's a divination card, show the card art
                     if ( item.frameType === 6 ) {
+                        var artFileName = item.typeLine.replace( /[']/g, "" );
+                        console.log( artFileName );
+                        var splitted    = artFileName.split( " " );
+                        var str = splitted[0];
+                        for ( var i = 1 ; i < splitted.length ; i++ ) {
+                            var word = splitted[i];
+                            word     = word[0].toUpperCase() + word.substr( 1, word.length );
+                            str += word;
+                        }
+                        console.log( str );
                         $( "#item-picture" ).attr( 
                             "src", 
-                            "http://web.poecdn.com/image/gen/divination_cards/" + item.artFilename + ".png" 
+                            "http://web.poecdn.com/image/gen/divination_cards/" + str + ".png" 
                         );
                     } else {
                         $( "#item-picture" ).attr( "src", item.icon );
@@ -2547,16 +2581,22 @@
                     if ( item.properties ) {
                         for ( var i = 0 ; i < item.properties.length; i++ ) {
                             var property = item.properties[i];
-                                if ( property.values.length > 0 && property.values[0] !== "0" ) {
-                                    $( "#item-properties" ).append(
-                                        "<span class='item-property'>" + property.name + ": </span>" +
-                                        "<span class='item-value'>" + property.values[0] + "</span>"
-                                    );
-                                } else {
-                                    $( "#item-properties" ).append(
-                                        "<span class='item-property'>" + property.name + "</span>"
-                                    );
-                                }
+                            if ( i === 0 && property.name !== "Quality" ) {
+                                $( "#item-properties" ).append(
+                                    "<span class='item-property'>Quality: </span>" +
+                                    "<span class='item-value'>+0%</span><br>"
+                                );
+                            }
+                            if ( property.values.length > 0 && property.values[0] !== "0" ) {
+                                $( "#item-properties" ).append(
+                                    "<span class='item-property'>" + property.name + ": </span>" +
+                                    "<span class='item-value'>" + property.values[0] + "</span>"
+                                );
+                            } else {
+                                $( "#item-properties" ).append(
+                                    "<span class='item-property'>" + property.name + "</span>"
+                                );
+                            }
                             if ( i !== item.properties.length - 1 ) {
                                 $( "#item-properties" ).append( "<br>" );
                             }
@@ -2684,11 +2724,34 @@
                                 formatted = formatted.replace( "#", mod.values[counter]);
                                 counter++;
                             }
-                            $( "#item-explicit-mods table" ).append(
-                                "<tr><td>" +
-                                formatted + "</td><td>" +
-                                affix + "</td></tr>"
-                            );
+                            // If it's a divination card, clean the text
+                            if ( item.frameType === 6 ) {
+                                var splitted = formatted.split( "\n" );
+                                console.log( splitted );
+                                var reg = /<([a-z]+)>{([^}]+)}/;
+                                async.each( splitted, function( split, cbSplit ) {
+                                    match = reg.exec( split );
+                                    var type = match[1];
+                                    var value = match[2];
+                                    var color = "rgba(255, 255, 255, 1)";
+                                    if ( type === "uniqueitem" ) {
+                                        color = "rgba(175, 96, 37, 1)";
+                                    } else if ( type === "corrupted" ) {
+                                        color = "rgba(210, 0, 0, 1)";
+                                    }
+                                    $( "#item-explicit-mods table" ).append(
+                                        "<tr><td colspan='2'><span class='affix' style='color: " + color + "'>" + value + "</span></td></tr>"
+                                    );
+                                });
+                            } else {
+                                $( "#item-explicit-mods table" ).append(
+                                    "<tr><td>" +
+                                    formatted + "</td><td>" +
+                                    affix + "</td></tr>"
+                                );
+                            }
+                            
+                            
                             cbMod();
                         }, function( err ) {
                             $( "#item-explicit-mods" ).append(
@@ -2772,9 +2835,13 @@
                     
                     // Corrupted
                     if ( item.corrupted ) {
-                        $( "#item-corrupted" ).show();
+                        $( "#item-corrupted" ).css({
+                            color: "rgba(210, 0, 0, 1)"
+                        });
                     } else {
-                        $( "#item-corrupted" ).hide();
+                        $( "#item-corrupted" ).css({
+                            color: "rgba(210, 0, 0, 0)"
+                        });
                     }
                     // Item sockets
                     $( ".socket" ).hide();
@@ -2782,7 +2849,7 @@
                     var currentSocketGroup = 0;
                     var lastSocketGroup = 0;
                     if ( item.sockets && item.sockets.length > 0 ) {
-                        if ( item.properties ) {
+                        if ( item.properties && item.properties.length > 0 ) {
                             if ( item.properties[0].name !== "Wand" && 
                                  item.properties[0].name !== "Dagger" ) {
                                 for ( var i = 0 ; i < item.sockets.length ; i++ ) {
@@ -3022,7 +3089,7 @@
                     });
                     var date = new Date();
                     var time = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
-                    $( ".search-status" ).text( "Search complete: " + time );
+                    // $( ".search-status" ).text( "Search complete: " + time );
                     // setTimeout( function() {
                     //     $( ".search-status" ).removeClass( "search-status" ).addClass( "search-status-hidden" );
                     // }, 500 );
@@ -3040,25 +3107,25 @@
                 updateMarketRates( function() {});
 
                 // Update league list when clicked
-                $( "#league" ).mouseover( function() {
-                    var connection = mysql.createConnection( credentials );
-                    var query = "SELECT `leagueName` FROM `Leagues` WHERE `active` = '1' ORDER BY ID"; 
-                    connection.query( query, function( err, rows ) {
-                        $( "#league" ).empty();
-                        async.each( rows, function( row, cbRow ) {
-                            if ( row.leagueName === config.defaultLeague ) {
-                                $( "#league" ).append( "<option selected value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
-                            } else {
-                                $( "#league" ).append( "<option value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
-                            }
-                        }, function( err ) {
-                            if ( err ) {
-                                console.log( err );
-                            }
-                            connection.end();
-                        });
-                    });
-                });
+                // $( "#league" ).mouseover( function() {
+                //     var connection = mysql.createConnection( credentials );
+                //     var query = "SELECT `leagueName` FROM `Leagues` WHERE `active` = '1' ORDER BY ID"; 
+                //     connection.query( query, function( err, rows ) {
+                //         $( "#league" ).empty();
+                //         async.each( rows, function( row, cbRow ) {
+                //             if ( row.leagueName === config.defaultLeague ) {
+                //                 $( "#league" ).append( "<option selected value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                //             } else {
+                //                 $( "#league" ).append( "<option value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                //             }
+                //         }, function( err ) {
+                //             if ( err ) {
+                //                 console.log( err );
+                //             }
+                //             connection.end();
+                //         });
+                //     });
+                // });
 
                 // Update league value when changed
                 $( "#league" ).change( function() {
@@ -3124,7 +3191,7 @@
                         //         lines[i] = new RegExp( lines[i] );
                              }
                          }
-                        $( "#table-settings .loading" ).fadeIn( 'fast' );
+                        // $( "#table-settings .loading" ).fadeIn( 'fast' );
                         queryDB( filterValidPrice );
                     }
                     search();
@@ -3220,8 +3287,22 @@
                         if (( currentLine.length + 1 ) > completionMinChar ) {
                             if ( that[0].id === "item-name-search" ) {
                                 async.each( autocomplete.uniques, function( unique, cb ) {
-                                    if ( unique.toLowerCase().includes( currentLine.toLowerCase())) {
-                                        propositions.push( "<span>" + unique + "</span>" );
+                                    if ( unique.name.toLowerCase().includes( currentLine.toLowerCase())) {
+                                        if ( unique.type === "unique" ) {
+                                            propositions.push( "<span style='color: rgba(175, 96, 37, 1)'>" + unique.name + "</span>" );
+                                        } else if ( unique.type === "rare" ) {
+                                            propositions.push( "<span style='color: rgba(243, 243, 113, 1)'>" + unique.name + "</span>" );
+                                        } else if ( unique.type === "gem" ) {
+                                            propositions.push( "<span style='color: rgba(0, 255, 0, 1)'>" + unique.name + "</span>" );
+                                        } else if ( unique.type === "div" ) {
+                                            propositions.push( "<span style='color: rgba(0, 200, 200, 1)'>" + unique.name + "</span>" );
+                                        } else if ( unique.type === "prophecy" ) {
+                                            propositions.push( "<span style='color: rgba(181, 75, 255, 1)'>" + unique.name + "</span>" );
+                                        } else if ( unique.type === "currency" ) {
+                                            propositions.push( "<span style='color: rgba(170, 158, 130, 1)'>" + unique.name + "</span>" );
+                                        } else {
+                                            propositions.push( "<span style='color: rgba(255, 255, 255, 1)'>" + unique.name + "</span>" );
+                                        }
                                     }
                                     cb();
                                 }, function( err ) {
@@ -3297,7 +3378,7 @@
 
                 // Update league list at startup
                 var connection = mysql.createConnection( credentials );
-                var query = "SELECT `leagueName` FROM `Leagues` WHERE `active` = '1' ORDER BY ID"; 
+                var query = "SELECT `leagueName` FROM `Leagues` WHERE `active` = '1' ORDER BY ID DESC"; 
                 connection.query( query, function( err, rows ) {
                     $( "#league" ).empty();
                     async.each( rows, function( row, cbRow ) {
