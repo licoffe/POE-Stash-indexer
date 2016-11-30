@@ -654,34 +654,7 @@
                 var onlineDelayS = config.onlineDelayS;
                 var database     = "POE_price";
                 var script_name  = "index.html";
-                var fields       = {
-                    "name": 1,
-                    "typeLine": 1,
-                    "implicitMods": 1,
-                    "explicitMods": 1,
-                    "craftedMods": 1,
-                    "enchantMods": 1,
-                    "flavourText": 1,
-                    "icon": 1,
-                    "note": 1,
-                    "stashName": 1,
-                    "properties": 1,
-                    "frameType": 1,
-                    "corrupted": 1,
-                    "identified": 1,
-                    "sockets": 1,
-                    "accountName": 1,
-                    "lastCharacterName": 1,
-                    "ilvl": 1,
-                    "w": 1,
-                    "addedTs": 1,
-                    "updatedTs": 1,
-                    "available": 1,
-                    "prophecyText": 1,
-                    "prophecyDiffText": 1,
-                    "artFilename": 1,
-                    "socketAmount": 1
-                };
+                
                 var autorefreshInterval;
                 var $                  = require("jquery");
                 var completionMinChar  = 2;
@@ -743,7 +716,7 @@
                 var checkLastSeen = function( accountList, cb ) {
                     var connection = mysql.createConnection( credentials );
                     var entries = {};
-                    console.log( accountList.join("', '") );
+                    // console.log( accountList.join("', '") );
                     var query = "SELECT `accountName`, `lastSeen` FROM `Accounts` WHERE `accountName` IN ( '" + accountList.join("', '") + "')"; 
                     connection.query( query, function( err, rows ) {
                         async.each( rows, function( row, cbRow ) {
@@ -1040,7 +1013,7 @@
                         query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE (`name` = \"" + name + "\" OR `typeLine` = \"" + name + "\") AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     // Neither
                     } else {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE 1";
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "')";
                     }
                     // If account name is given
                     if ( accountName ) {
@@ -1054,7 +1027,7 @@
                     if ( $( "#item-subtype" ).val() === "any" && 
                          $( "#item-type" ).val()    !== "any" ) {
                         subtype = itemTypes[$( "#item-type" ).val()].types;
-                        query += " AND `typeLine` IN ('" + subtype.join( "', '" ) + "')";
+                        query += " AND `typeLine` IN (\"" + subtype.join( "\", \"" ) + "\")";
                     // a specific subtype
                     } else if ( $( "#item-subtype" ).val() !== "any" ) {
                         subtype = $( "#item-subtype" ).val();
@@ -1074,7 +1047,7 @@
                         var itemIds = [];
                         var entries = {};
                         console.log( "Printing rows" );
-                        console.log( rows );
+                        // console.log( rows );
                         async.each( rows, function( row, cbRow ) {
                             entries[row.itemId] = row;
                             entries[row.itemId].parsedImplicitMods  = [];
@@ -1527,15 +1500,6 @@
                     }
                     
                     var counter = 0;
-                    /* If we don't have any results, still fill the table with
-                       empty div */
-                    if ( results.length === 0 ) {
-                        $( "#results table" ).append( 
-                            "<tr>" + 
-                                "<td><div style='height: 500px;'></div></td>" + 
-                            "</tr>"
-                        );
-                    }
                     async.each( results, function( result, callbackUpdate ) {
                         var opacity = 1;
                         // console.log( result.accountName );
@@ -1639,6 +1603,18 @@
                         $( "table td#" + counter ).data( "data-item" , result );
                         callbackUpdate();
                     }, function( err ) {
+
+                        /* If we don't have that many results, still fill the 
+                            table with an empty div, otherwise headers are 
+                            spreading */
+                        if ( results.length < 10 ) {
+                            $( "#results table" ).append( 
+                                "<tr>" + 
+                                    "<td><div style='height: " + ( 420 - results.length * 39 ) + "px;'></div></td>" + 
+                                "</tr>"
+                            );
+                        }
+
                         bindPreviewOnClick();
                         bindContactOnClick();
 
@@ -1731,10 +1707,18 @@
                                     e.stopPropagation();
                                 });
 
-                                // When user clicks out of currency, hide tooltip
+                                /* When user clicks out of currency, hide 
+                                   currency tooltip */
                                 $( "body" ).click( function( event ) {
                                     $( "#tooltip-currency" ).fadeOut( 'fast' );
                                 });
+
+                                $( "body" ).keyup( function( e ) {
+                                    if ( e.keyCode === 27 ) {
+                                        $( "#tooltip-currency" ).fadeOut( 'fast' );
+                                    }
+                                });
+
                                 // When user clicks currency, show tooltip
                                 $( "span.rate" ).click( function( event ) {
                                     if ( $(this).text() !== "-" ) {
@@ -1801,7 +1785,7 @@
                                                     currencyChart.destroy();
                                                     delete currencyChart;
                                                 }
-                                                $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " <span style='color: grey; float: right'>Click anywhere to close</span>");
+                                                $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " <span style='color: grey; float: right'>Click anywhere to close or press ESC</span>");
                                                 currencyChart = new Chart(ctx, {
                                                     type: 'line',
                                                     data: {
@@ -2581,12 +2565,6 @@
                     if ( item.properties ) {
                         for ( var i = 0 ; i < item.properties.length; i++ ) {
                             var property = item.properties[i];
-                            if ( i === 0 && property.name !== "Quality" ) {
-                                $( "#item-properties" ).append(
-                                    "<span class='item-property'>Quality: </span>" +
-                                    "<span class='item-value'>+0%</span><br>"
-                                );
-                            }
                             if ( property.values.length > 0 && property.values[0] !== "0" ) {
                                 $( "#item-properties" ).append(
                                     "<span class='item-property'>" + property.name + ": </span>" +
@@ -2596,6 +2574,13 @@
                                 $( "#item-properties" ).append(
                                     "<span class='item-property'>" + property.name + "</span>"
                                 );
+                                // Check if we have a quality property
+                                if ( item.properties[i+1] && item.properties[i+1].name !== "Quality" ) {
+                                    $( "#item-properties" ).append(
+                                        "<br><span class='item-property'>Quality: </span>" +
+                                        "<span class='item-value'>+0%</span>"
+                                    );
+                                }
                             }
                             if ( i !== item.properties.length - 1 ) {
                                 $( "#item-properties" ).append( "<br>" );
@@ -2641,9 +2626,17 @@
                                             "</span>]</span>";
                                 })
                             }
+
+                            var formatted = mod.mod;
+                            var counter = 0;
+                            while ( formatted.search( "#" ) !== -1 ) {
+                                formatted = formatted.replace( "#", mod.values[counter]);
+                                counter++;
+                            }
+
                             $( "#item-implicit-mods table" ).append(
                                 "<tr><td>" +
-                                mod.mod.replace( "#", mod.values[0] ) + "</td><td>" +
+                                formatted + "</td><td>" +
                                 affix + "</td></tr>"
                             );
                             cbMod();
@@ -3221,7 +3214,7 @@
                 })
 
                 // When typing in textarea
-                $( "textarea, #item-name-search" ).keydown( function( event ) {
+                $( "textarea, #item-name-search" ).keyup( function( event ) {
                     var that = $( this );
                     console.log( that );
                     // If press on ESC
@@ -3397,7 +3390,7 @@
 
                 // When pressing ENTER in any textfield, run search
                 $( "input" ).keydown( function( event ) {
-                    if ( event.keyCode === 13 ) {
+                    if ( event.keyCode === 13 && $( "#auto-complete:visible" ).length !== 1 ) {
                         $( "#search-item" ).click();
                     }
                 });
