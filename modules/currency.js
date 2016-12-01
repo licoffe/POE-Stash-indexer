@@ -198,11 +198,11 @@ function Currency( league ) {
             callback({
                 "buy": buying,
                 "ratios": ratios,
-                "avg": Infinity,
-                "median": Infinity,
-                "mode": Infinity,
-                "min": Infinity,
-                "max": Infinity 
+                "avg": -1,
+                "median": -1,
+                "mode": -1,
+                "min": -1,
+                "max": -1 
             });
         }
 
@@ -223,10 +223,10 @@ function Currency( league ) {
                     // Retry in case of failure
                     setTimeout( that.getRate, 1000, buying, selling, amount, callback );
                 } else {
-                    var min = Infinity;
-                    var max = -Infinity;
+                    var min = 99999999;
+                    var max = -1;
                     var values = [];
-                    var mod = Infinity;
+                    var mod = -1;
 
                     $( 'body' ).html( body );
 
@@ -283,11 +283,11 @@ function Currency( league ) {
                             callback({
                                 "buy": buying,
                                 "ratios": ratios,
-                                "avg": Infinity,
-                                "median": Infinity,
-                                "mode": Infinity,
-                                "min": Infinity,
-                                "max": Infinity
+                                "avg": -1,
+                                "median": -1,
+                                "mode": -1,
+                                "min": -1,
+                                "max": -1
                             });
                         }
                     });
