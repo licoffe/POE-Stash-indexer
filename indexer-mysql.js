@@ -816,7 +816,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                             } else {
                                                 removed++;
                                             }
-                                            insertOtherProperties( removedItem, function() {
+                                            // console.log( removedItem );
+                                            // insertOtherProperties( removedItem, function() {
                                                 if ( !removedItem.name ) {
                                                     logger.log(
                                                         "Removing item \x1b[35m" +
@@ -829,7 +830,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                         "\x1b[0m to " + stash.id, scriptName, "", true );
                                                 }
                                                 cbRemoved();
-                                            }); 
+                                            // }); 
                                         });
                                     });
                                 });
