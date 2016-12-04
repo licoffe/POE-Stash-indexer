@@ -22,13 +22,14 @@ var added            = 0;
 var updated          = 0;
 var removed          = 0;
 var startTime        = Date.now();
-var connection;
+var pool;
 var credentials      = {
     host     : config.dbAddress,
     port     : config.dbPort,
     user     : config.dbUser,
     password : config.dbPass,
-    database : config.dbName
+    database : config.dbName,
+    connectionLimit: 1000
 };
 var modParsingTime = 0;
 
@@ -411,39 +412,24 @@ var parseMods = function( item, callback ) {
  */
 var insertOtherProperties = function( item, cb ) {
     // console.time( "Inserting other properties" );
-    connection.beginTransaction( function( err ) {
-        if ( err ) {
-            logger.log( err, scriptName, "w" );
-        }
-        // Insert into mods
-        connection.query( "DELETE FROM `Mods` WHERE `itemId` = ?", [item.id], function( err, rows ) {
+    pool.getConnection( function( err, connection ) {
+        connection.beginTransaction( function( err ) {
             if ( err ) {
                 logger.log( err, scriptName, "w" );
             }
-            async.each( item.parsedImplicitMods, function( mod, cbMod ) {
-                for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
-                    mod.values.push( 0 );
-                }
-                connection.query( 
-                    "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'IMPLICIT'], function( err, rows ) {
-                    if ( err ) {
-                        logger.log( "Insert issue implicit: " + err, scriptName, "w" );
-                        insertionError++;
-                    }
-                    cbMod();
-                });
-            }, function( err ) {
+            // Insert into mods
+            connection.query( "DELETE FROM `Mods` WHERE `itemId` = ?", [item.id], function( err, rows ) {
                 if ( err ) {
                     logger.log( err, scriptName, "w" );
                 }
-                async.each( item.parsedExplicitMods, function( mod, cbMod ) {
+                async.each( item.parsedImplicitMods, function( mod, cbMod ) {
                     for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
                         mod.values.push( 0 );
                     }
                     connection.query( 
-                        "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'EXPLICIT'], function( err, rows ) {
+                        "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'IMPLICIT'], function( err, rows ) {
                         if ( err ) {
-                            logger.log( "Insert issue explicit: " + err, scriptName, "w" );
+                            logger.log( "Insert issue implicit: " + err, scriptName, "w" );
                             insertionError++;
                         }
                         cbMod();
@@ -452,14 +438,14 @@ var insertOtherProperties = function( item, cb ) {
                     if ( err ) {
                         logger.log( err, scriptName, "w" );
                     }
-                    async.each( item.parsedCraftedMods, function( mod, cbMod ) {
+                    async.each( item.parsedExplicitMods, function( mod, cbMod ) {
                         for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
                             mod.values.push( 0 );
                         }
                         connection.query( 
-                            "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'CRAFTED'], function( err, rows ) {
+                            "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'EXPLICIT'], function( err, rows ) {
                             if ( err ) {
-                                logger.log( "Insert issue crafted: " + err, scriptName, "w" );
+                                logger.log( "Insert issue explicit: " + err, scriptName, "w" );
                                 insertionError++;
                             }
                             cbMod();
@@ -468,14 +454,14 @@ var insertOtherProperties = function( item, cb ) {
                         if ( err ) {
                             logger.log( err, scriptName, "w" );
                         }
-                        async.each( item.parsedEnchantedMods, function( mod, cbMod ) {
+                        async.each( item.parsedCraftedMods, function( mod, cbMod ) {
                             for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
                                 mod.values.push( 0 );
                             }
                             connection.query( 
-                                "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'ENCHANTED'], function( err, rows ) {
+                                "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'CRAFTED'], function( err, rows ) {
                                 if ( err ) {
-                                    logger.log( "Insert issue enchanted: " + err, scriptName, "w" );
+                                    logger.log( "Insert issue crafted: " + err, scriptName, "w" );
                                     insertionError++;
                                 }
                                 cbMod();
@@ -484,73 +470,91 @@ var insertOtherProperties = function( item, cb ) {
                             if ( err ) {
                                 logger.log( err, scriptName, "w" );
                             }
-                            // Insert into properties
-                            connection.query( "DELETE FROM `Properties` WHERE `itemId` = ?", [item.id], function( err, rows ) {
+                            async.each( item.parsedEnchantedMods, function( mod, cbMod ) {
+                                for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
+                                    mod.values.push( 0 );
+                                }
+                                connection.query( 
+                                    "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'ENCHANTED'], function( err, rows ) {
+                                    if ( err ) {
+                                        logger.log( "Insert issue enchanted: " + err, scriptName, "w" );
+                                        insertionError++;
+                                    }
+                                    cbMod();
+                                });
+                            }, function( err ) {
                                 if ( err ) {
                                     logger.log( err, scriptName, "w" );
                                 }
-                                async.each( item.properties, function( property, cbProperty ) {
-                                    for ( var i = property.values.length ; i < 1 - property.values.length ; i++ ) {
-                                        property.values[i] = [];
-                                        property.values[i].push( 0 );
-                                    }
-                                    // console.log( property );
-                                    connection.query( 
-                                        "INSERT INTO `Properties` (`itemId`, `propertyName`, `propertyValue1`, `propertyValue2`, `propertyKey`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, property.name, property.values[0][0], property.values[0][1], item.id + "_" + property.name], function( err, rows ) {
-                                        if ( err ) {
-                                            logger.log( "Insert issue properties: " + err, scriptName, "w" );
-                                            insertionError++;
-                                        }
-                                        cbProperty();
-                                    });
-                                }, function( err ) {
+                                // Insert into properties
+                                connection.query( "DELETE FROM `Properties` WHERE `itemId` = ?", [item.id], function( err, rows ) {
                                     if ( err ) {
                                         logger.log( err, scriptName, "w" );
                                     }
-                                    // Insert into requirements
-                                    connection.query( "DELETE FROM `Requirements` WHERE `itemId` = ?", [item.id], function( err, rows ) {
+                                    async.each( item.properties, function( property, cbProperty ) {
+                                        for ( var i = property.values.length ; i < 1 - property.values.length ; i++ ) {
+                                            property.values[i] = [];
+                                            property.values[i].push( 0 );
+                                        }
+                                        // console.log( property );
+                                        connection.query( 
+                                            "INSERT INTO `Properties` (`itemId`, `propertyName`, `propertyValue1`, `propertyValue2`, `propertyKey`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, property.name, property.values[0][0], property.values[0][1], item.id + "_" + property.name], function( err, rows ) {
+                                            if ( err ) {
+                                                logger.log( "Insert issue properties: " + err, scriptName, "w" );
+                                                insertionError++;
+                                            }
+                                            cbProperty();
+                                        });
+                                    }, function( err ) {
                                         if ( err ) {
                                             logger.log( err, scriptName, "w" );
                                         }
-                                        async.each( item.requirements, function( requirement, cbRequirement ) {
-                                            connection.query( 
-                                                "INSERT INTO `Requirements` (`itemId`, `requirementName`, `requirementValue`, `requirementKey`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, requirement.name, requirement.values[0][0], item.id + "_" + requirement.name], function( err, rows ) {
-                                                if ( err ) {
-                                                    logger.log( "Insert issue requirements: " + err, scriptName, "w" );
-                                                    insertionError++;
-                                                }
-                                                cbRequirement();
-                                            });
-                                        }, function( err ) {
+                                        // Insert into requirements
+                                        connection.query( "DELETE FROM `Requirements` WHERE `itemId` = ?", [item.id], function( err, rows ) {
                                             if ( err ) {
                                                 logger.log( err, scriptName, "w" );
                                             }
-                                            // Insert into sockets
-                                            connection.query( "DELETE FROM `Sockets` WHERE `itemId` = ?", [item.id], function( err, rows ) {
+                                            async.each( item.requirements, function( requirement, cbRequirement ) {
+                                                connection.query( 
+                                                    "INSERT INTO `Requirements` (`itemId`, `requirementName`, `requirementValue`, `requirementKey`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, requirement.name, requirement.values[0][0], item.id + "_" + requirement.name], function( err, rows ) {
+                                                    if ( err ) {
+                                                        logger.log( "Insert issue requirements: " + err, scriptName, "w" );
+                                                        insertionError++;
+                                                    }
+                                                    cbRequirement();
+                                                });
+                                            }, function( err ) {
                                                 if ( err ) {
                                                     logger.log( err, scriptName, "w" );
                                                 }
-                                                var counterSocket = 0;
-                                                async.each( item.sockets, function( socket, cbSocket ) {
-                                                    counterSocket++;
-                                                    connection.query( 
-                                                        "INSERT INTO `Sockets` (`itemId`, `socketGroup`, `socketAttr`, `socketKey`) VALUES (?, ?, ?, ?)", [item.id, socket.group, socket.attr, item.id + "_" + counterSocket], function( err, rows ) {
-                                                        if ( err ) {
-                                                            logger.log( "Insert issue sockets: " + err, scriptName, "w" );
-                                                            insertionError++;
-                                                        }
-                                                        cbSocket();
-                                                    });
-                                                }, function( err ) {
+                                                // Insert into sockets
+                                                connection.query( "DELETE FROM `Sockets` WHERE `itemId` = ?", [item.id], function( err, rows ) {
                                                     if ( err ) {
                                                         logger.log( err, scriptName, "w" );
                                                     }
-                                                    connection.commit( function( err ) {
+                                                    var counterSocket = 0;
+                                                    async.each( item.sockets, function( socket, cbSocket ) {
+                                                        counterSocket++;
+                                                        connection.query( 
+                                                            "INSERT INTO `Sockets` (`itemId`, `socketGroup`, `socketAttr`, `socketKey`) VALUES (?, ?, ?, ?)", [item.id, socket.group, socket.attr, item.id + "_" + counterSocket], function( err, rows ) {
+                                                            if ( err ) {
+                                                                logger.log( "Insert issue sockets: " + err, scriptName, "w" );
+                                                                insertionError++;
+                                                            }
+                                                            cbSocket();
+                                                        });
+                                                    }, function( err ) {
                                                         if ( err ) {
                                                             logger.log( err, scriptName, "w" );
                                                         }
-                                                        // console.timeEnd( "Inserting other properties" );
-                                                        cb();
+                                                        connection.commit( function( err ) {
+                                                            if ( err ) {
+                                                                logger.log( err, scriptName, "w" );
+                                                            }
+                                                            connection.release();
+                                                            // console.timeEnd( "Inserting other properties" );
+                                                            cb();
+                                                        });
                                                     });
                                                 });
                                             });
@@ -993,7 +997,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
 
         if ( interrupt ) {
             logger.log( "Exiting", scriptName );
-            connection.end();
+            pool.end();
             process.exit( 0 );
         } else {
             /* Sleep n seconds and call the script on the
@@ -1036,10 +1040,10 @@ function main() {
         logger.set_use_file( true );
     }
 
-    connection = mysql.createConnection( credentials );
+    pool = mysql.createPool( credentials );
 
     logger.log( "Attempting to connect to POE collection", scriptName );
-    connection.connect( function( err ) {
+    pool.getConnection( function( err, connection ) {
         if ( err ) {
             logger.log( err, scriptName, "e" );
             process.exit(0);
@@ -1048,7 +1052,7 @@ function main() {
         if ( cleanup ) {
             cleanupDB( connection, function() {
                 logger.log( "Cleanup finished, exiting", scriptName );
-                connection.end();
+                pool.end();
                 process.exit(0);
             });
         } else {
