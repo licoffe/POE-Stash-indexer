@@ -783,7 +783,9 @@ var downloadChunk = function( chunkID, connection, callback ) {
                             logger.log( res.common.length + " items to update", scriptName, "", true );
                             // For each removed item
                             async.eachLimit( res.removed, 1, function( removedItem, cbRemoved ) {
+                                var modParsingStart = Date.now();
                                 parseMods( removedItem, function( explicit, implicit, crafted, enchanted ) {
+                                    modParsingTime += Date.now() - modParsingStart;
                                     removedItem.parsedImplicitMods  = implicit;
                                     removedItem.parsedExplicitMods  = explicit;
                                     removedItem.parsedCraftedMods   = crafted;
@@ -803,6 +805,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                         removedItem.linkedColors      = res.linkedColors;
                                         var updatedDate = Date.now();
                                         // Update status in DB
+                                        var itemInsertStart = Date.now();
                                         connection.query( 
                                             "UPDATE `Items` SET " + 
                                             "`w` = ?, `h` = ?, `ilvl` = ?, `icon` = ?, `league` = ?, `name` = ?, `typeLine` = ?, `identified` = ?, `verified` = ?, `corrupted` = ?, `lockedToCharacter` = ?, `frameType` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `available` = ?, `updatedTs` = ? WHERE `itemId` = ?", 
@@ -816,6 +819,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                             } else {
                                                 removed++;
                                             }
+                                            itemInsertTime += Date.now() - itemInsertStart;
                                             // console.log( removedItem );
                                             // insertOtherProperties( removedItem, function() {
                                                 if ( !removedItem.name ) {
@@ -841,7 +845,9 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                 // For each item added
                                 async.eachLimit( res.added, 1, function( addedItem, cbAdded ) {
                                     logger.log( addedItem.id + " added", scriptName, "", true );
+                                    var modParsingStart = Date.now();
                                     parseMods( addedItem, function( explicit, implicit, crafted, enchanted ) {
+                                        modParsingTime += Date.now() - modParsingStart;
                                         addedItem.accountName  = stash.accountName;
                                         addedItem.stashID      = stash.id;
                                         var socketAmount        = addedItem.sockets.length;
@@ -868,6 +874,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                         getLinksAmountAndColor( addedItem, function( res ) {
                                             var linkAmount   = res.linkAmount;
                                             // Store this item
+                                            var itemInsertStart = Date.now();
                                             connection.query( 
                                                 "INSERT INTO `Items` (`w`, `h`, `ilvl`, `icon`, `league`, `itemId`, `name`, `typeLine`, `identified`, `verified`, `corrupted`, `lockedToCharacter`, `frameType`, `x`, `y`, `inventoryId`, `accountName`, `stashId`, `socketAmount`, `linkAmount`, `available`, `addedTs`, `updatedTs`, `flavourText`, `price`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `name` = ?, `verified` = ?, `corrupted` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `available` = ?, `updatedTs` = ?, `price` = ?", 
                                                 [addedItem.w, addedItem.h, addedItem.ilvl, addedItem.icon, addedItem.league, addedItem.id, name, typeLine, identified, verified, corrupted, lockedToCharacter, addedItem.frameType, addedItem.x, addedItem.y, addedItem.inventoryId, addedItem.accountName, stash.id, socketAmount, linkAmount, available, addedTs, updatedTs, flavourText, price, name, verified, corrupted, addedItem.x, addedItem.y, addedItem.inventoryId, addedItem.accountName, addedItem.stashID, socketAmount, linkAmount, available, Date.now(), price], function( err, rows ) {
@@ -877,6 +884,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                 } else {
                                                     added++;
                                                 }
+                                                itemInsertTime += Date.now() - itemInsertStart;
+                                                var propertiesStart = Date.now();
                                                 insertOtherProperties( addedItem, function() {
                                                     if ( !addedItem.name ) {
                                                         logger.log(
@@ -889,6 +898,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                             name +
                                                             "\x1b[0m to " + stash.id, scriptName, "", true );
                                                     }
+                                                    propertiesTime += Date.now() - propertiesStart;
                                                     cbAdded();
                                                 });
                                             });
@@ -901,7 +911,9 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                     // For each item kept
                                     async.eachLimit( res.common, 1, function( commonItem, cbCommon ) {
                                         logger.log( commonItem.id + " updated", scriptName, "", true );
+                                        var modParsingStart = Date.now();
                                         parseMods( commonItem, function( explicit, implicit, crafted, enchanted ) {
+                                            modParsingTime += Date.now() - modParsingStart;
                                             commonItem.parsedImplicitMods  = implicit;
                                             commonItem.parsedExplicitMods  = explicit;
                                             commonItem.parsedCraftedMods   = crafted;
@@ -919,6 +931,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                 commonItem.linkAmount   = res.linkAmount;
                                                 var updatedDate = Date.now();
                                                 // Update status in DB
+                                                var itemInsertStart = Date.now();
                                                 connection.query( 
                                                     "UPDATE `Items` SET " + 
                                                     "`w` = ?, `h` = ?, `ilvl` = ?, `icon` = ?, `league` = ?, `name` = ?, `typeLine` = ?, `identified` = ?, `verified` = ?, `corrupted` = ?, `lockedToCharacter` = ?, `frameType` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `updatedTs` = ? WHERE `itemId` = ?", 
@@ -929,6 +942,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                     } else {
                                                         updated++;
                                                     }
+                                                    itemInsertTime += Date.now() - itemInsertStart;
+                                                    var propertiesStart = Date.now();
                                                     insertOtherProperties( commonItem, function() {
                                                         if ( !commonItem.name ) {
                                                             logger.log(
@@ -941,6 +956,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                                 name +
                                                                 "\x1b[0m to " + stash.id, scriptName, "", true );
                                                         }
+                                                        propertiesTime += Date.now() - propertiesStart;
                                                         cbCommon();
                                                     });
                                                 });

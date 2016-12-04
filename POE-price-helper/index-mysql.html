@@ -588,6 +588,10 @@
                     // cr = "\r\n";
                     console.log( "Setting line break to '\r\n'" );
                 }
+                var months = [
+                    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                ];
                 var lastResults  = [];
                 var leagueRates  = {
                     alch:     0.3655772464721796,
@@ -673,7 +677,8 @@
                     port     : config.dbPort,
                     user     : config.dbUser,
                     password : config.dbPass,
-                    database : 'POE'
+                    database : 'POE',
+                    connectionLimit : 100,
                 };
 
                 if ( config.monitorIndexerStatus ) {
@@ -834,6 +839,7 @@
                  * @return DB results matching the criteria
                 */
                 function queryDB( callback ) {
+                    console.log( "Called query" );
                     var entries = [];
                     // var queryStartTime = Date.now
                     // console.log( "Querying by " + queryBy );
@@ -859,7 +865,8 @@
                     var level             = $( "#item-level" ).val();
                     var accountName       = $( "#account-name-search" ).val();
                     var lastCharacterName = $( "#last-character-name-search" ).val();
-                    var mods              = $( "textarea" ).val().split( "\n" )
+                    var mods              = $( "textarea" ).val().split( "\n" );
+                    league                = $( "#league" ).val();
                     // Remove empty lines from mods array
                     var validMods         = [];
                     async.each( mods, function( mod, cbMod ) {
@@ -1000,7 +1007,8 @@
                         }
                     };
 
-                    var connection = mysql.createConnection( credentials );
+                    var connection = mysql.createPool( credentials );
+                    
                     var query;
                     // Name and mods
                     if ( name && validMods.length > 0 ) {
@@ -1013,15 +1021,15 @@
                         query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE (`name` = \"" + name + "\" OR `typeLine` = \"" + name + "\") AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     // Neither
                     } else {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "')";
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     }
                     // If account name is given
                     if ( accountName ) {
-                        query += " AND `Items`.`accountName` = '" + accountName + "' AND `Items`.`accountName` = `Accounts`.`accountName`";
+                        query += " AND `Items`.`accountName` = '" + accountName + "'";
                     }
                     // If last character name is given
                     if ( lastCharacterName ) {
-                        query += " AND `Accounts`.`accountName` = '" + lastCharacterName + "' AND `Items`.`accountName` = `Accounts`.`accountName`";
+                        query += " AND `Accounts`.`accountName` = '" + lastCharacterName + "'";
                     }
                     // All subtypes of type
                     if ( $( "#item-subtype" ).val() === "any" && 
@@ -1060,8 +1068,10 @@
                             cbRow();
                         }, function( err ) {
                             // Get the affixes of these objects
-                            connection.query(
-                                "SELECT DISTINCT `itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType` FROM `Mods` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
+                            query = "SELECT DISTINCT `itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType` FROM `Mods` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')";
+                            console.log( query );
+                            connection.query( query, function( err, rows ) {
+                                console.log( "Queried mods" );
                                 async.each( rows, function( row, cbMods ) {
                                     // Match mod type
                                     // console.log( row );
@@ -1081,8 +1091,9 @@
                                     cbMods();
                                 }, function( err ) {
                                     // Get the item properties
-                                    connection.query(
-                                        "SELECT DISTINCT `itemId`, `propertyName`, `propertyValue1`, `propertyValue2` FROM `Properties` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function( err, rows ) {
+                                    query = "SELECT DISTINCT `itemId`, `propertyName`, `propertyValue1`, `propertyValue2` FROM `Properties` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')";
+                                    console.log( query );
+                                    connection.query( query, function( err, rows ) {
                                             async.each( rows, function( row, cbProperties ) {
                                                 entries[row.itemId].properties.push({
                                                     "name": row.propertyName,
@@ -1090,9 +1101,11 @@
                                                 });
                                                 cbProperties();
                                             }, function( err ) {
+                                                console.log( "Queried properties" );
                                                 // Get sockets
-                                                connection.query(
-                                                    "SELECT `itemId`, `socketGroup`, `socketAttr` FROM `Sockets` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')", function ( err, rows ) {
+                                                query = "SELECT `itemId`, `socketGroup`, `socketAttr` FROM `Sockets` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')";
+                                                console.log( query );
+                                                connection.query( query, function ( err, rows ) {
                                                         async.each( rows, function( row, cbSockets ) {
                                                             entries[row.itemId].sockets.push({
                                                                 "group": row.socketGroup,
@@ -1100,7 +1113,7 @@
                                                             });
                                                             cbSockets();
                                                         }, function( err ) {
-                                                            console.log( "Entries" );
+                                                            console.log( "Queried sockets" );
                                                             // console.log( entries );
                                                             connection.end();
                                                             done( entries );
@@ -1681,7 +1694,7 @@
                                 if ( !rates[cursor.sell]) {
                                     rates[cursor.sell] = 1;
                                 }
-                                if ( rate.avg !== 0 && rate.avg !== Infinity ) {
+                                if ( rate.avg !== 0 && rate.avg !== -1 ) {
                                     // console.log( rate.buy + " = " + rate.avg );
                                     rates[rate.buy] = 1 / rate.avg;
                                     $( "#" + rate.buy + " .rate" ).text( Math.round( 1 / rate.avg * 100 ) / 100 );
@@ -1732,7 +1745,7 @@
                                         var rate = $( this ).data().dataItem;
                                         var targetCur = rate.buy;
                                         console.log( rate );
-                                        $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " (loading...)");
+                                        $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " in " + league + " (loading...)");
                                         $( "span#tooltip-currency-min" ).html( "Min: <b>" + Math.round( 1/rate.max * 100 ) / 100 + "</b>" );
                                         $( "span#tooltip-currency-max" ).html( "Max: <b>" + Math.round( 1/rate.min * 100 ) / 100 + "</b>" );
                                         $( "span#tooltip-currency-mode" ).html( "Mode: <b>" + Math.round( 1/rate.mode * 100 ) / 100 + "</b>" );
@@ -1741,10 +1754,7 @@
                                         
                                         var connection = mysql.createConnection( credentials );
                                         var leagueCur = league;
-                                        if ( league === "Hardcore Essence" ) {
-                                            leagueCur = "Hardcore+Essence";
-                                        }
-                                        connection.query( "SELECT * FROM `CurrencyStats`, `Currencies` WHERE `Currencies`.`league` = ? AND `CurrencyStats`.`buy` = ? AND `Currencies`.`sell` = ? AND `Currencies`.`currencyKey` = `CurrencyStats`.`currencyKey` ORDER BY `Currencies`.`id` DESC LIMIT 30", [leagueCur, rate.buy, $( "#base-currency" ).val()], function( err, rows ) {
+                                        connection.query( "SELECT * FROM `CurrencyStats`, `Currencies` WHERE `Currencies`.`league` = ? AND `CurrencyStats`.`buy` = ? AND `Currencies`.`sell` = ? AND `Currencies`.`currencyKey` = `CurrencyStats`.`currencyKey` ORDER BY `Currencies`.`id` DESC LIMIT 50", [leagueCur, rate.buy, $( "#base-currency" ).val()], function( err, rows ) {
                                             if ( err ) {
                                                 console.log( err );
                                             }
@@ -1756,21 +1766,29 @@
                                             var medianValues = [];
                                             var timestamps   = [];
                                             async.eachLimit( rows, 1, function( row, cbRow ) {
-                                                minValues.push( Math.round( 1/row.min * 100 ) / 100 );
-                                                maxValues.push( Math.round( 1/row.max * 100 ) / 100 );
-                                                meanValues.push( Math.round( 1/row.mean * 100 ) / 100 );
-                                                modeValues.push( Math.round( 1/row.mode * 100 ) / 100 );
-                                                medianValues.push( Math.round( 1/row.median * 100 ) / 100 );
-                                                timestamps.push( row.timestamp );
+                                                if ( row.mean !== -1 ) {
+                                                    if ( 1/row.min > 1/row.max ) {
+                                                        minValues.push( 1/row.max );
+                                                        maxValues.push( 1/row.min );
+                                                    } else {
+                                                        minValues.push( 1/row.min );
+                                                        maxValues.push( 1/row.max );
+                                                    }
+                                                    // maxValues.push( Math.round( 1/row.max * 100 ) / 100 );
+                                                    meanValues.push( Math.round( 1/row.mean * 100 ) / 100 );
+                                                    modeValues.push( Math.round( 1/row.mode * 100 ) / 100 );
+                                                    medianValues.push( Math.round( 1/row.median * 100 ) / 100 );
+                                                    timestamps.push( row.timestamp );
+                                                }
                                                 cbRow();
                                             }, function( err ) {
                                                 if ( err ) {
                                                     console.log( err );
                                                 }
-                                                console.log( "plop" );
                                                 var ctx = $( "#plot-currency-chart" );
                                                 // var background = [];
                                                 var labels      = [];
+                                                var lastLabel   = ""
                                                 for ( var i = 0 ; i < meanValues.length ; i++ ) {
                                                     // background.push( 'rgba(75, 192, 192, 0.4)' );
                                                     // minColor.push( 'rgba(189, 16, 239, 1)' );
@@ -1778,14 +1796,22 @@
                                                     var date = new Date( timestamps[i]);
                                                     var hours = date.getHours();
                                                     var minutes = "0" + date.getMinutes();
-                                                    var formattedTime = hours + ':' + minutes.substr(-2);
-                                                    labels.push( formattedTime );
+                                                    var day    = date.getDate();
+                                                    var month  = months[date.getMonth()];
+                                                    // var formattedTime = hours + ':' + minutes.substr(-2);
+                                                    var formattedTime = day + " " + month;
+                                                    if ( formattedTime !== lastLabel ) {
+                                                        lastLabel = formattedTime;
+                                                        labels.push( formattedTime );
+                                                    } else {
+                                                        labels.push( "" );
+                                                    }
                                                 }
                                                 if ( currencyChart ) {
                                                     currencyChart.destroy();
                                                     delete currencyChart;
                                                 }
-                                                $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " <span style='color: grey; float: right'>Click anywhere to close or press ESC</span>");
+                                                $( "span#tooltip-currency-title" ).html( "<b>" + currencyEquivalent[targetCur] + '</b> market price in ' + currencyEquivalent[$( "#base-currency" ).val()] + " in " + league + " <span style='color: grey; float: right'>Click anywhere to close or press ESC</span>");
                                                 currencyChart = new Chart(ctx, {
                                                     type: 'line',
                                                     data: {
@@ -1802,7 +1828,7 @@
                                                                 borderWidth: 1,
                                                                 borderCapStyle: 'butt',
                                                                 borderJoinStyle: 'bevel',
-                                                                pointRadius: 3,
+                                                                pointRadius: 2,
                                                                 pointHitRadius: 10,
                                                                 lineTension: 0
                                                             },
@@ -1821,36 +1847,36 @@
                                                             //     pointHitRadius: 10,
                                                             //     lineTension: 0
                                                             // },
-                                                            {
-                                                                label: "Mode",
-                                                                data: modeValues,
-                                                                borderColor: "rgba(17, 234, 106, 1)",
-                                                                backgroundColor: "rgba(17, 234, 106, 0.2)",
-                                                                pointBackgroundColor: "rgb(0, 255, 105)",
-                                                                pointHoverBackgroundColor: "rgba(255,255,255,1)",
-                                                                pointHoverBorderColor: "rgba(255,255,255,1)",
-                                                                borderWidth: 1,
-                                                                borderCapStyle: 'butt',
-                                                                borderJoinStyle: 'bevel',
-                                                                pointRadius: 3,
-                                                                pointHitRadius: 10,
-                                                                lineTension: 0
-                                                            },
                                                             // {
-                                                            //     label: "Min",
-                                                            //     data: minValues,
-                                                            //     borderColor: "rgba(189, 16, 239, 1)",
-                                                            //     backgroundColor: "rgba(189, 16, 239, 0.2)",
-                                                            //     pointBackgroundColor: "rgba(189, 16, 239, 1)",
+                                                            //     label: "Mode",
+                                                            //     data: modeValues,
+                                                            //     borderColor: "rgba(17, 234, 106, 1)",
+                                                            //     backgroundColor: "rgba(17, 234, 106, 0.2)",
+                                                            //     pointBackgroundColor: "rgb(0, 255, 105)",
                                                             //     pointHoverBackgroundColor: "rgba(255,255,255,1)",
                                                             //     pointHoverBorderColor: "rgba(255,255,255,1)",
                                                             //     borderWidth: 1,
                                                             //     borderCapStyle: 'butt',
                                                             //     borderJoinStyle: 'bevel',
-                                                            //     pointRadius: 3,
+                                                            //     pointRadius: 1,
                                                             //     pointHitRadius: 10,
                                                             //     lineTension: 0
-                                                            // }
+                                                            // },
+                                                            {
+                                                                label: "Min",
+                                                                data: minValues,
+                                                                borderColor: "rgba(189, 16, 239, 1)",
+                                                                backgroundColor: "rgba(189, 16, 239, 0.2)",
+                                                                pointBackgroundColor: "rgba(189, 16, 239, 1)",
+                                                                pointHoverBackgroundColor: "rgba(255,255,255,1)",
+                                                                pointHoverBorderColor: "rgba(255,255,255,1)",
+                                                                borderWidth: 1,
+                                                                borderCapStyle: 'butt',
+                                                                borderJoinStyle: 'bevel',
+                                                                pointRadius: 2,
+                                                                pointHitRadius: 10,
+                                                                lineTension: 0
+                                                            }
                                                         ]
                                                     },
                                                     options: {
@@ -3123,6 +3149,8 @@
                 // Update league value when changed
                 $( "#league" ).change( function() {
                     league = $( this ).val();
+                    // Update market values also
+                    updateMarketRates( function() {});
                     console.log( league );
                 });
 
@@ -3216,7 +3244,6 @@
                 // When typing in textarea
                 $( "textarea, #item-name-search" ).keyup( function( event ) {
                     var that = $( this );
-                    console.log( that );
                     // If press on ESC
                     if ( event.keyCode === 27 ) {
                         $( "#auto-complete" ).fadeOut( "fast" );
@@ -3389,8 +3416,9 @@
                 });
 
                 // When pressing ENTER in any textfield, run search
-                $( "input" ).keydown( function( event ) {
+                $( "input" ).not( "#item-name-search" ).keydown( function( event ) {
                     if ( event.keyCode === 13 && $( "#auto-complete:visible" ).length !== 1 ) {
+                        console.log( "Calling search" );
                         $( "#search-item" ).click();
                     }
                 });
