@@ -32,6 +32,10 @@ var credentials      = {
     connectionLimit: 1000
 };
 var modParsingTime = 0;
+var addedNew       = 0;
+var removedNew     = 0; 
+var updatedNew     = 0;
+var startInsert;
 
 io.on( 'connection', function( socket ) {
     logger.log( "Received connection", scriptName, "e" );
@@ -318,7 +322,7 @@ var parseMods = function( item, callback ) {
     var parsedEnchantedMods = [];
     // console.time( "Parsing mods" );
     // Parse explicit mods
-    async.eachLimit( item.explicitMods, 1, function( mod, cbMod ) {
+    async.each( item.explicitMods, function( mod, cbMod ) {
         var re = /([0-9.]+)/g;
         var match = re.exec( mod );
         var matches = [];
@@ -337,7 +341,7 @@ var parseMods = function( item, callback ) {
             logger.log( "Error: " + err, scriptName, "w" );
         }
         // Parse implicit mods
-        async.eachLimit( item.implicitMods, 1, function( mod, cbMod ) {
+        async.each( item.implicitMods, function( mod, cbMod ) {
             var re = /([0-9.]+)/g;
             var match = re.exec( mod );
             var matches = [];
@@ -356,7 +360,7 @@ var parseMods = function( item, callback ) {
                 logger.log( "Error: " + err, scriptName, "w" );
             }
             // Parse crafted mods
-            async.eachLimit( item.craftedMods, 1, function( mod, cbMod ) {
+            async.each( item.craftedMods, function( mod, cbMod ) {
                 var re = /([0-9.]+)/g;
                 var match = re.exec( mod );
                 var matches = [];
@@ -375,7 +379,7 @@ var parseMods = function( item, callback ) {
                     logger.log( "Error: " + err, scriptName, "w" );
                 }
                 // Parse enchanted mods
-                async.eachLimit( item.enchantMods, 1, function( mod, cbMod ) {
+                async.each( item.enchantMods, function( mod, cbMod ) {
                     var re = /([0-9.]+)/g;
                     var match = re.exec( mod );
                     var matches = [];
@@ -634,8 +638,13 @@ var downloadChunk = function( chunkID, connection, callback ) {
             var compareArraysTime = 0;
             var itemInsertTime    = 0;
             var itemTotal         = 0;
+            startInsert           = Date.now();
+            addedNew       = 0;
+            updatedNew     = 0;
+            removedNew     = 0;
+            modParsingTime = 0;
             // For each stashes in the new data file
-            async.eachLimit( data.stashes, 1, function( stash, callbackStash ) {
+            async.each( data.stashes, function( stash, callbackStash ) {
                 // If stash is updated, the account is online
                 // If accountName is null, skip
                 itemTotal += stash.items.length;
@@ -683,7 +692,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                         logger.log( "Stash contains " + stash.items.length + " items", scriptName, "", true );
 
                         // For each item in the stash
-                        async.eachLimit( stash.items, 1, function( item, cb ) {
+                        async.each( stash.items, function( item, cb ) {
                             var modParsingStart = Date.now();
                             // Parse its mods
                             parseMods( item, function( explicit, implicit, crafted, enchanted ) {
@@ -728,6 +737,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                             insertionError++;
                                         } else {
                                             added++;
+                                            addedNew++;
                                         }
                                         itemInsertTime += Date.now() - itemInsertStart;
                                         
@@ -786,7 +796,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                             logger.log( res.removed.length + " items removed", scriptName, "", true );
                             logger.log( res.common.length + " items to update", scriptName, "", true );
                             // For each removed item
-                            async.eachLimit( res.removed, 1, function( removedItem, cbRemoved ) {
+                            async.each( res.removed, function( removedItem, cbRemoved ) {
                                 var modParsingStart = Date.now();
                                 parseMods( removedItem, function( explicit, implicit, crafted, enchanted ) {
                                     modParsingTime += Date.now() - modParsingStart;
@@ -822,6 +832,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                 insertionError++;
                                             } else {
                                                 removed++;
+                                                removedNew++;
                                             }
                                             itemInsertTime += Date.now() - itemInsertStart;
                                             // console.log( removedItem );
@@ -847,7 +858,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                     logger.log( "parseData: " + err, scriptName, "e" );
                                 }
                                 // For each item added
-                                async.eachLimit( res.added, 1, function( addedItem, cbAdded ) {
+                                async.each( res.added, function( addedItem, cbAdded ) {
                                     logger.log( addedItem.id + " added", scriptName, "", true );
                                     var modParsingStart = Date.now();
                                     parseMods( addedItem, function( explicit, implicit, crafted, enchanted ) {
@@ -887,6 +898,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                     insertionError++;
                                                 } else {
                                                     added++;
+                                                    addedNew++;
                                                 }
                                                 itemInsertTime += Date.now() - itemInsertStart;
                                                 var propertiesStart = Date.now();
@@ -913,7 +925,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                         logger.log( err, scriptName, "e" );
                                     }
                                     // For each item kept
-                                    async.eachLimit( res.common, 1, function( commonItem, cbCommon ) {
+                                    async.each( res.common, function( commonItem, cbCommon ) {
                                         logger.log( commonItem.id + " updated", scriptName, "", true );
                                         var modParsingStart = Date.now();
                                         parseMods( commonItem, function( explicit, implicit, crafted, enchanted ) {
@@ -945,6 +957,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                         insertionError++;
                                                     } else {
                                                         updated++;
+                                                        updatedNew++;
                                                     }
                                                     itemInsertTime += Date.now() - itemInsertStart;
                                                     var propertiesStart = Date.now();
@@ -1005,7 +1018,19 @@ var downloadChunk = function( chunkID, connection, callback ) {
             var elapsed = secToNsec( Date.now() - startTime );
             var speed   = ( added + removed + updated ) /
                           (( Date.now() - startTime ) / 1000 ); // insert per sec
-            logger.log( "Entries added: " + added +
+            var elapsedInstant = secToNsec( Date.now() - startInsert );
+            var speedInstant  = ( addedNew + removedNew + updatedNew ) /
+                                (( Date.now() - startInsert ) / 1000 ); // instant insert per sec
+            logger.log( "Entries total: " + ( addedNew + removedNew + updatedNew ) +
+                        ", added: " + addedNew +
+                        ", removed: " + removedNew +
+                        ", updated: " + updatedNew +
+                        ", insert errors: " + insertionError +
+                        " over " + Math.round( elapsedInstant.amount ) +
+                        " " + elapsedInstant.unit +
+                        " at " + Math.round( speedInstant ) +
+                        " insert/sec", scriptName );
+            logger.log( "Total entries added: " + added +
                         ", removed: " + removed +
                         ", updated: " + updated +
                         ", insert errors: " + insertionError +
