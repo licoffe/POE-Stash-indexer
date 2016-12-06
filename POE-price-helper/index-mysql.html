@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="./font/stylesheet.css">
         <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
         <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+        <link rel="stylesheet" href="./font-awesome-4.7.0/css/font-awesome.min.css">
         <!-- <script href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script> -->
         
     </head>
@@ -14,7 +15,7 @@
         <div id="online-res">
         </div>
         <div class="container" id="market-rates">
-            <span class="title">Market rates</span><br>
+            <span class="title">Market rates</span><span id="open-preferences" style="float: right; font-size: 1.5em"><i class="fa fa-cogs" aria-hidden="true"></i></span><br>
             <img class="loading" src="./media/loading.gif" alt=""><br>
             <table id="currencies">
                 <tr>
@@ -410,7 +411,7 @@
             <table>
                 <tr>
                     <th>
-                        <span class="title">Search</span>
+                        <span class="title">Search History</span>
                     </th>
                     <th>
                         <span class="title">Price stats</span>
@@ -423,15 +424,11 @@
                     </th>
                 </tr>
                 <tr>
-                    <td>
-                        <!--<label>
-                            <select id="search-by">
-                                <option value="name">Item Name</option>
-                                <option value="lastCharacterName">character</option>
-                                <option value="accountName">Account</option>
-                                <option value="mods">Mods</option>
-                            </select>
-                        </label><br><br>-->
+                    <td rowspan="3">
+                        <div style="overflow: auto; height: 450px;">
+                            <table id="history">
+                            </table>
+                        </div>
                     </td>
                     <td>
                         Kept <span id="kept-items">0</span> items out of <span id="total-items">0</span>
@@ -509,16 +506,13 @@
                     </td>
                 </tr>
                 <tr>
-                    <td></td>
                     <td>
                         <div id="plot">
                             <canvas id="myChart" width="300" height="200"></canvas>
                         </div>
-                    </td>
+                    </td>                    
                 </tr>
                 <tr>
-                    <td>
-                    </td>
                     <td>
                         <table id="prices">
                             <tr>
@@ -558,12 +552,47 @@
             </div>
         </div>
         <div id="tooltip-currency-arrow"></div>
+        <div id="preferences">
+            <div id="preferences-title">
+                Preferences
+                <span class="close-preferences">
+                    <i class='fa fa-times' aria-hidden='true'></i>
+                </span>
+            </div>
+            <table>
+                <tr>
+                    <td>Default league</td>
+                    <td>
+                        <label>
+                            <select id="preferences-league">
+                                <option selected value="Standard">Standard</option>
+                                <option value="Hardcore">Hardcore</option>
+                                <option value="Essence">Essence</option>
+                                <option value="Hardcore Essence">Hardcore Essence</option>
+                            </select>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Player message</td>
+                    <td>
+                        <textarea>
+                        </textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input id="apply-preferences" type="button" value="Apply"></td>
+                </tr>
+            </table>
+        </div>
 
         <script type="text/javascript">
             var $ = require('jquery');
             
             $( document ).ready( function() {
-                var league   = "Standard";
+                var config   = require( "./config.json" );
+                var league   = config.defaultLeague;
                 var Chart    = require('./Chart.bundle.min.js');
                 var Currency = require( "./modules/currency" );
                 var currency = new Currency( league );
@@ -579,8 +608,8 @@
                 var itemTypes    = require( "./itemTypes.json" );
                 var autocomplete = require( "./autocomplete.json" );
                 var affixes      = require( "./affixes.json" );
-                var config       = require( "./config.json" );
-                const os         = require('os');
+                const os         = require( 'os' );
+                var fs           = require( 'fs' );
                 var cr           = "\n";
                 // On windows, carriage return is not like in the usual world
                 console.log( "OS type is: " + os.type());
@@ -652,7 +681,7 @@
                 var dbPort       = config.dbPort;
                 var dbQueryLimit = config.dbQueryLimit;
                 var dbBatchSize  = config.dbBatchSize;
-                var dbQueryTimeOut = config.dbQueryTimeOut;
+                var dbQueryTimeOut = 60000;
                 var indexerIP    = config.indexerIP;
                 var indexerPort  = config.indexerPort;
                 var onlineDelayS = config.onlineDelayS;
@@ -680,6 +709,7 @@
                     database : 'POE',
                     connectionLimit : 100,
                 };
+                var history = require( "./history.json" );
 
                 if ( config.monitorIndexerStatus ) {
                     // Connect to the indexer backend and check availability
@@ -844,7 +874,14 @@
                     // var queryStartTime = Date.now
                     // console.log( "Querying by " + queryBy );
                     $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
-                    $( ".search-status" ).text( "Querying ..." );
+                    $( ".search-status" ).text( "Querying " );
+                    var animateText = setInterval( function() {
+                        if ( $( ".search-status" ).text() !== "Querying ___" ) {
+                            $( ".search-status" ).text( $( ".search-status" ).text() + "_" ); 
+                        } else {
+                            $( ".search-status" ).text( "Querying " );
+                        }
+                    }, 100 );
                     // console.log( criteria );
                     // Check if query-limit field holds a value
                     var queryLimit = $( "#query-limit" ).val();
@@ -931,6 +968,7 @@
                     }
 
                     var done = function( cursor ) {
+                        clearInterval( animateText );
                         if ( cursor !== undefined ) {
                             async.each( cursor, function( doc, cb ) {
                                 $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
@@ -1001,6 +1039,7 @@
                                 });
                             });
                         } else {
+                            clearInterval( animateText );
                             console.log( "Query timed out" );
                             // $( "#table-settings .loading" ).fadeOut( 'fast' );
                             $( ".search-status" ).text( "Query timed out" );
@@ -1012,16 +1051,16 @@
                     var query;
                     // Name and mods
                     if ( name && validMods.length > 0 ) {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND (`name` = \"" + name + "\" OR `typeLine` = \"" + name + "\")  AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `name` = \"" + name + "\" AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
                     // mods only
                     } else if ( !name && validMods.length > 0 ) {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
                     // Name only
                     } else if ( name && validMods.length === 0 ) {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE (`name` = \"" + name + "\" OR `typeLine` = \"" + name + "\") AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE `name` = \"" + name + "\" AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     // Neither
                     } else {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     }
                     // If account name is given
                     if ( accountName ) {
@@ -1044,14 +1083,21 @@
 
                     query += " LIMIT " + dbQueryLimit;
 
+                    if ( name ) {
+                        query += " UNION " + query.replace( "`name`", "`typeLine`" );
+                    }
+
                     console.log( query );
 
                     // SELECT * FROM `mods`, `items` WHERE `mods`.`modName` = "#% increased Physical Damage" AND `items`.`itemId` = `mods`.`itemId`;
-                    connection.query( 
-                        // "SELECT * FROM `items` WHERE `name` = ? AND `league` = ? AND `socketAmount` >= ? AND `linkAmount` >= ? AND `ilvl` >= ? AND `verified` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "')",
-                        // [name, league, socketAmount, linkAmount, level], function( err, rows ) {
-                        query, function( err, rows ) {
-                            console.log( name + " " + socketAmount + " " + linkAmount );
+                    connection.query({ "sql": query, "timeout": dbQueryTimeOut }, function( err, rows ) {
+                        if ( err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT' ) {
+                            clearInterval( animateText );
+                            $( ".search-status" ).text( "Query timed out" );
+                            console.log( "Timeout" );
+                            return;
+                        }
+                        console.log( name + " " + socketAmount + " " + linkAmount );
                         var itemIds = [];
                         var entries = {};
                         console.log( "Printing rows" );
@@ -1613,7 +1659,7 @@
                                 "</tr>"
                             );
                         }
-                        $( "table td#" + counter ).data( "data-item" , result );
+                        $( "#results td#" + counter ).data( "data-item" , result );
                         callbackUpdate();
                     }, function( err ) {
 
@@ -2572,13 +2618,21 @@
                     }
                     // Item enchant mods
                     $( "#item-enchant-mods" ).empty();
-                    if ( item.enchantMods ) {
-                        for ( var i = 0 ; i < item.enchantMods.length; i++ ) {
-                            var mod = item.enchantMods[i];
+                    if ( item.parsedEnchantedMods ) {
+                        for ( var i = 0 ; i < item.parsedEnchantedMods.length; i++ ) {
+                            var mod = item.parsedEnchantedMods[i];
+
+                            var formatted = mod.mod;
+                            var counter = 0;
+                            while ( formatted.search( "#" ) !== -1 ) {
+                                formatted = formatted.replace( "#", mod.values[counter]);
+                                counter++;
+                            }
+
                             $( "#item-enchant-mods" ).append(
-                                "<span>" + mod + "</span>"
+                                "<span>" + formatted + "</span>"
                             );
-                            if ( i !== item.enchantMods.length - 1 ) {
+                            if ( i !== item.parsedEnchantedMods.length - 1 ) {
                                 $( "#item-enchant-mods" ).append( "<br>" );
                             }
                         }
@@ -2780,15 +2834,14 @@
                     }
                     // Crafted Mods
                     $( "#item-crafted-mods" ).empty();
-                    if ( item.craftedMods ) {
+                    if ( item.parsedCraftedMods ) {
                         $( "#item-crafted-mods" ).append(
                             "<table>"
                         );
                         async.each( item.parsedCraftedMods, function( mod, cbMod ) {
                             var reg = /([0-9]+)/g;
-                            var match = mod.replace( /([0-9]+)/g, "#" );
-                            // console.log( match );
-                            var extract = reg.exec( mod );
+                            var match = mod.mod;
+                            var extract = [];
                             var affix   = "";
                             if ( extract && extract.length > 2 ) {
                                 var val = extract[1];
@@ -2835,10 +2888,17 @@
                                     })
                                 }
                             }
+
+                            var formatted = mod.mod;
+                            var counter = 0;
+                            while ( formatted.search( "#" ) !== -1 ) {
+                                formatted = formatted.replace( "#", mod.values[counter]);
+                                counter++;
+                            }
                             
                             $( "#item-crafted-mods table" ).append(
                                 "<tr><td>" +
-                                mod + "</td><td>" +
+                                formatted + "</td><td>" +
                                 affix + "</td></tr>"
                             );
                             cbMod();
@@ -3057,7 +3117,11 @@
                         var str = config.contactMessage;
                         // Replace placeholder by values
                         str = str.replace( /<charName>/g, item.lastCharacterName );
-                        str = str.replace( /<itemName>/g, item.name );
+                        if ( item.name ) {
+                            str = str.replace( /<itemName>/g, item.name );
+                        } else {
+                            str = str.replace( /<itemName>/g, item.typeLine );
+                        }
                         str = str.replace( /<itemPrice>/g, item.price + " " + item.currency );
                         str = str.replace( /<stashName>/g, item.stashName );
                         ncp.copy( str, function() {
@@ -3160,6 +3224,8 @@
                         sortBy = "status";
                     }
                     
+                    saveToHistory();
+
                     // console.log( "Setting back to status" );
                     var searchDelay = 10000;
                     var search = function() {
@@ -3401,11 +3467,14 @@
                 var query = "SELECT `leagueName` FROM `Leagues` WHERE `active` = '1' ORDER BY ID DESC"; 
                 connection.query( query, function( err, rows ) {
                     $( "#league" ).empty();
+                    $( "#preferences-league" ).empty();
                     async.each( rows, function( row, cbRow ) {
                         if ( row.leagueName === config.defaultLeague ) {
                             $( "#league" ).append( "<option selected value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                            $( "#preferences-league" ).append( "<option selected value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
                         } else {
                             $( "#league" ).append( "<option value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
+                            $( "#preferences-league" ).append( "<option value='" + row.leagueName + "'>" + row.leagueName + "</option>" );
                         }
                     }, function( err ) {
                         if ( err ) {
@@ -3422,6 +3491,261 @@
                         $( "#search-item" ).click();
                     }
                 });
+
+
+                var saveToHistory = function() {
+                    var available;
+                    var corrupted;
+                    var crafted;
+                    var enchanted;
+                    var online;
+                    if ( $( "#verified" ).val() === "Either" ) {
+                        available = [ 0, 1 ];
+                    } else if ( $( "#verified" ).val() === "true" ) {
+                        available = [ 1 ];
+                    } else {
+                        available = [ 0 ];
+                    }
+                    if ( $( "#corrupted" ).val() === "either" ) {
+                        corrupted = [ 0, 1 ];
+                    } else if ( $( "#corrupted" ).val() === "true" ) {
+                        corrupted = [ 1 ];
+                    } else {
+                        corrupted = [ 0 ];
+                    }
+                    if ( $( "#crafted" ).val() === "either" ) {
+                        crafted = [ 0, 1 ];
+                    } else if ( $( "#crafted" ).val() === "true" ) {
+                        crafted = [ 1 ];
+                    } else {
+                        crafted = [ 0 ];
+                    }
+                    if ( $( "#enchanted" ).val() === "either" ) {
+                        enchanted = [ 0, 1 ];
+                    } else if ( $( "#enchanted" ).val() === "true" ) {
+                        enchanted = [ 1 ];
+                    } else {
+                        enchanted = [ 0 ];
+                    }
+                    if ( $( "#online" ).val() === "either" ) {
+                        online = [ 0, 1 ];
+                    } else if ( $( "#online" ).val() === "true" ) {
+                        online = [ 1 ];
+                    } else {
+                        online = [ 0 ];
+                    }
+                    var item = {
+                        "name":              $( "#item-name-search" ).val(),
+                        "type":              $( "#item-type" ).val(),
+                        "subtype":           $( "#item-subtype" ).val(),
+                        "rarity":            $( "#rarity" ).val(),
+                        "affixes":           $( "textarea" ).val().split( "\n" ),
+                        "itemLevel":         $( "#item-level" ).val(),
+                        "socketAmount":      $( "#socket-amount" ).val(),
+                        "linkAmount":        $( "#link-amount" ).val(),
+                        "available":         available,
+                        "corrupted":         corrupted,
+                        "crafted":           crafted,
+                        "enchanted":         enchanted,
+                        "online":            online,
+                        "accountName":       $( "#account-name-search" ).val(),
+                        "lastCharacterName": $( "#last-character-name-search" ).val(),
+                        "league":            $( "#league" ).val(),
+                        "queryLimit":        $( "#query-limit" ).val(),
+                    }
+                    // Check if search already exist. If not, add it to the array
+                    var found = false;
+                    async.each( history, function( search, cbSearch ) {
+                        if ( JSON.stringify( item ) === JSON.stringify( search )) {
+                            found = true;
+                        }
+                        cbSearch();
+                    }, function() {
+                        if ( !found ) {
+                            history.unshift( item );     
+                        }
+                        // Write array to history file
+                        fs.writeFile( "./history.json", JSON.stringify( history ), function( err ) {
+                            if( err ) {
+                                return console.log( err );
+                            }
+                            console.log( "The file was saved!" );
+                            updateHistory();
+                        });
+                    });
+                }
+
+                var updateHistory = function() {
+                    $( "#history" ).empty();
+                    var counter = 0;
+                    async.each( history, function( search, cbHistory ) {
+                        var entryName;
+                        if ( search.name ) {
+                            entryName = search.name;
+                        } else {
+                            if ( search.subtype !== "any" ) {
+                                entryName = search.subtype;
+                            } else if ( search.type ) {
+                                entryName = search.type;
+                            };
+                            if ( search.rarity === "3" ) {
+                                entryName = "<span style='color: rgba(175, 96, 37, 1)'>Unique " + entryName + "</span>";
+                            } else if ( search.rarity === "2" ) {
+                                entryName = "<span style='color: rgba(243, 243, 113, 1)'>Rare " + entryName + "</span>";
+                            } else if ( search.rarity === "1" ) {
+                                entryName = "<span style='color: rgba(135, 135, 254, 1)'>Magic " + entryName + "</span>";
+                            }
+                        }
+
+                        // Check if entryName belongs to one of the categories
+                        async.each( autocomplete.uniques, function( unique, cb ) {
+                            if ( unique.name.toLowerCase().includes( entryName.toLowerCase())) {
+                                var corrupted = "<em style='color: rgba(210, 0, 0, 1)'> corrupted</em>";
+                                if ( unique.type === "unique" ) {
+                                    entryName = "<span style='color: rgba(175, 96, 37, 1)'>" + entryName + "</span>";
+                                    if ( search.corrupted.length === 1 && search.corrupted[0] === 1 ) {
+                                        entryName += corrupted;
+                                    }
+                                } else if ( unique.type === "rare" ) {
+                                    entryName = "<span style='color: rgba(243, 243, 113, 1)'>" + entryName + "</span>";
+                                    if ( search.corrupted.length === 1 && search.corrupted[0] === 1 ) {
+                                        entryName += corrupted;
+                                    }
+                                } else if ( unique.type === "gem" ) {
+                                    entryName = "<span style='color: rgba(0, 255, 0, 1)'>" + entryName + "</span>";
+                                    if ( search.corrupted.length === 1 && search.corrupted[0] === 1 ) {
+                                        entryName += corrupted;
+                                    }
+                                } else if ( unique.type === "div" ) {
+                                    entryName = "<span style='color: rgba(0, 200, 200, 1)'>" + entryName + "</span>";
+                                } else if ( unique.type === "prophecy" ) {
+                                    entryName = "<span style='color: rgba(181, 75, 255, 1)'>" + entryName + "</span>";
+                                } else if ( unique.type === "currency" ) {
+                                    entryName = "<span style='color: rgba(170, 158, 130, 1)'>" + entryName + "</span>";
+                                } else {
+                                    entryName = "<span style='color: rgba(255, 255, 255, 1)'>" + entryName + "</span>";
+                                }
+                            }
+                            cb();
+                        });
+                        if ( search.accountName ) {
+                            entryName += " belonging to " + search.accountName;
+                        } else if ( search.lastCharacterName ) {
+                            entryName += " belonging to " + search.lastCharacterName;
+                        }
+                        var queryLimit = search.queryLimit === "" ? 100 : search.queryLimit;
+                        $( "#history" ).append( "<tr id='history-entry-" + counter + "'><td class='entry' id='" + counter + "'>" + entryName + "<br><em style='color: rgb( 100, 100, 100 )'>" + search.league + ", " + queryLimit + "</em></td><td class='remove' id='history-remove-" + counter + "'><i class='fa fa-times' aria-hidden='true'></i></td></tr>" );
+                        $( "#history td#" + counter ).data( "data-item" , search );
+                        console.log( search );
+                        counter++;
+                    });
+
+                    /* When clicking on the cross, remove the item from history */
+                    $( "#history td.remove" ).click( function() {
+                        var id = $( this ).attr( "id" );
+                        var match = /([0-9]+)/.exec( id );
+                        history.splice( match[1], 1 );
+                        // Write array to history file
+                        fs.writeFile( "./history.json", JSON.stringify( history ), function( err ) {
+                            if( err ) {
+                                return console.log( err );
+                            }
+                            console.log( "The file was saved!" );
+                            updateHistory();
+                        });
+                    });
+
+                    /* When clicking on history item, restore the interface and 
+                       start a search */
+                    $( "#history td.entry" ).click( function() {
+                        console.log( $( this ).data().dataItem );
+                        var item = $( this ).data().dataItem;
+                        var available;
+                        var corrupted;
+                        var crafted;
+                        var enchanted;
+                        var online;
+                        if ( item.available.length > 1 ) {
+                            available = "either";
+                        } else if ( item.available[0] === 1 ) {
+                            available = "true";
+                        } else {
+                            available = "false";
+                        }
+                        if ( item.corrupted.length > 1 ) {
+                            corrupted = "either";
+                        } else if ( item.corrupted[0] === 1 ) {
+                            corrupted = "true";
+                        } else {
+                            corrupted = "false";
+                        }
+                        if ( item.crafted.length > 1 ) {
+                            crafted = "either";
+                        } else if ( item.crafted[0] === 1 ) {
+                            crafted = "true";
+                        } else {
+                            crafted = "false";
+                        }
+                        if ( item.enchanted.length > 1 ) {
+                            enchanted = "either";
+                        } else if ( item.enchanted[0] === 1 ) {
+                            enchanted = "true";
+                        } else {
+                            enchanted = "false";
+                        }
+                        if ( item.online.length > 1 ) {
+                            online = "either";
+                        } else if ( item.online[0] === 1 ) {
+                            online = "true";
+                        } else {
+                            online = "false";
+                        }
+                        $( "#item-name-search" ).val( item.name );
+                        $( "#item-type" ).val( item.type );
+                        $( "#item-subtype" ).val( item.subtype );
+                        $( "#rarity" ).val( item.rarity );
+                        $( "textarea" ).val( item.affixes.join( "\n" ));
+                        $( "#item-level" ).val( item.itemLevel );
+                        $( "#socket-amount" ).val( item.socketAmount );
+                        $( "#link-amount" ).val( item.linkAmount );
+                        $( "#verified" ).val( available );
+                        $( "#corrupted" ).val( corrupted );
+                        $( "#crafted" ).val( crafted );
+                        $( "#enchanted" ).val( enchanted );
+                        $( "#online" ).val( online );
+                        $( "#account-name-search" ).val( item.accountName );
+                        $( "#last-character-name-search" ).val( item.lastCharacterName );
+                        $( "#league" ).val( item.league );
+                        $( "#query-limit" ).val( item.queryLimit );
+                        // Launch search
+                        $( "#search-item" ).click();
+                    });
+                }
+
+                $( ".close-preferences" ).click( function() {
+                    $( "#preferences" ).fadeOut( "fast" );
+                });
+
+                $( "#open-preferences" ).click( function() {
+                    $( "#preferences" ).fadeToggle( "fast" );
+                    $( "#preferences-league" ).val( config.defaultLeague );
+                    $( "#preferences textarea" ).val( config.contactMessage );
+                });
+
+                $( "#apply-preferences" ).click( function() {
+                    config.defaultLeague = $( "#preferences-league" ).val();
+                    config.contactMessage = $( "#preferences textarea" ).val();
+                    // Write config to config file
+                    fs.writeFile( "./config.json", JSON.stringify( config ), function( err ) {
+                        if( err ) {
+                            return console.log( err );
+                        }
+                        $( "#preferences" ).fadeOut( "fast" );
+                    });
+                });
+
+                // On startup, load history
+                updateHistory();
 
                 process.on('SIGINT', cleanup );
                 process.on('SIGTERM', cleanup );

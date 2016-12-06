@@ -213,7 +213,7 @@ table th {
     padding-bottom: 0;
 }
 
-#results tr:hover td, #results td.selected {
+#results tr:hover td, #results td.selected, #history tr:hover td, #history td.selected {
     /*background-image: -o-linear-gradient(-90deg, #2F2F2F 0%, #272727 100%);*/
     /*background-image: -moz-linear-gradient(-90deg, #2F2F2F 0%, #272727 100%);*/
     /*background-image: -webkit-linear-gradient(-90deg, #2F2F2F 0%, #272727 100%);*/
@@ -240,6 +240,15 @@ input[type="button"] {
 #search {
     text-align: center;
 }
+
+#history {
+    font-size: 1em;
+    box-shadow: none;
+    border: none;
+    height: 455px;
+    overflow-y: scroll;
+}
+
 #results {
     font-size: 1.2em;
     height: 455px;
@@ -256,7 +265,7 @@ input[type="button"] {
     /*color: rgba(69, 169, 207, 1);*/
     transition: 0.2s color;
 }
-#results table {
+#results table, #history table {
     border: none;
     box-shadow: none;
     height: 500px;
@@ -684,4 +693,71 @@ span.rate {
 }
 #tooltip-currency-median {
     color: rgba(222, 228, 9, 1);
+}
+
+#preferences {
+    position: absolute;
+    width: 30%;
+    left: 30%;
+    top: 20%;
+    height: 220px;
+    font-size: 0.9em;
+    background: rgba( 30, 30, 30, 1 );
+    box-shadow: 0 0 30px rgba(0, 0, 0, 1);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 1);
+    z-index: 9999;
+    display: none;
+}
+#preferences-title {
+    background: black;
+    border-bottom: 1px solid rgba( 255, 255, 255, 0.15 );
+    padding: 10px;
+    position: relative;
+    top: -10px;
+    border-radius: 5px 5px 0 0;
+}
+
+#preferences table {
+    padding: 10px;
+    position: relative;
+    top: 5px;
+    border: none;
+    font-size: 0.9em;
+    box-shadow: none;
+}
+
+#preferences textarea {
+    /*position: relative;*/
+    /*top: 30px;*/
+    height: 70px;
+}
+
+.close-preferences {
+    float: right;
+    cursor: pointer;
+    color: white;
+    transition: color 0.2s;
+}
+
+.close-preferences:hover {
+    color: rgba(69, 169, 207, 1);
+    transition: color 0.2s;
+}
+
+#apply-preferences {
+    float: right;
+}
+
+#open-preferences {
+    color: white;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+#open-preferences:hover {
+    color: rgba(69, 169, 207, 1);
+    transition: color 0.2s;
 }
