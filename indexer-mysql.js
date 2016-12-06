@@ -29,7 +29,7 @@ var credentials      = {
     user     : config.dbUser,
     password : config.dbPass,
     database : config.dbName,
-    connectionLimit: 1000
+    connectionLimit: 100
 };
 var modParsingTime = 0;
 var addedNew       = 0;
@@ -417,6 +417,9 @@ var parseMods = function( item, callback ) {
 var insertOtherProperties = function( item, cb ) {
     // console.time( "Inserting other properties" );
     pool.getConnection( function( err, connection ) {
+        if ( err ) {
+            logger.log( err, scriptName, "e" );
+        }
         connection.beginTransaction( function( err ) {
             if ( err ) {
                 logger.log( err, scriptName, "w" );
