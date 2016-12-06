@@ -717,6 +717,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                 var lockedToCharacter   = item.lockedToCharacter ? 1 : 0;
                                 var flavourText         = !item.flavourText ? "" : item.flavourText.join("\n");
                                 var price;
+                                crafted                 = item.parsedCraftedMods.length > 0 ? 1 : 0;
+                                enchanted               = item.parsedEnchantedMods.length > 0 ? 1 : 0;
                                 // If note exists on the item, set price to note
                                 if ( item.note ) {
                                     price = item.note;
@@ -733,8 +735,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                     /* Insert item. If item already exists in the
                                        DB, update its attributes */
                                     connection.query( 
-                                        "INSERT INTO `Items` (`w`, `h`, `ilvl`, `icon`, `league`, `itemId`, `name`, `typeLine`, `identified`, `verified`, `corrupted`, `lockedToCharacter`, `frameType`, `x`, `y`, `inventoryId`, `accountName`, `stashId`, `socketAmount`, `linkAmount`, `available`, `addedTs`, `updatedTs`, `flavourText`, `price`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `name` = ?, `verified` = ?, `corrupted` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `available` = ?, `updatedTs` = ?, `price` = ?", 
-                                        [item.w, item.h, item.ilvl, item.icon, item.league, item.id, name, typeLine, identified, verified, corrupted, lockedToCharacter, item.frameType, item.x, item.y, item.inventoryId, stash.accountName, stash.id, socketAmount, linkAmount, available, addedTs, updatedTs, flavourText, price, name, verified, corrupted, item.x, item.y, item.inventoryId, stash.accountName, stash.id, socketAmount, linkAmount, available, Date.now(), price], function( err, rows ) {
+                                        "INSERT INTO `Items` (`w`, `h`, `ilvl`, `icon`, `league`, `itemId`, `name`, `typeLine`, `identified`, `verified`, `crafted`, `enchanted`, `corrupted`, `lockedToCharacter`, `frameType`, `x`, `y`, `inventoryId`, `accountName`, `stashId`, `socketAmount`, `linkAmount`, `available`, `addedTs`, `updatedTs`, `flavourText`, `price`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `name` = ?, `verified` = ?, `crafted` = ?, `enchanted` = ?, `corrupted` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `available` = ?, `updatedTs` = ?, `price` = ?", 
+                                        [item.w, item.h, item.ilvl, item.icon, item.league, item.id, name, typeLine, identified, verified, crafted, enchanted, corrupted, lockedToCharacter, item.frameType, item.x, item.y, item.inventoryId, stash.accountName, stash.id, socketAmount, linkAmount, available, addedTs, updatedTs, flavourText, price, name, verified, crafted, enchanted, corrupted, item.x, item.y, item.inventoryId, stash.accountName, stash.id, socketAmount, linkAmount, available, Date.now(), price], function( err, rows ) {
                                         if ( err ) {
                                             logger.log( "New stash here: There was an error inserting value: " + err, scriptName, "w" );
                                             insertionError++;
@@ -884,6 +886,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                         addedItem.parsedEnchantedMods = enchanted;
                                         var flavourText         = !addedItem.flavourText ? "" : addedItem.flavourText.join("\n");
                                         var price;
+                                        crafted                 = addedItem.parsedCraftedMods.length > 0 ? 1 : 0;
+                                        enchanted               = addedItem.parsedEnchantedMods.length > 0 ? 1 : 0;
                                         if ( addedItem.note ) {
                                             price = addedItem.note;
                                         } else {
@@ -894,8 +898,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                             // Store this item
                                             var itemInsertStart = Date.now();
                                             connection.query( 
-                                                "INSERT INTO `Items` (`w`, `h`, `ilvl`, `icon`, `league`, `itemId`, `name`, `typeLine`, `identified`, `verified`, `corrupted`, `lockedToCharacter`, `frameType`, `x`, `y`, `inventoryId`, `accountName`, `stashId`, `socketAmount`, `linkAmount`, `available`, `addedTs`, `updatedTs`, `flavourText`, `price`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `name` = ?, `verified` = ?, `corrupted` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `available` = ?, `updatedTs` = ?, `price` = ?", 
-                                                [addedItem.w, addedItem.h, addedItem.ilvl, addedItem.icon, addedItem.league, addedItem.id, name, typeLine, identified, verified, corrupted, lockedToCharacter, addedItem.frameType, addedItem.x, addedItem.y, addedItem.inventoryId, addedItem.accountName, stash.id, socketAmount, linkAmount, available, addedTs, updatedTs, flavourText, price, name, verified, corrupted, addedItem.x, addedItem.y, addedItem.inventoryId, addedItem.accountName, addedItem.stashID, socketAmount, linkAmount, available, Date.now(), price], function( err, rows ) {
+                                                "INSERT INTO `Items` (`w`, `h`, `ilvl`, `icon`, `league`, `itemId`, `name`, `typeLine`, `identified`, `verified`, `crafted`, `enchanted`, `corrupted`, `lockedToCharacter`, `frameType`, `x`, `y`, `inventoryId`, `accountName`, `stashId`, `socketAmount`, `linkAmount`, `available`, `addedTs`, `updatedTs`, `flavourText`, `price`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `name` = ?, `verified` = ?, `crafted` = ?, `enchanted` = ?, `corrupted` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `available` = ?, `updatedTs` = ?, `price` = ?", 
+                                                [addedItem.w, addedItem.h, addedItem.ilvl, addedItem.icon, addedItem.league, addedItem.id, name, typeLine, identified, verified, crafted, enchanted, corrupted, lockedToCharacter, addedItem.frameType, addedItem.x, addedItem.y, addedItem.inventoryId, addedItem.accountName, stash.id, socketAmount, linkAmount, available, addedTs, updatedTs, flavourText, price, name, verified, crafted, enchanted, corrupted, addedItem.x, addedItem.y, addedItem.inventoryId, addedItem.accountName, addedItem.stashID, socketAmount, linkAmount, available, Date.now(), price], function( err, rows ) {
                                                 if ( err ) {
                                                     logger.log( "Stash update -> added: There was an error inserting value: " + err, scriptName, "w" );
                                                     insertionError++;
@@ -944,6 +948,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                             var identified          = commonItem.identified ? 1 : 0;
                                             var corrupted           = commonItem.corrupted ? 1 : 0;
                                             var lockedToCharacter   = commonItem.lockedToCharacter ? 1 : 0;
+                                            crafted                 = commonItem.parsedCraftedMods.length > 0 ? 1 : 0;
+                                            enchanted               = commonItem.parsedEnchantedMods.length > 0 ? 1 : 0;
                                             // Update its update timestamp
                                             commonItem.updatedTs = Date.now();
                                             getLinksAmountAndColor( commonItem, function( res ) {
@@ -953,8 +959,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                                 var itemInsertStart = Date.now();
                                                 connection.query( 
                                                     "UPDATE `Items` SET " + 
-                                                    "`w` = ?, `h` = ?, `ilvl` = ?, `icon` = ?, `league` = ?, `name` = ?, `typeLine` = ?, `identified` = ?, `verified` = ?, `corrupted` = ?, `lockedToCharacter` = ?, `frameType` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `updatedTs` = ? WHERE `itemId` = ?", 
-                                                    [commonItem.w, commonItem.h, commonItem.ilvl, commonItem.icon, commonItem.league, name, typeLine, identified, verified, corrupted, lockedToCharacter, commonItem.frameType, commonItem.x, commonItem.y, commonItem.inventoryId, stash.accountName, stash.id, socketAmount, commonItem.linkAmount, updatedDate, commonItem.id], function( err, rows ) {
+                                                    "`w` = ?, `h` = ?, `ilvl` = ?, `icon` = ?, `league` = ?, `name` = ?, `typeLine` = ?, `identified` = ?, `verified` = ?, `crafted` = ?, `enchanted` = ?, `corrupted` = ?, `lockedToCharacter` = ?, `frameType` = ?, `x` = ?, `y` = ?, `inventoryId` = ?, `accountName` = ?, `stashId` = ?, `socketAmount` = ?, `linkAmount` = ?, `updatedTs` = ? WHERE `itemId` = ?", 
+                                                    [commonItem.w, commonItem.h, commonItem.ilvl, commonItem.icon, commonItem.league, name, typeLine, identified, verified, crafted, enchanted, corrupted, lockedToCharacter, commonItem.frameType, commonItem.x, commonItem.y, commonItem.inventoryId, stash.accountName, stash.id, socketAmount, commonItem.linkAmount, updatedDate, commonItem.id], function( err, rows ) {
                                                     if ( err ) {
                                                         logger.log( "Stash update -> kept: There was an error inserting value: " + err, scriptName, "w" );
                                                         insertionError++;
