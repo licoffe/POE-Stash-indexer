@@ -29,12 +29,14 @@ var credentials      = {
     user     : config.dbUser,
     password : config.dbPass,
     database : config.dbName,
-    connectionLimit: 100
+    connectionLimit: 500
 };
-var modParsingTime = 0;
-var addedNew       = 0;
-var removedNew     = 0; 
-var updatedNew     = 0;
+var modParsingTime    = 0;
+var addedNew          = 0;
+var removedNew        = 0; 
+var updatedNew        = 0;
+var propertiesTime    = 0;
+var compareArraysTime = 0;
 var startInsert;
 
 io.on( 'connection', function( socket ) {
@@ -105,23 +107,37 @@ var cleanupDB = function( db, callback ) {
                                     logger.log( err + ", rolling back", scriptName, "e" );
                                     return db.rollback( function() {});
                                 }
-                                logger.log( "Cleaning up 'Leagues' table" );
-                                db.query( "DELETE FROM `Leagues`", function( err, rows ) {
+                                logger.log( "Cleaning up 'CurrencyStats' table" );
+                                db.query( "DELETE FROM `CurrencyStats`", function( err, rows ) {
                                     if ( err ) {
                                         logger.log( err + ", rolling back", scriptName, "e" );
                                         return db.rollback( function() {});
                                     }
-                                    logger.log( "Cleaning up 'Accounts' table" );
-                                    db.query( "DELETE FROM `Accounts`", function( err, rows ) {
+                                    logger.log( "Cleaning up 'Currencies' table" );
+                                    db.query( "DELETE FROM `Currencies`", function( err, rows ) {
                                         if ( err ) {
                                             logger.log( err + ", rolling back", scriptName, "e" );
                                             return db.rollback( function() {});
                                         }
-                                        db.commit( function( err ) {
+                                        logger.log( "Cleaning up 'Leagues' table" );
+                                        db.query( "DELETE FROM `Leagues`", function( err, rows ) {
                                             if ( err ) {
-                                                logger.log( "commit: " + err, scriptName, "e" );
+                                                logger.log( err + ", rolling back", scriptName, "e" );
+                                                return db.rollback( function() {});
                                             }
-                                            callback();
+                                            logger.log( "Cleaning up 'Accounts' table" );
+                                            db.query( "DELETE FROM `Accounts`", function( err, rows ) {
+                                                if ( err ) {
+                                                    logger.log( err + ", rolling back", scriptName, "e" );
+                                                    return db.rollback( function() {});
+                                                }
+                                                db.commit( function( err ) {
+                                                    if ( err ) {
+                                                        logger.log( "commit: " + err, scriptName, "e" );
+                                                    }
+                                                    callback();
+                                                });
+                                            });
                                         });
                                     });
                                 });
@@ -201,7 +217,7 @@ var getLinksAmountAndColor = function( item, callback ) {
     var groupColors = {};
     var colors      = [];
     // FOr each sockets in the item
-    async.eachLimit( item.sockets, 1, function( socket, cb ) {
+    async.each( item.sockets, function( socket, cb ) {
         // If we have a new socket group
         if ( !groups[socket.group] ) {
             groups[socket.group] = 1;
@@ -316,10 +332,15 @@ var compareArrays = function( old, young, cb ) {
  */
 var parseMods = function( item, callback ) {
     // console.time( "Parsing mods" );
-    var parsedExplicitMods  = [];
-    var parsedImplicitMods  = [];
-    var parsedCraftedMods   = [];
-    var parsedEnchantedMods = [];
+    var parsedMods = [];
+    var crafted    = false;
+    var enchanted  = false;
+    if ( item.craftedMods ) {
+        crafted    = item.craftedMods.length > 0;
+    }
+    if ( item.enchantMods ) {
+        enchanted  = item.enchantMods.length > 0;
+    }
     // console.time( "Parsing mods" );
     // Parse explicit mods
     async.each( item.explicitMods, function( mod, cbMod ) {
@@ -331,9 +352,10 @@ var parseMods = function( item, callback ) {
             match = re.exec( mod );
         }
         mod = mod.replace( re, "#" );
-        parsedExplicitMods.push({
+        parsedMods.push({
             "mod": mod,
-            "values": matches
+            "values": matches,
+            "type": "EXPLICIT"
         });
         cbMod();
     }, function( err ) {
@@ -350,9 +372,10 @@ var parseMods = function( item, callback ) {
                 match = re.exec( mod );
             }
             mod = mod.replace( re, "#" );
-            parsedImplicitMods.push({
+            parsedMods.push({
                 "mod": mod,
-                "values": matches
+                "values": matches,
+                "type": "IMPLICIT"
             });
             cbMod();
         }, function( err ) {
@@ -369,9 +392,10 @@ var parseMods = function( item, callback ) {
                     match = re.exec( mod );
                 }
                 mod = mod.replace( re, "#" );
-                parsedCraftedMods.push({
+                parsedMods.push({
                     "mod": mod,
-                    "values": matches
+                    "values": matches,
+                    "type": "CRAFTED"
                 });
                 cbMod();
             }, function( err ) {
@@ -388,9 +412,10 @@ var parseMods = function( item, callback ) {
                         match = re.exec( mod );
                     }
                     mod = mod.replace( re, "#" );
-                    parsedEnchantedMods.push({
+                    parsedMods.push({
                         "mod": mod,
-                        "values": matches
+                        "values": matches,
+                        "type": "ENCHANTED"
                     });
                     cbMod();
                 }, function( err ) {
@@ -398,8 +423,11 @@ var parseMods = function( item, callback ) {
                         logger.log( "Error: " + err, scriptName, "w" );
                     }
                     // console.timeEnd( "Parsing mods" );
-                    callback( parsedExplicitMods, parsedImplicitMods, 
-                              parsedCraftedMods, parsedEnchantedMods );
+                    callback({ 
+                        "mods":      parsedMods, 
+                        "crafted":   crafted, 
+                        "enchanted": enchanted
+                    });
                 });
             });
         });
@@ -425,149 +453,84 @@ var insertOtherProperties = function( item, cb ) {
                 logger.log( err, scriptName, "w" );
             }
             // Insert into mods
-            connection.query( "DELETE FROM `Mods` WHERE `itemId` = ?", [item.id], function( err, rows ) {
+            var counterMods = 0;
+            async.each( item.mods, function( mod, cbMod ) {
+                counterMods++;
+                for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
+                    mod.values.push( 0 );
+                }
+                connection.query( 
+                    "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`, `modKey`) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `modName` = ?, `modValue1` = ?, `modValue2` = ?, `modValue3` = ?, `modValue4` = ?, `modType` = ?", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], mod.type, item.id + "_" + counterMods, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], mod.type], function( err, rows ) {
+                    if ( err ) {
+                        logger.log( "Insert issue mod: " + err, scriptName, "w" );
+                        insertionError++;
+                    }
+                    cbMod();
+                });
+            }, function( err ) {
                 if ( err ) {
                     logger.log( err, scriptName, "w" );
                 }
-                async.each( item.parsedImplicitMods, function( mod, cbMod ) {
-                    for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
-                        mod.values.push( 0 );
+                // Insert into properties
+                var counterProperty = 0;
+                async.each( item.properties, function( property, cbProperty ) {
+                    counterProperty++;
+                    for ( var i = property.values.length ; i < 1 - property.values.length ; i++ ) {
+                        property.values[i] = [];
+                        property.values[i].push( 0 );
                     }
+                    // console.log( property );
                     connection.query( 
-                        "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'IMPLICIT'], function( err, rows ) {
+                        "INSERT INTO `Properties` (`itemId`, `propertyName`, `propertyValue1`, `propertyValue2`, `propertyKey`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `propertyName` = ?, `propertyValue1` = ?, `propertyValue2` = ?", [item.id, property.name, property.values[0][0], property.values[0][1], item.id + "_" + counterProperty, property.name, property.values[0][0], property.values[0][1]], function( err, rows ) {
                         if ( err ) {
-                            logger.log( "Insert issue implicit: " + err, scriptName, "w" );
+                            logger.log( "Insert issue properties: " + err, scriptName, "w" );
                             insertionError++;
                         }
-                        cbMod();
+                        cbProperty();
                     });
                 }, function( err ) {
                     if ( err ) {
                         logger.log( err, scriptName, "w" );
                     }
-                    async.each( item.parsedExplicitMods, function( mod, cbMod ) {
-                        for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
-                            mod.values.push( 0 );
-                        }
+                    // Insert into requirements
+                    var counterRequirement = 0;
+                    async.each( item.requirements, function( requirement, cbRequirement ) {
+                        counterRequirement++;
                         connection.query( 
-                            "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'EXPLICIT'], function( err, rows ) {
+                            "INSERT INTO `Requirements` (`itemId`, `requirementName`, `requirementValue`, `requirementKey`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `requirementName` = ?, `requirementValue` = ?", [item.id, requirement.name, requirement.values[0][0], item.id + "_" + counterRequirement, requirement.name, requirement.values[0][0]], function( err, rows ) {
                             if ( err ) {
-                                logger.log( "Insert issue explicit: " + err, scriptName, "w" );
+                                logger.log( "Insert issue requirements: " + err, scriptName, "w" );
                                 insertionError++;
                             }
-                            cbMod();
+                            cbRequirement();
                         });
                     }, function( err ) {
                         if ( err ) {
                             logger.log( err, scriptName, "w" );
                         }
-                        async.each( item.parsedCraftedMods, function( mod, cbMod ) {
-                            for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
-                                mod.values.push( 0 );
-                            }
+                        // Insert into sockets
+                        var counterSocket = 0;
+                        async.each( item.sockets, function( socket, cbSocket ) {
+                            counterSocket++;
                             connection.query( 
-                                "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'CRAFTED'], function( err, rows ) {
+                                "INSERT INTO `Sockets` (`itemId`, `socketGroup`, `socketAttr`, `socketKey`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `socketGroup` = ?, `socketAttr` = ?", [item.id, socket.group, socket.attr, item.id + "_" + counterSocket, socket.group, socket.attr], function( err, rows ) {
                                 if ( err ) {
-                                    logger.log( "Insert issue crafted: " + err, scriptName, "w" );
+                                    logger.log( "Insert issue sockets: " + err, scriptName, "w" );
                                     insertionError++;
                                 }
-                                cbMod();
+                                cbSocket();
                             });
                         }, function( err ) {
                             if ( err ) {
                                 logger.log( err, scriptName, "w" );
                             }
-                            async.each( item.parsedEnchantedMods, function( mod, cbMod ) {
-                                for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
-                                    mod.values.push( 0 );
-                                }
-                                connection.query( 
-                                    "INSERT INTO `Mods` (`itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType`) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, mod.mod, mod.values[0], mod.values[1], mod.values[2], mod.values[3], 'ENCHANTED'], function( err, rows ) {
-                                    if ( err ) {
-                                        logger.log( "Insert issue enchanted: " + err, scriptName, "w" );
-                                        insertionError++;
-                                    }
-                                    cbMod();
-                                });
-                            }, function( err ) {
+                            connection.commit( function( err ) {
                                 if ( err ) {
                                     logger.log( err, scriptName, "w" );
                                 }
-                                // Insert into properties
-                                connection.query( "DELETE FROM `Properties` WHERE `itemId` = ?", [item.id], function( err, rows ) {
-                                    if ( err ) {
-                                        logger.log( err, scriptName, "w" );
-                                    }
-                                    async.each( item.properties, function( property, cbProperty ) {
-                                        for ( var i = property.values.length ; i < 1 - property.values.length ; i++ ) {
-                                            property.values[i] = [];
-                                            property.values[i].push( 0 );
-                                        }
-                                        // console.log( property );
-                                        connection.query( 
-                                            "INSERT INTO `Properties` (`itemId`, `propertyName`, `propertyValue1`, `propertyValue2`, `propertyKey`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, property.name, property.values[0][0], property.values[0][1], item.id + "_" + property.name], function( err, rows ) {
-                                            if ( err ) {
-                                                logger.log( "Insert issue properties: " + err, scriptName, "w" );
-                                                insertionError++;
-                                            }
-                                            cbProperty();
-                                        });
-                                    }, function( err ) {
-                                        if ( err ) {
-                                            logger.log( err, scriptName, "w" );
-                                        }
-                                        // Insert into requirements
-                                        connection.query( "DELETE FROM `Requirements` WHERE `itemId` = ?", [item.id], function( err, rows ) {
-                                            if ( err ) {
-                                                logger.log( err, scriptName, "w" );
-                                            }
-                                            async.each( item.requirements, function( requirement, cbRequirement ) {
-                                                connection.query( 
-                                                    "INSERT INTO `Requirements` (`itemId`, `requirementName`, `requirementValue`, `requirementKey`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `itemId` = `itemId`", [item.id, requirement.name, requirement.values[0][0], item.id + "_" + requirement.name], function( err, rows ) {
-                                                    if ( err ) {
-                                                        logger.log( "Insert issue requirements: " + err, scriptName, "w" );
-                                                        insertionError++;
-                                                    }
-                                                    cbRequirement();
-                                                });
-                                            }, function( err ) {
-                                                if ( err ) {
-                                                    logger.log( err, scriptName, "w" );
-                                                }
-                                                // Insert into sockets
-                                                connection.query( "DELETE FROM `Sockets` WHERE `itemId` = ?", [item.id], function( err, rows ) {
-                                                    if ( err ) {
-                                                        logger.log( err, scriptName, "w" );
-                                                    }
-                                                    var counterSocket = 0;
-                                                    async.each( item.sockets, function( socket, cbSocket ) {
-                                                        counterSocket++;
-                                                        connection.query( 
-                                                            "INSERT INTO `Sockets` (`itemId`, `socketGroup`, `socketAttr`, `socketKey`) VALUES (?, ?, ?, ?)", [item.id, socket.group, socket.attr, item.id + "_" + counterSocket], function( err, rows ) {
-                                                            if ( err ) {
-                                                                logger.log( "Insert issue sockets: " + err, scriptName, "w" );
-                                                                insertionError++;
-                                                            }
-                                                            cbSocket();
-                                                        });
-                                                    }, function( err ) {
-                                                        if ( err ) {
-                                                            logger.log( err, scriptName, "w" );
-                                                        }
-                                                        connection.commit( function( err ) {
-                                                            if ( err ) {
-                                                                logger.log( err, scriptName, "w" );
-                                                            }
-                                                            connection.release();
-                                                            // console.timeEnd( "Inserting other properties" );
-                                                            cb();
-                                                        });
-                                                    });
-                                                });
-                                            });
-                                        });
-                                    });
-                                });
+                                connection.release();
+                                // console.timeEnd( "Inserting other properties" );
+                                cb();
                             });
                         });
                     });
@@ -637,15 +600,15 @@ var downloadChunk = function( chunkID, connection, callback ) {
             console.time( "Loading data into DB" );
 
             // Vars for time profiling
-            var propertiesTime    = 0;
-            var compareArraysTime = 0;
-            var itemInsertTime    = 0;
-            var itemTotal         = 0;
-            startInsert           = Date.now();
-            addedNew       = 0;
-            updatedNew     = 0;
-            removedNew     = 0;
-            modParsingTime = 0;
+            propertiesTime     = 0;
+            compareArraysTime  = 0;
+            var itemInsertTime = 0;
+            var itemTotal      = 0;
+            startInsert        = Date.now();
+            addedNew           = 0;
+            updatedNew         = 0;
+            removedNew         = 0;
+            modParsingTime     = 0;
             // For each stashes in the new data file
             async.each( data.stashes, function( stash, callbackStash ) {
                 // If stash is updated, the account is online
@@ -698,16 +661,13 @@ var downloadChunk = function( chunkID, connection, callback ) {
                         async.each( stash.items, function( item, cb ) {
                             var modParsingStart = Date.now();
                             // Parse its mods
-                            parseMods( item, function( explicit, implicit, crafted, enchanted ) {
+                            parseMods( item, function( mods ) {
                                 modParsingTime += Date.now() - modParsingStart;
                                 var socketAmount = item.sockets.length;
                                 var available    = 1;
                                 var addedTs      = Date.now();
                                 var updatedTs    = Date.now();
-                                item.parsedImplicitMods  = implicit;
-                                item.parsedExplicitMods  = explicit;
-                                item.parsedCraftedMods   = crafted;
-                                item.parsedEnchantedMods = enchanted;
+                                item.mods        = mods.parsedMods;
                                 // Cleanup name and typeLine attributes
                                 var name                = item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                 var typeLine            = item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
@@ -717,8 +677,8 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                 var lockedToCharacter   = item.lockedToCharacter ? 1 : 0;
                                 var flavourText         = !item.flavourText ? "" : item.flavourText.join("\n");
                                 var price;
-                                crafted                 = item.parsedCraftedMods.length > 0 ? 1 : 0;
-                                enchanted               = item.parsedEnchantedMods.length > 0 ? 1 : 0;
+                                var crafted             = mods.crafted ? 1 : 0;
+                                var enchanted           = mods.enchanted ? 1 : 0;
                                 // If note exists on the item, set price to note
                                 if ( item.note ) {
                                     price = item.note;
@@ -803,15 +763,12 @@ var downloadChunk = function( chunkID, connection, callback ) {
                             // For each removed item
                             async.each( res.removed, function( removedItem, cbRemoved ) {
                                 var modParsingStart = Date.now();
-                                parseMods( removedItem, function( explicit, implicit, crafted, enchanted ) {
+                                parseMods( removedItem, function( mods ) {
                                     modParsingTime += Date.now() - modParsingStart;
-                                    removedItem.parsedImplicitMods  = implicit;
-                                    removedItem.parsedExplicitMods  = explicit;
-                                    removedItem.parsedCraftedMods   = crafted;
-                                    removedItem.parsedEnchantedMods = enchanted;
                                     // Set item status to unavailable
                                     logger.log( removedItem.id + " removed", scriptName, "", true );
                                     removedItem.available           = 0;
+                                    removedItem.mods                = mods.parsedMods;
                                     removedItem.name                = removedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                     removedItem.typeLine            = removedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                     removedItem.verified            = removedItem.verified ? 1 : 0;
@@ -866,12 +823,13 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                 async.each( res.added, function( addedItem, cbAdded ) {
                                     logger.log( addedItem.id + " added", scriptName, "", true );
                                     var modParsingStart = Date.now();
-                                    parseMods( addedItem, function( explicit, implicit, crafted, enchanted ) {
+                                    parseMods( addedItem, function( mods ) {
                                         modParsingTime += Date.now() - modParsingStart;
                                         addedItem.accountName  = stash.accountName;
                                         addedItem.stashID      = stash.id;
                                         var socketAmount        = addedItem.sockets.length;
                                         var available           = 1;
+                                        addedItem.mods          = mods.parsedMods;
                                         var name                = addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                         var typeLine            = addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                         var verified            = addedItem.verified ? 1 : 0;
@@ -880,14 +838,10 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                         var lockedToCharacter   = addedItem.lockedToCharacter ? 1 : 0;
                                         var addedTs      = Date.now();
                                         var updatedTs    = Date.now();
-                                        addedItem.parsedImplicitMods  = implicit;
-                                        addedItem.parsedExplicitMods  = explicit;
-                                        addedItem.parsedCraftedMods   = crafted;
-                                        addedItem.parsedEnchantedMods = enchanted;
                                         var flavourText         = !addedItem.flavourText ? "" : addedItem.flavourText.join("\n");
                                         var price;
-                                        crafted                 = addedItem.parsedCraftedMods.length > 0 ? 1 : 0;
-                                        enchanted               = addedItem.parsedEnchantedMods.length > 0 ? 1 : 0;
+                                        var crafted             = mods.crafted ? 1 : 0;
+                                        var enchanted           = mods.enchanted ? 1 : 0;
                                         if ( addedItem.note ) {
                                             price = addedItem.note;
                                         } else {
@@ -935,21 +889,18 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                     async.each( res.common, function( commonItem, cbCommon ) {
                                         logger.log( commonItem.id + " updated", scriptName, "", true );
                                         var modParsingStart = Date.now();
-                                        parseMods( commonItem, function( explicit, implicit, crafted, enchanted ) {
+                                        parseMods( commonItem, function( mods ) {
                                             modParsingTime += Date.now() - modParsingStart;
-                                            commonItem.parsedImplicitMods  = implicit;
-                                            commonItem.parsedExplicitMods  = explicit;
-                                            commonItem.parsedCraftedMods   = crafted;
-                                            commonItem.parsedEnchantedMods = enchanted;
                                             var socketAmount        = commonItem.sockets.length;
+                                            commonItem.mods         = mods.parsedMods;
                                             var name                = commonItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                             var typeLine            = commonItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                             var verified            = commonItem.verified ? 1 : 0;
                                             var identified          = commonItem.identified ? 1 : 0;
                                             var corrupted           = commonItem.corrupted ? 1 : 0;
                                             var lockedToCharacter   = commonItem.lockedToCharacter ? 1 : 0;
-                                            crafted                 = commonItem.parsedCraftedMods.length > 0 ? 1 : 0;
-                                            enchanted               = commonItem.parsedEnchantedMods.length > 0 ? 1 : 0;
+                                            var crafted             = mods.crafted ? 1 : 0;
+                                            var enchanted           = mods.enchanted ? 1 : 0;
                                             // Update its update timestamp
                                             commonItem.updatedTs = Date.now();
                                             getLinksAmountAndColor( commonItem, function( res ) {
@@ -1035,7 +986,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                         ", removed: " + removedNew +
                         ", updated: " + updatedNew +
                         ", insert errors: " + insertionError +
-                        " over " + Math.round( elapsedInstant.amount ) +
+                        " over " + Math.round( elapsedInstant.amount * 100 ) / 100 +
                         " " + elapsedInstant.unit +
                         " at " + Math.round( speedInstant ) +
                         " insert/sec", scriptName );
