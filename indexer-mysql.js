@@ -454,6 +454,7 @@ var insertOtherProperties = function( item, cb ) {
             }
             // Insert into mods
             var counterMods = 0;
+            console.log( item.mods );
             async.each( item.mods, function( mod, cbMod ) {
                 counterMods++;
                 for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
@@ -667,7 +668,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                 var available    = 1;
                                 var addedTs      = Date.now();
                                 var updatedTs    = Date.now();
-                                item.mods        = mods.parsedMods;
+                                item.mods        = mods.mods;
                                 // Cleanup name and typeLine attributes
                                 var name                = item.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                 var typeLine            = item.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
@@ -768,7 +769,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                     // Set item status to unavailable
                                     logger.log( removedItem.id + " removed", scriptName, "", true );
                                     removedItem.available           = 0;
-                                    removedItem.mods                = mods.parsedMods;
+                                    removedItem.mods                = mods.mods;
                                     removedItem.name                = removedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                     removedItem.typeLine            = removedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                     removedItem.verified            = removedItem.verified ? 1 : 0;
@@ -829,7 +830,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                         addedItem.stashID      = stash.id;
                                         var socketAmount        = addedItem.sockets.length;
                                         var available           = 1;
-                                        addedItem.mods          = mods.parsedMods;
+                                        addedItem.mods          = mods.mods;
                                         var name                = addedItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                         var typeLine            = addedItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                         var verified            = addedItem.verified ? 1 : 0;
@@ -892,7 +893,7 @@ var downloadChunk = function( chunkID, connection, callback ) {
                                         parseMods( commonItem, function( mods ) {
                                             modParsingTime += Date.now() - modParsingStart;
                                             var socketAmount        = commonItem.sockets.length;
-                                            commonItem.mods         = mods.parsedMods;
+                                            commonItem.mods         = mods.mods;
                                             var name                = commonItem.name.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                             var typeLine            = commonItem.typeLine.replace( "<<set:MS>><<set:M>><<set:S>>", "" );
                                             var verified            = commonItem.verified ? 1 : 0;

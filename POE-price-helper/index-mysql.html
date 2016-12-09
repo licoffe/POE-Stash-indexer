@@ -687,6 +687,8 @@
                 var onlineDelayS = config.onlineDelayS;
                 var database     = "POE_price";
                 var script_name  = "index.html";
+                var offset       = 0;
+                var draggingPreferences = false;
                 
                 var autorefreshInterval;
                 var $                  = require("jquery");
@@ -869,6 +871,7 @@
                  * @return DB results matching the criteria
                 */
                 function queryDB( callback ) {
+                    clearInterval( animateText );
                     console.log( "Called query" );
                     var entries = [];
                     // var queryStartTime = Date.now
@@ -1211,7 +1214,7 @@
                  */
                 function filterValidPrice( items, callback ) {
                     // $( ".search-status" ).text( "Filtering non b/o prices ..." );
-                    var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew)/;
+                    var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew|chisel|vaal|regret)/;
                     var results         = [];
                     
                     for ( var i = 0 ; i < items.length ; i++ ) {
@@ -3730,6 +3733,25 @@
                     $( "#preferences" ).fadeToggle( "fast" );
                     $( "#preferences-league" ).val( config.defaultLeague );
                     $( "#preferences textarea" ).val( config.contactMessage );
+                    $( "#preferences-title" )
+                    .mousedown(function( e ) {
+                        draggingPreferences = true;
+                        offset   = $( "#preferences" ).offset();
+                        offset.y = offset.top - e.pageY;
+                        offset.x = offset.left - e.pageX;
+                    });
+                });
+
+                $( "body" ).mousemove(function( e ) {
+                    if ( draggingPreferences ) {
+                        $( "#preferences" ).css({
+                            "top": e.pageY + offset.y + "px",
+                            "left": e.pageX + offset.x + "px"
+                        });
+                    }
+                })
+                .mouseup(function( e ) {
+                    draggingPreferences = false;
                 });
 
                 $( "#apply-preferences" ).click( function() {
