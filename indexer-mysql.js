@@ -454,7 +454,6 @@ var insertOtherProperties = function( item, cb ) {
             }
             // Insert into mods
             var counterMods = 0;
-            console.log( item.mods );
             async.each( item.mods, function( mod, cbMod ) {
                 counterMods++;
                 for ( var i = 0 ; i < 3 - mod.values.length ; i++ ) {
