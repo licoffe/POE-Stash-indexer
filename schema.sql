@@ -18,13 +18,13 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 
 DROP TABLE IF EXISTS `Stashes`;
-DROP TABLE IF EXISTS `sockets`;
-DROP TABLE IF EXISTS `requirements`;
-DROP TABLE IF EXISTS `properties`;
-DROP TABLE IF EXISTS `mods`;
-DROP TABLE IF EXISTS `items`;
+DROP TABLE IF EXISTS `Sockets`;
+DROP TABLE IF EXISTS `Requirements`;
+DROP TABLE IF EXISTS `Properties`;
+DROP TABLE IF EXISTS `Mods`;
+DROP TABLE IF EXISTS `Items`;
 DROP TABLE IF EXISTS `CurrencyStats`;
-DROP TABLE IF EXISTS `currencies`;
+DROP TABLE IF EXISTS `Currencies`;
 DROP TABLE IF EXISTS `Leagues`;
 DROP TABLE IF EXISTS `ChangeId`;
 DROP TABLE IF EXISTS `Accounts`;
@@ -57,7 +57,7 @@ CREATE TABLE `Leagues` (
 ) ENGINE=InnoDB AUTO_INCREMENT=229425 DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `currencies` (
+CREATE TABLE `Currencies` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `timestamp` bigint(20) NOT NULL DEFAULT '0',
   `league` varchar(128) NOT NULL DEFAULT '',
@@ -68,7 +68,7 @@ CREATE TABLE `currencies` (
   UNIQUE KEY `id` (`id`),
   KEY `sell` (`sell`) USING BTREE,
   KEY `league` (`league`) USING BTREE,
-  CONSTRAINT `currencies_ibfk_1` FOREIGN KEY (`league`) REFERENCES `Leagues` (`leagueName`)
+  CONSTRAINT `Currencies_ibfk_1` FOREIGN KEY (`league`) REFERENCES `Leagues` (`leagueName`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1095 DEFAULT CHARSET=utf8;
 
 
@@ -84,11 +84,11 @@ CREATE TABLE `CurrencyStats` (
   PRIMARY KEY (`id`),
   KEY `buy` (`buy`) USING BTREE,
   KEY `currencyKey` (`currencyKey`) USING BTREE,
-  CONSTRAINT `currencystats_ibfk_1` FOREIGN KEY (`currencyKey`) REFERENCES `currencies` (`currencyKey`)
+  CONSTRAINT `currencystats_ibfk_1` FOREIGN KEY (`currencyKey`) REFERENCES `Currencies` (`currencyKey`)
 ) ENGINE=InnoDB AUTO_INCREMENT=18206 DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `items` (
+CREATE TABLE `Items` (
   `w` tinyint(4) NOT NULL DEFAULT '0',
   `h` tinyint(4) NOT NULL DEFAULT '0',
   `ilvl` smallint(6) NOT NULL DEFAULT '0',
@@ -123,13 +123,13 @@ CREATE TABLE `items` (
   KEY `stashId` (`stashId`),
   KEY `idx_name` (`name`) USING BTREE,
   KEY `idx_typeLine` (`typeLine`) USING BTREE,
-  CONSTRAINT `items_ibfk_1` FOREIGN KEY (`league`) REFERENCES `Leagues` (`leagueName`),
-  CONSTRAINT `items_ibfk_2` FOREIGN KEY (`accountName`) REFERENCES `Accounts` (`accountName`),
-  CONSTRAINT `items_ibfk_3` FOREIGN KEY (`stashId`) REFERENCES `Stashes` (`stashID`)
+  CONSTRAINT `Items_ibfk_1` FOREIGN KEY (`league`) REFERENCES `Leagues` (`leagueName`),
+  CONSTRAINT `Items_ibfk_2` FOREIGN KEY (`accountName`) REFERENCES `Accounts` (`accountName`),
+  CONSTRAINT `Items_ibfk_3` FOREIGN KEY (`stashId`) REFERENCES `Stashes` (`stashID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `mods` (
+CREATE TABLE `Mods` (
   `itemId` varchar(128) DEFAULT NULL,
   `modName` varchar(128) NOT NULL DEFAULT '0',
   `modValue1` smallint(6) DEFAULT '0',
@@ -146,11 +146,11 @@ CREATE TABLE `mods` (
   KEY `modName` (`modName`) USING BTREE,
   KEY `modType` (`modType`) USING BTREE,
   KEY `idx_itemId_modName` (`itemId`,`modName`) USING BTREE,
-  CONSTRAINT `mods_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `items` (`itemId`) ON DELETE CASCADE
+  CONSTRAINT `Mods_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=20174836 DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `properties` (
+CREATE TABLE `Properties` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `itemId` varchar(128) DEFAULT NULL,
   `propertyName` varchar(128) NOT NULL DEFAULT '0',
@@ -160,12 +160,12 @@ CREATE TABLE `properties` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `propertyKey` (`propertyKey`),
   KEY `itemId` (`itemId`),
-  KEY `properties_ibfk_2` (`propertyName`),
-  CONSTRAINT `properties_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `items` (`itemId`) ON DELETE CASCADE
+  KEY `Properties_ibfk_2` (`propertyName`),
+  CONSTRAINT `Properties_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=15462426 DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `requirements` (
+CREATE TABLE `Requirements` (
   `itemId` varchar(128) DEFAULT NULL,
   `requirementName` varchar(128) NOT NULL DEFAULT '0',
   `requirementValue` smallint(6) DEFAULT '0',
@@ -176,11 +176,11 @@ CREATE TABLE `requirements` (
   UNIQUE KEY `id` (`id`),
   KEY `itemId` (`itemId`) USING BTREE,
   KEY `requirementName` (`requirementName`) USING BTREE,
-  CONSTRAINT `requirements_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `items` (`itemId`) ON DELETE CASCADE
+  CONSTRAINT `Requirements_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=10033809 DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `sockets` (
+CREATE TABLE `Sockets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `itemId` varchar(128) DEFAULT NULL,
   `socketGroup` tinyint(4) DEFAULT '0',
@@ -190,7 +190,7 @@ CREATE TABLE `sockets` (
   UNIQUE KEY `socketKey` (`socketKey`),
   UNIQUE KEY `unnamedColumn` (`id`),
   KEY `itemId` (`itemId`) USING BTREE,
-  CONSTRAINT `sockets_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `items` (`itemId`) ON DELETE CASCADE
+  CONSTRAINT `Sockets_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5617225 DEFAULT CHARSET=utf8;
 
 
