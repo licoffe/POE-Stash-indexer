@@ -3,10 +3,10 @@
 
 #include <string>
 #include <vector>
-#include "Socket.h"
-#include "Property.h"
-#include "Requirement.h"
-#include "Mod.h"
+// #include "Socket.h"
+// #include "Property.h"
+// #include "Requirement.h"
+// #include "Mod.h"
 
 class Item {
     public:
@@ -64,11 +64,11 @@ class Item {
         std::string              price;
         bool                     crafted;
         bool                     enchanted;
-        std::vector<Socket>      sockets;
-        std::vector<Property>    properties;
-        std::vector<Property>    additional_properties;
-        std::vector<Requirement> requirements;
-        std::vector<Mod>         mods;
+        // std::vector<Socket>      sockets;
+        // std::vector<Property>    properties;
+        // std::vector<Property>    additional_properties;
+        // std::vector<Requirement> requirements;
+        // std::vector<Mod>         mods;
 };
 
 #endif /* _ITEM_H_ */

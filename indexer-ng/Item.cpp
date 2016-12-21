@@ -35,9 +35,9 @@ Item::Item( int width, int height, int ilvl, std::string icon, std::string leagu
     this->price                 = price;
     this->crafted               = crafted;
     this->enchanted             = enchanted;
-    this->sockets               = std::vector<Socket>();
-    this->properties            = std::vector<Property>();
-    this->additional_properties = std::vector<Property>();
-    this->requirements          = std::vector<Requirement>();
-    this->mods                  = std::vector<Mod>();
+    // this->sockets               = std::vector<Socket>();
+    // this->properties            = std::vector<Property>();
+    // this->additional_properties = std::vector<Property>();
+    // this->requirements          = std::vector<Requirement>();
+    // this->mods                  = std::vector<Mod>();
 };
