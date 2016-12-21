@@ -21,16 +21,57 @@ The indexer can be started with `node ./indexer.js` or `nodejs ./indexer.js` dep
 ![alt](./client.png)
 
 The client features:
-- Market exchange rate polling through [poe.trade](http://poe.trade)
-- Lookup of prices, stats and last update time for a given item name, account name, last character or mods
-- A price distribution plot to have a better idea of the current market price for a specific item
-- Text completion for mods and item names
-- An average, median and mode price over the entries indexed
-- Clicking on an entry in the item list will copy a message in the clipboard to contact the seller with his offer
-- Auto-refresh the search at a fixed poll (10s) for now
-- Pop-up Notification when the search is finished
-- Search can be sorted by affix value, price and player activity
-- Search can be filtered by item level, socket amount, socket links, corrupted, sold/moved
+- Market rates polling through [poe.trade](http://poe.trade)
+    - last poll time
+    - average value of that currency in the base currency
+    - current min, max, median, mean and average values for that currency
+    - Evolution of min and average values over the last day
+    - Check the price of a base currency in function of others
+    - Changing the league updates the currency values
+
+- Price distribution
+    - A plot to have a better idea of the current market price for a specific item
+    - Average, median and mode prices
+
+- Item search
+    - Name autocomplete with different color codes: 
+        - yellow for rare
+        - orange for uniques
+        - cyan for divination cards
+        - green for gems
+        - grey for currencies
+        - magenta for prophecies
+    - Mods also have auto-completion
+    - Mods can be removed from the list by pressing the cross
+    - By default a mod will have a value of # which matches any value. This can be edited to add any value.
+    - A Mod value can be changed after being added by clicking on it in the list.
+    - Search by type and subtype, affixes, last character name or account, amount of sockets/links, corruption, crafted or enchanted, moved/sold
+    - Set query limit higher than 99 items
+    - Auto-refresh the search at a fixed poll (10s) for now
+    - Pop-up Notification when a search is complete
+
+- Search result
+    - Item entries have a color code:
+        - red if corrupted
+        - yellow if rare
+        - orange if unique
+        - blue if magic
+        - white for normal
+        - grey for currencies
+    - Items can also have a lower opacity if sold/moved ( Available "no" or "either" )
+    - All items have prices
+    - Sort by explicit mod values, price or user activity
+    - A time shows the last update registered for that item
+    - By clicking on an item in the list, a message is copied into the clipboard to contact the owner. This message can be changed in the preferences.
+
+- Search history
+    - color coded in function of the type of item searched
+    - click on an item to search for it again
+    - click on the cross to remove it
+
+- Preferences
+    - Set default league
+    - Set contact message
 
 #### Installation
 Required node packages can be installed through `npm install`. On Ubuntu it may also be required to create an alias of the nodejs command to node using the following `ln /usr/bin/nodejs /usr/bin/node`.

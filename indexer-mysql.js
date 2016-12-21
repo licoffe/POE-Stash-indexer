@@ -216,7 +216,7 @@ var getLinksAmountAndColor = function( item, callback ) {
     var groups      = {};
     var groupColors = {};
     var colors      = [];
-    // FOr each sockets in the item
+    // For each sockets in the item
     async.each( item.sockets, function( socket, cb ) {
         // If we have a new socket group
         if ( !groups[socket.group] ) {

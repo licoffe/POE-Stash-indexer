@@ -173,7 +173,7 @@
                         <label>
                             <select id="base-currency">
                                 <option selected disabled>Base curreny</option>
-                                <option value="scrap">Armourer's Scrap</option>
+                                <option value="armour">Armourer's Scrap</option>
                                 <option value="stone">Blacksmith's Whetstone</option>
                                 <option value="bless">Blessed Orb</option>
                                 <option value="chisel">Cartographer's Chisel</option>
@@ -212,8 +212,8 @@
                     <td>
                         <input id="item-name-search" type="text" placeholder="Item name">
                     </td>
-                    <td rowspan="4">
-                        <textarea rows="" cols="" placeholder="Affixes"></textarea>
+                    <td>
+                        <input id="item-affixes" type="text" placeholder="Affixes">
                     </td>
                     <td>
                         <input type="number" id="item-level" min="1" max="100" placeholder="Item level">
@@ -266,6 +266,13 @@
                                         <option value="sceptre">Sceptre</option>
                                         <option value="staff">Staff</option>
                                         <option value="wand">Wand</option>
+                                        <option value="one-handed sword">One-handed Sword</option>
+                                        <option value="thrusting one-handed sword">Thrusting One-handed Sword</option>
+                                        <option value="two-handed sword">Two-handed Sword</option>
+                                        <option value="one-handed axe">One-handed Axe</option>
+                                        <option value="two-handed axe">Two-handed Axe</option>
+                                        <option value="one-handed mace">One-handed Mace</option>
+                                        <option value="two-handed mace">Two-handed Mace</option>
                                         <option disabled>Armor</option>
                                         <option value="body-armor">Body armor</option>
                                         <option value="boots">Boots</option>
@@ -290,6 +297,12 @@
                                 </label></td>
                             </tr>
                         </table>
+                    </td>
+                    <td rowspan="3">
+                        <div style="overflow: auto; height: 90px; max-width: 180px; position: relative; top: 5px;">
+                            <table class="table-ui" id="table-mods">
+                        </table>
+                        </div>
                     </td>
                     <td>
                         <input id="socket-amount" type="number" min="1" max="6" placeholder="Socket amount">
@@ -425,7 +438,7 @@
                 </tr>
                 <tr>
                     <td rowspan="3">
-                        <div style="overflow: auto; height: 450px;">
+                        <div style="overflow: auto; height: 450px; max-width: 300px;">
                             <table id="history">
                             </table>
                         </div>
@@ -596,7 +609,6 @@
                 var Chart    = require('./Chart.bundle.min.js');
                 var Currency = require( "./modules/currency" );
                 var currency = new Currency( league );
-                var mongo_client = require( "mongodb" ).MongoClient;
                 var mysql        = require( "mysql" );
                 const notifier   = require('node-notifier');
                 var Logger       = require( "./modules/logger.js" );
@@ -621,6 +633,9 @@
                     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
                 ];
+                var lastNewItems = [];
+                var newResults   = [];
+                var autoRefreshing = false;
                 var lastResults  = [];
                 var leagueRates  = {
                     alch:     0.3655772464721796,
@@ -674,7 +689,6 @@
                     mirror:   "Mirror of Kalandra"
                 }
                 var baseCurrency = "chaos";
-                var dbHandler;
                 var myChart;
                 var currencyChart;
                 var dbAddress    = config.dbAddress;
@@ -712,6 +726,7 @@
                     connectionLimit : 100,
                 };
                 var history = require( "./history.json" );
+                var lastConnection;
 
                 if ( config.monitorIndexerStatus ) {
                     // Connect to the indexer backend and check availability
@@ -864,6 +879,16 @@
                     });
                 }
 
+                // http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+                var guid = function() {
+                    function s4() {
+                        return Math.floor((1 + Math.random()) * 0x10000)
+                                   .toString(16)
+                                   .substring(1);
+                    }
+                    return s4() + s4();
+                }
+
                 /**
                  * Query DB
                  *
@@ -877,12 +902,12 @@
                     // var queryStartTime = Date.now
                     // console.log( "Querying by " + queryBy );
                     $( ".search-status-hidden" ).removeClass( "search-status-hidden" ).addClass( "search-status" );
-                    $( ".search-status" ).text( "Querying " );
+                    $( ".search-status" ).text( "Searching " );
                     var animateText = setInterval( function() {
-                        if ( $( ".search-status" ).text() !== "Querying ___" ) {
-                            $( ".search-status" ).text( $( ".search-status" ).text() + "_" ); 
+                        if ( $( ".search-status" ).text() !== "Searching ..." ) {
+                            $( ".search-status" ).text( $( ".search-status" ).text() + "." ); 
                         } else {
-                            $( ".search-status" ).text( "Querying " );
+                            $( ".search-status" ).text( "Searching " );
                         }
                     }, 100 );
                     // console.log( criteria );
@@ -905,7 +930,20 @@
                     var level             = $( "#item-level" ).val();
                     var accountName       = $( "#account-name-search" ).val();
                     var lastCharacterName = $( "#last-character-name-search" ).val();
-                    var mods              = $( "textarea" ).val().split( "\n" );
+                    var mods              = [];
+                    var modValues         = [];
+                    var re = /([0-9.]+)/g;
+                    $( "#table-mods td.search-affix" ).each( function() {
+                        // Extract values if any
+                        var match = re.exec( $( this ).text());
+                        if ( match ) {
+                            modValues.push( match[1]);
+                        } else {
+                            modValues.push( 0 );
+                        }
+                        // Replace values by #
+                        mods.push( $( this ).text().replace( /[0-9]+/g, "#" ));
+                    });
                     league                = $( "#league" ).val();
                     // Remove empty lines from mods array
                     var validMods         = [];
@@ -1049,15 +1087,38 @@
                         }
                     };
 
-                    var connection = mysql.createPool( credentials );
+                    // lastConnection.destroy();
+                    var connection = mysql.createConnection( credentials );
+                    lastConnection = connection;
+                    
+                    var ids         = [];
+                    var constraints = [];
+                    var equalities  = [];
+                    var compareVal  = [];
+                    var firstId;
+                    for ( var i = 0 ; i < validMods.length ; i++ ) {
+                        var id = 'a' + i;
+                        if ( i === 0 ) {
+                            firstId = id;
+                        }
+                        equalities.push( firstId + ".`itemId` = " + id + ".`itemId`" );
+                        compareVal.push( id + ".`modValue1` >= '" + modValues[i] + "'" );
+                        ids.push( "`Mods` " + id );
+                        constraints.push( id + ".`modName` = '" + validMods[i] + "'" );
+                    }
+                    
+
                     
                     var query;
                     // Name and mods
                     if ( name && validMods.length > 0 ) {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `name` = \"" + name + "\" AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+
+                        // query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `name` = \"" + name + "\" AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM " + ids.join( ", " ) + ", `Items`, `Accounts`, `Stashes` WHERE " + constraints.join( " AND " ) + " AND `name` = \"" + name + "\" AND `Items`.`itemId` = " + firstId + ".`itemId` AND " + equalities.join( " AND " ) + " AND " + compareVal.join( " AND " ) + " AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     // mods only
                     } else if ( !name && validMods.length > 0 ) {
-                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        // query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Mods`, `Items`, `Accounts`, `Stashes` WHERE `Mods`.`modName` IN ('" + validMods.join( "', '" ) + "') AND `Items`.`itemId` = `Mods`.`itemId` AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId` GROUP BY `Mods`.`itemId` HAVING COUNT(`modName`) = " + validMods.length;
+                        query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM " + ids.join( ", " ) + ", `Items`, `Accounts`, `Stashes` WHERE " + constraints.join( " AND " ) + " AND " + compareVal.join( " AND " ) + " AND `Items`.`itemId` = " + firstId + ".`itemId` AND " + equalities.join( " AND " ) + " AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
                     // Name only
                     } else if ( name && validMods.length === 0 ) {
                         query = "SELECT `Items`.*, `lastCharacterName`, `stashName` FROM `Items`, `Accounts`, `Stashes` WHERE `name` = \"" + name + "\" AND `league` = '" + league + "' AND `socketAmount` >= '" + socketAmount + "' AND `linkAmount` >= '" + linkAmount + "' AND `ilvl` >= '" + level + "' AND `available` IN ('" + verified.join( "', '" ) + "') AND `corrupted` IN ('" + corrupted.join( "', '" ) + "') AND `crafted` IN ('" + crafted.join( "', '" ) + "') AND `enchanted` IN ('" + enchanted.join( "', '" ) + "') AND `frameType` IN ('" + rarity.join( "', '" ) + "') AND `Accounts`.`accountName` = `Items`.`accountName` AND `Stashes`.`stashId` = `Items`.`stashId`";
@@ -1090,7 +1151,7 @@
                         query += " UNION " + query.replace( "`name`", "`typeLine`" );
                     }
 
-                    console.log( query );
+                    // console.log( query );
 
                     // SELECT * FROM `mods`, `items` WHERE `mods`.`modName` = "#% increased Physical Damage" AND `items`.`itemId` = `mods`.`itemId`;
                     connection.query({ "sql": query, "timeout": dbQueryTimeOut }, function( err, rows ) {
@@ -1118,7 +1179,7 @@
                         }, function( err ) {
                             // Get the affixes of these objects
                             query = "SELECT DISTINCT `itemId`, `modName`, `modValue1`, `modValue2`, `modValue3`, `modValue4`, `modType` FROM `Mods` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')";
-                            console.log( query );
+                            // console.log( query );
                             connection.query( query, function( err, rows ) {
                                 console.log( "Queried mods" );
                                 async.each( rows, function( row, cbMods ) {
@@ -1141,7 +1202,7 @@
                                 }, function( err ) {
                                     // Get the item properties
                                     query = "SELECT DISTINCT `itemId`, `propertyName`, `propertyValue1`, `propertyValue2` FROM `Properties` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')";
-                                    console.log( query );
+                                    // console.log( query );
                                     connection.query( query, function( err, rows ) {
                                             async.each( rows, function( row, cbProperties ) {
                                                 entries[row.itemId].properties.push({
@@ -1153,7 +1214,7 @@
                                                 console.log( "Queried properties" );
                                                 // Get sockets
                                                 query = "SELECT `itemId`, `socketGroup`, `socketAttr` FROM `Sockets` WHERE `itemId` IN ( '" + itemIds.join("', '") + "')";
-                                                console.log( query );
+                                                // console.log( query );
                                                 connection.query( query, function ( err, rows ) {
                                                         async.each( rows, function( row, cbSockets ) {
                                                             entries[row.itemId].sockets.push({
@@ -1214,7 +1275,7 @@
                  */
                 function filterValidPrice( items, callback ) {
                     // $( ".search-status" ).text( "Filtering non b/o prices ..." );
-                    var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew|chisel|vaal|regret)/;
+                    var priceReg        = /[^0-9]*([0-9]+|(?:[0-9.]+[0-9]+))\s+(chaos|exa|alch|alt|fuse|divine|chance|jew|chisel|vaal|regret|regal)/;
                     var results         = [];
                     
                     for ( var i = 0 ; i < items.length ; i++ ) {
@@ -1268,7 +1329,14 @@
                         $( "#tooltip-advice" ).stop().fadeOut( 'fast' );
                         $( "#tooltip-advice-arrow" ).stop().fadeOut( 'fast' );
                     }
-                    lastResults = results;
+                    if ( $( "#auto-refresh" ).is( ':checked' ) && !autoRefreshing ) {
+                        lastResults = results;
+                        autoRefreshing = true;
+                    } else if ( !$( "#auto-refresh" ).is( ':checked' )) {
+                        autoRefreshing = false;
+                        clearInterval( autorefreshInterval );
+                    }
+                    newResults  = results;
                     updateInterface( results );
                     callback( results );
                 }
@@ -1402,27 +1470,82 @@
                                     " ( " + Math.round( medProportion * 100 ) / 100 + " % items)" );
                         console.log( "Mode price is " + Math.round( mode.value * 100 ) / 100 + " " + unitMode );
                     }
+
+                    // Send notification
+                    // If notifications are activated
                     if ( shouldNotify ) {
-                        if ( results.length === 0 ) {
-                            notifier.notify({
-                                'title': "No items found",
-                                'message': "No items could be found with input criteria"
+                        // If autorefresh is used
+                        console.log( autoRefreshing );
+                        if ( $( "#auto-refresh" ).is( ':checked' ) && autoRefreshing ) {
+                            /* Compare registered last search and new search to 
+                               see if there are new items */
+                            var newItems = lastNewItems;
+                            async.each( newResults, function( newItem, cbNew ) {
+                                var found = false;
+                                async.each( lastResults, function( oldItem, cbLast ) {
+                                    if ( newItem.itemId === oldItem.itemId ) {
+                                        found = true;
+                                    }
+                                    cbLast();
+                                }, function ( err ) {
+                                    if ( err ) {
+                                        console.log( err );
+                                    }
+                                    // If the item was not found, it's new
+                                    if ( !found ) {
+                                        newItems.push( newItem.itemId );
+                                    }
+                                });
+                                cbNew();
+                            }, function( err ) {
+                                if ( err ) {
+                                    console.log( err );
+                                }
+                                if ( newItems.length > 0 ) {
+                                    console.log( newItems );
+                                    var results = $( "#results td.item-entry" );
+                                    console.log( results );
+                                    for ( var i = 0 ; i < newItems.length ; i++ ) {
+                                        for ( var j = 0 ; j < results.length ; j++ ) {
+                                            var data = $( results[j] ).data().dataItem;
+                                            console.log( data );
+                                            if ( data.itemId === newItems[i]) {
+                                                $( results[j]).addClass( "new-item" );
+                                            }
+                                        }
+                                    }
+                                    lastResults = newResults;
+                                    if ( lastNewItems.length !== newItems.length ) {
+                                        notifier.notify({
+                                            'title': "New item(s)",
+                                            'message': "Found " + newItems.length + " new item(s)"
+                                        });
+                                        lastNewItems = newItems;
+                                    }
+                                }
                             });
                         } else {
-                            if ( os.type() === "Windows_NT" ) {
+                            if ( results.length === 0 ) {
                                 notifier.notify({
-                                    'title': 'Price based on ' + results.length + " items",
-                                    'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + ". " + 
-                                                "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + ". " +
-                                                "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode
+                                    'title': "No items found",
+                                    'message': "No items could be found with input criteria"
                                 });
                             } else {
-                                notifier.notify({
-                                    'title': 'Price based on ' + results.length + " items",
-                                    'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + "." + cr + 
-                                                "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + "." + cr +
-                                                "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode,
-                                });
+                                if ( os.type() === "Windows_NT" ) {
+                                    notifier.notify({
+                                        'title': 'Price based on ' + results.length + " items",
+                                        'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + ". " + 
+                                                    "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + ". " +
+                                                    "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode
+                                    });
+                                } else {
+                                    notifier.notify({
+                                        'title': 'Price based on ' + results.length + " items",
+                                        'message': "Average: " + Math.round( avg * 100 ) / 100 + " " + unitAverage + "." + cr + 
+                                                    "Median: " + Math.round( med * 100 ) / 100 + " " + unitMedian + "." + cr +
+                                                    "Mode: " + Math.round( mode.value * 100 ) / 100 + " " + unitMode,
+                                    });
+                                }
                             }
                         }
                     }
@@ -1723,7 +1846,7 @@
                                 sortBy = "status";
                             }
                             console.log( "Sorting in " + ascending + " order by " + sortBy );
-                            updateInterface( lastResults );
+                            updateInterface( newResults );
                         })
                     });
                 }
@@ -1758,9 +1881,13 @@
                                 if ( err ) {
                                     console.log( "Error occured: " + err );
                                 }
-                                leagueRates = rates;
+                                // If we don't have at least the exa rate, then keep default rates
+                                if ( rates.exa !== Infinity ) {
+                                    leagueRates = rates;
+                                }
+                                
                                 var date = new Date( cursor.timestamp );
-                                var dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                                var dateString = date.toISOString().slice(11, 19);
                                 $( "#market-rates .title" ).html( "Market rates</span> (" + dateString + ")</span>" );
                                 $( "#market-rates .loading" ).fadeOut( 'fast' );
                                 // console.log( leagueRates );
@@ -2691,7 +2818,7 @@
                             var counter = 0;
                             /* For implicit mods, check if the affix is a 
                                corrupted one */ 
-                            if ( itemCorrupted[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
+                            if ( itemCorrupted && itemCorrupted[match] && ( item.frameType ===  1 || item.frameType === 2 )) {
                                 async.each( itemCorrupted[match], function( aff, cbAff ) {
                                     counter++;
                                     if ( val >= aff.min && val <= aff.max ) {
@@ -2745,7 +2872,7 @@
                                 }
                             }
                             var affix   = "";
-                            if (( item.frameType ===  1 || item.frameType === 2 )) {
+                            if (( item.frameType ===  1 || item.frameType === 2 ) && item.typeLine.indexOf( " Map" ) === -1 ) {
                                 affix   = "<span class='affix'>Legacy?</span>";
                             }
                             // console.log( match );
@@ -3039,8 +3166,8 @@
                             /* If we replaced numbers, sort. Otherwise, no need
                                to order anything */
                             if ( explicitSort !== $( this ).text()) {
-                                console.log( lastResults );
-                                updateInterface( lastResults );
+                                console.log( newResults );
+                                updateInterface( newResults );
                             }
                         // Otherwise add the mod to the search
                         } else {
@@ -3121,7 +3248,7 @@
                         // Replace placeholder by values
                         str = str.replace( /<charName>/g, item.lastCharacterName );
                         if ( item.name ) {
-                            str = str.replace( /<itemName>/g, item.name );
+                            str = str.replace( /<itemName>/g, item.name + " (" + item.typeLine + ")" );
                         } else {
                             str = str.replace( /<itemName>/g, item.typeLine );
                         }
@@ -3259,29 +3386,8 @@
                                     };
                                     entries.push( entry );
                                 }
-                        //         console.log( lines[i] );
-                        //         var splitted = lines[i].split( " " );
-                        //         for ( var j = 0 ; j < splitted.length ; j++ ) {
-                        //             var char     = splitted[j].charAt(0);
-                        //             var charCode = splitted[j].charCodeAt(0);
-                        //             var newChar;
-                        //             var newCharCode;
-                        //             if ( charCode > 90 ) {
-                        //                 // We need to fetch the upper case char
-                        //                 newCharCode = charCode - 32;
-                        //             } else {
-                        //                 // We fetch the lower case char
-                        //                 newCharCode = charCode + 32;
-                        //             }
-                        //             newChar = String.fromCharCode( newCharCode );
-                        //             splitted[j] = "[" + char + newChar + "]" + splitted[j].substr( 1, splitted[j].length - 1 );
-                        //         }
-                        //         var str = splitted.join( " " );
-                        //         console.log( str );
-                        //         lines[i] = new RegExp( lines[i] );
                              }
                          }
-                        // $( "#table-settings .loading" ).fadeIn( 'fast' );
                         queryDB( filterValidPrice );
                     }
                     search();
@@ -3290,6 +3396,7 @@
                         autorefreshInterval = setInterval( search, searchDelay );
                     } else {
                         clearInterval( autorefreshInterval );
+                        lastNewItems = [];
                     }
                 });
 
@@ -3299,6 +3406,8 @@
                     if ( $( this ).val() !== "any" ) {
                         var types = itemTypes[$( this ).val()].types;
                         types.sort();
+                    } else {
+                        initializeSubTypes();
                     }
                     $( "#item-subtype" ).append(
                         "<option value='any'>Any</option>"
@@ -3311,7 +3420,7 @@
                 })
 
                 // When typing in textarea
-                $( "textarea, #item-name-search" ).keyup( function( event ) {
+                $( "#item-affixes, #item-name-search" ).keyup( function( event ) {
                     var that = $( this );
                     // If press on ESC
                     if ( event.keyCode === 27 ) {
@@ -3337,7 +3446,7 @@
                         if ( $( "#auto-complete:visible" ).length === 1 ) {
                             $( "#auto-complete span" ).eq([selectedEntryIndex]).click();
                         // Otherwise, launch search
-                        } else {
+                        } else if ( $( that ).attr( "id" ) === "item-name-search" ) {
                             $( "#search-item" ).click();
                         }
                     // Ignore ctrl, shift, alt, meta and enter
@@ -3424,7 +3533,7 @@
                                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
                                     });
                                 })
-                            } else if ( that[0].localName === "textarea" ) {
+                            } else if ( that[0].id === "item-affixes" ) {
                                 async.each( autocomplete["implicit-mods"], function( implicit, cb ) {
                                     if ( implicit.toLowerCase().includes( currentLine.toLowerCase())) {
                                         propositions.push( "<span>" + implicit + "</span>" );
@@ -3455,7 +3564,7 @@
                                                 str += $( this ).text() + cr;
                                             }
                                         }
-                                        $( that ).val( str );
+                                        $( "#item-affixes" ).val( str );
                                         $( "#auto-complete" ).fadeOut( "fast" );
                                         $( "#auto-complete-arrow" ).fadeOut( "fast" );
                                     });
@@ -3464,6 +3573,64 @@
                         }
                     }
                 });
+
+                $( "#item-affixes" ).keyup( function( event ) {
+                    if ( event.keyCode === 13 && 
+                         $( "#auto-complete:visible" ).length !== 1 ) {
+                        if ( $( "#item-affixes" ).val() !== "" ) {
+                            // Check if exist before adding
+                            var str        = $( this ).val();
+                            var compareStr = str.replace( /[0-9]+/g, "#" );
+                            console.log
+                            // Get all affixes already there
+                            var affixes = [];
+                            if ( $( ".search-affix" ).length === 0 ) {
+                                affixes.push( str );
+                            } else {
+                                var found = false;
+                                $( ".search-affix" ).each( function() {
+                                    var txt = $( this ).text();
+                                    console.log( txt.replace( /[0-9]+/g, "#" ) );
+                                    if ( txt.replace( /[0-9]+/g, "#" ) === compareStr ) {
+                                        affixes.push( str );
+                                        found = true;
+                                    } else {
+                                        affixes.push( txt );
+                                    }
+                                });
+                                if ( !found ) {
+                                    affixes.push( str );
+                                }
+                            }
+                            // Add affixes
+                            $( "#table-mods" ).empty();
+                            for ( var i = 0 ; i < affixes.length ; i++ ) {
+                                $( "#table-mods" ).append(
+                                    "<tr>" +
+                                        "<td class='search-affix' width='100%'><span>" + affixes[i] + "</span></td>" +
+                                        "<td class='remove-affix'><i class='fa fa-times' aria-hidden='true'></i></td>" +
+                                    "</tr>"
+                                );
+                            }
+                            // Clear input field
+                            $( "#item-affixes" ).val( "" );
+                            bindAffixListActions();
+                        } else {
+                            $( "#search-item" ).click();
+                        }
+                    }
+                });
+
+                var bindAffixListActions = function() {
+                    // When clicking on affix, in the affix search list
+                    $( ".search-affix" ).click( function() {
+                        $( "#item-affixes" ).val( $( this ).text());
+                    });
+                    // When clicking on the cross, remove the affix
+                    $( ".remove-affix" ).click( function() {
+                        $( this ).parent().remove();
+                    });
+                }
 
                 // Update league list at startup
                 var connection = mysql.createConnection( credentials );
@@ -3488,7 +3655,7 @@
                 });
 
                 // When pressing ENTER in any textfield, run search
-                $( "input" ).not( "#item-name-search" ).keydown( function( event ) {
+                $( "input" ).not( "#item-name-search" ).not( "#item-affixes" ).keydown( function( event ) {
                     if ( event.keyCode === 13 && $( "#auto-complete:visible" ).length !== 1 ) {
                         console.log( "Calling search" );
                         $( "#search-item" ).click();
@@ -3502,7 +3669,7 @@
                     var crafted;
                     var enchanted;
                     var online;
-                    if ( $( "#verified" ).val() === "Either" ) {
+                    if ( $( "#verified" ).val() === "either" ) {
                         available = [ 0, 1 ];
                     } else if ( $( "#verified" ).val() === "true" ) {
                         available = [ 1 ];
@@ -3537,12 +3704,16 @@
                     } else {
                         online = [ 0 ];
                     }
+                    var affixes = [];
+                    $( "#table-mods td.search-affix" ).each( function() {
+                        affixes.push( $( this ).text());
+                    });
                     var item = {
                         "name":              $( "#item-name-search" ).val(),
                         "type":              $( "#item-type" ).val(),
                         "subtype":           $( "#item-subtype" ).val(),
                         "rarity":            $( "#rarity" ).val(),
-                        "affixes":           $( "textarea" ).val().split( "\n" ),
+                        "affixes":           affixes,
                         "itemLevel":         $( "#item-level" ).val(),
                         "socketAmount":      $( "#socket-amount" ).val(),
                         "linkAmount":        $( "#link-amount" ).val(),
@@ -3568,7 +3739,8 @@
                             history.unshift( item );     
                         }
                         // Write array to history file
-                        fs.writeFile( "./history.json", JSON.stringify( history ), function( err ) {
+                        var historyPath = `${__dirname}/history.json`;
+                        fs.writeFile( historyPath, JSON.stringify( history ), function( err ) {
                             if( err ) {
                                 return console.log( err );
                             }
@@ -3581,13 +3753,15 @@
                 var updateHistory = function() {
                     $( "#history" ).empty();
                     var counter = 0;
+                    // For each item in the historic
                     async.each( history, function( search, cbHistory ) {
-                        var entryName;
+                        var entryName = "any"; // default name is any
                         if ( search.name ) {
                             entryName = search.name;
                         } else {
-                            if ( search.subtype !== "any" ) {
+                            if ( search.subtype && search.subtype !== "any" ) {
                                 entryName = search.subtype;
+                                console.log( entryName );
                             } else if ( search.type ) {
                                 entryName = search.type;
                             };
@@ -3600,25 +3774,21 @@
                             }
                         }
 
+                        console.log( entryName );
+                        
+
+                        var crafted   = "<em style='color: rgba(181, 229, 250, 1)'> crafted</em>";
+                        var enchanted = "<em style='color: rgba(180, 180, 255, 1)'> enchanted</em>";
+                        var corrupted = "<em style='color: rgba(210, 0, 0, 1)'> corrupted</em>";
                         // Check if entryName belongs to one of the categories
                         async.each( autocomplete.uniques, function( unique, cb ) {
-                            if ( unique.name.toLowerCase().includes( entryName.toLowerCase())) {
-                                var corrupted = "<em style='color: rgba(210, 0, 0, 1)'> corrupted</em>";
+                            if ( unique.name.toLowerCase() === entryName.toLowerCase()) {
                                 if ( unique.type === "unique" ) {
                                     entryName = "<span style='color: rgba(175, 96, 37, 1)'>" + entryName + "</span>";
-                                    if ( search.corrupted.length === 1 && search.corrupted[0] === 1 ) {
-                                        entryName += corrupted;
-                                    }
                                 } else if ( unique.type === "rare" ) {
                                     entryName = "<span style='color: rgba(243, 243, 113, 1)'>" + entryName + "</span>";
-                                    if ( search.corrupted.length === 1 && search.corrupted[0] === 1 ) {
-                                        entryName += corrupted;
-                                    }
                                 } else if ( unique.type === "gem" ) {
                                     entryName = "<span style='color: rgba(0, 255, 0, 1)'>" + entryName + "</span>";
-                                    if ( search.corrupted.length === 1 && search.corrupted[0] === 1 ) {
-                                        entryName += corrupted;
-                                    }
                                 } else if ( unique.type === "div" ) {
                                     entryName = "<span style='color: rgba(0, 200, 200, 1)'>" + entryName + "</span>";
                                 } else if ( unique.type === "prophecy" ) {
@@ -3631,10 +3801,30 @@
                             }
                             cb();
                         });
+                        if ( search.crafted.length > 0 && search.crafted[0] === 1 ) {
+                            entryName += crafted;
+                        }
+                        if ( search.enchanted.length > 0 && search.enchanted[0] === 1 ) {
+                            entryName += enchanted;
+                        }
+                        if ( search.corrupted.length > 0 && search.corrupted[0] === 1 ) {
+                            entryName += corrupted;
+                        }
+                        console.log( entryName );
+                        if ( search.socketAmount > 0 ) {
+                            entryName += " " + search.socketAmount + "S";
+                        }
+                        if ( search.linkAmount > 0 ) {
+                            entryName += " " + search.linkAmount + "L";
+                        }
                         if ( search.accountName ) {
                             entryName += " belonging to " + search.accountName;
                         } else if ( search.lastCharacterName ) {
                             entryName += " belonging to " + search.lastCharacterName;
+                        }
+                        if ( search.affixes.length > 0 ) {
+                            console.log( search.affixes );
+                            entryName += "<br><span class='history-affix'>" + search.affixes.join( "</span><br><span class='history-affix'>" ) + "</span>";
                         }
                         var queryLimit = search.queryLimit === "" ? 100 : search.queryLimit;
                         $( "#history" ).append( "<tr id='history-entry-" + counter + "'><td class='entry' id='" + counter + "'>" + entryName + "<br><em style='color: rgb( 100, 100, 100 )'>" + search.league + ", " + queryLimit + "</em></td><td class='remove' id='history-remove-" + counter + "'><i class='fa fa-times' aria-hidden='true'></i></td></tr>" );
@@ -3649,7 +3839,13 @@
                         var match = /([0-9]+)/.exec( id );
                         history.splice( match[1], 1 );
                         // Write array to history file
-                        fs.writeFile( "./history.json", JSON.stringify( history ), function( err ) {
+                        var historyPath = `${__dirname}/history.json`;;
+                        // if ( os.type() === "Windows_NT" ) {
+                        //     historyPath = ".\\history.json";
+                        // } else {
+                        //     historyPath = "./history.json";
+                        // }
+                        fs.writeFile( historyPath, JSON.stringify( history ), function( err ) {
                             if( err ) {
                                 return console.log( err );
                             }
@@ -3703,11 +3899,23 @@
                         } else {
                             online = "false";
                         }
+                        item.queryLimit = item.queryLimit !== "" ? item.queryLimit : 100;
                         $( "#item-name-search" ).val( item.name );
                         $( "#item-type" ).val( item.type );
                         $( "#item-subtype" ).val( item.subtype );
                         $( "#rarity" ).val( item.rarity );
-                        $( "textarea" ).val( item.affixes.join( "\n" ));
+                        // $( "textarea" ).val( item.affixes.join( "\n" ));
+                        $( "#table-mods" ).empty();
+                        for ( var i = 0 ; i < item.affixes.length ; i++ ) {
+                            $( "#table-mods" ).append(
+                                "<tr>" +
+                                    "<td class='search-affix' width='100%'><span>" + item.affixes[i] + "</span></td>" +
+                                    "<td class='remove-affix'><i class='fa fa-times' aria-hidden='true'></i></td>" +
+                                "</tr>"
+                            );
+                        }
+                        bindAffixListActions();
+                        
                         $( "#item-level" ).val( item.itemLevel );
                         $( "#socket-amount" ).val( item.socketAmount );
                         $( "#link-amount" ).val( item.linkAmount );
@@ -3754,17 +3962,41 @@
                     draggingPreferences = false;
                 });
 
+                // When clicking on apply preferences
                 $( "#apply-preferences" ).click( function() {
-                    config.defaultLeague = $( "#preferences-league" ).val();
+                    config.defaultLeague  = $( "#preferences-league" ).val();
                     config.contactMessage = $( "#preferences textarea" ).val();
                     // Write config to config file
-                    fs.writeFile( "./config.json", JSON.stringify( config ), function( err ) {
+                    var configPath = `${__dirname}/config.json`;
+                    fs.writeFile( configPath, JSON.stringify( config ), function( err ) {
                         if( err ) {
                             return console.log( err );
                         }
                         $( "#preferences" ).fadeOut( "fast" );
                     });
                 });
+
+                // Initialize item sub-types at startup
+                var initializeSubTypes = function() {
+                    $( "#item-subtype" ).empty();
+                    var allTypes = [];
+                    for ( var type in itemTypes ) {
+                        if ( itemTypes.hasOwnProperty( type )) {
+                            allTypes = allTypes.concat( itemTypes[type].types );
+                        }
+                    }
+                    $( "#item-subtype" ).append(
+                        "<option value='any'>Any</option>"
+                    );
+                    for ( var i = 0 ; i < allTypes.length ; i++ ) {
+                        $( "#item-subtype" ).append(
+                            "<option value='" + allTypes[i] + "'>" + allTypes[i] + " </option>"
+                        );
+                    }
+                }
+
+                initializeSubTypes();
+                
 
                 // On startup, load history
                 updateHistory();
@@ -3773,7 +4005,7 @@
                 process.on('SIGTERM', cleanup );
 
                 function cleanup() {
-                    dbHandler.close();
+
                 }
 
             });

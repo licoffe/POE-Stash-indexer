@@ -10633,12 +10633,12 @@
             "+# Extra Charges": [
                 { "name": "Ample", "min": 10, "max": 20, "lvl": 2 }
             ],
-            "Mod": [
+            "Mod group: FlaskRechargeRate": [
                 { "name": "Surgeon's", "min": 20, "max": 20, "lvl": 8 },
                 { "name": "Avenger's", "min": 3, "max": 3, "lvl": 12 },
                 { "name": "Perpetual", "min": 20, "max": 40, "lvl": 3 }
             ],
-            "Mod": [
+            "Mod group: FlaskRecoverySpeed": [
                 { "name": "Alchemist's", "min": 33, "max": 25, "lvl": 20 },
                 { "name": "Experimenter's", "min": 30, "max": 40, "lvl": 20 }
             ]

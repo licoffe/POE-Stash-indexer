@@ -63,7 +63,8 @@ table .title {
     outline: none;
 }
 div#settings input[type="number"] {
-    width: 150px;
+    /*width: 150px;*/
+    width: 85%;
 }
 input[type="text"], input[type="number"], textarea {
     /* Rectangle 2: */
@@ -199,7 +200,7 @@ table th {
     max-height: 27px;
 }
 
-#search table td, #settings table td {
+#search table td {
     padding: 10px;
     text-align: left;
 }
@@ -764,4 +765,35 @@ span.rate {
 
 #preferences-title {
     cursor: move;
+}
+
+span.history-affix {
+    color: rgba(0, 100, 200, 1);
+}
+
+.search-affix {
+    cursor: pointer;
+    color: white;
+    transition: color 0.2s;
+}
+
+.search-affix:hover {
+    transition: color 0.2s;
+    color: rgba(69, 169, 207, 1);
+}
+
+.remove-affix {
+    cursor: pointer;
+    color: white;
+    transition: color 0.2s;
+}
+
+.remove-affix:hover {
+    transition: color 0.2s;
+    color: rgba(200, 0, 0, 1);
+}
+
+.new-item {
+    border-radius: 3px;
+    background-color: rgba(112, 125, 0, 0.14);
 }
