@@ -6,6 +6,7 @@
 var async   = require( "async" );
 var jsdom   = require("jsdom"); 
 var request = require( "request" );
+var cloudscraper = require('cloudscraper');
 var $       = require('jquery')(jsdom.jsdom().defaultView); 
 var Logger  = require( "./logger.js" );
 var logger  = new Logger();
@@ -216,7 +217,7 @@ function Currency( league ) {
 
         var url = "http://currency.poe.trade/search?league=" + league + "&want=" + 
                   buyingIndex + "&have=" + sellingIndex + "" + searchOnline;
-        request({ "url": url, "gzip": true },
+        cloudscraper.get( url,
             function( error, response, body ) {
                 if ( error ) {
                     logger.log( "Error occured: " + error, scriptName, "e" );
