@@ -1,7 +1,7 @@
 #
 # SQL Export
-# Created by Querious (1055)
-# Created: December 12, 2016 at 16:45:26 GMT+1
+# Created by Querious (1064)
+# Created: December 21, 2016 at 15:38:36 GMT+1
 # Encoding: Unicode (UTF-8)
 #
 
@@ -43,7 +43,7 @@ CREATE TABLE `ChangeId` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nextChangeId` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`,`nextChangeId`)
-) ENGINE=InnoDB AUTO_INCREMENT=4926 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=41458 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `Leagues` (
@@ -54,7 +54,7 @@ CREATE TABLE `Leagues` (
   PRIMARY KEY (`leagueName`),
   UNIQUE KEY `leagueName` (`leagueName`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=229425 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5726056 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `Currencies` (
@@ -69,7 +69,7 @@ CREATE TABLE `Currencies` (
   KEY `sell` (`sell`) USING BTREE,
   KEY `league` (`league`) USING BTREE,
   CONSTRAINT `Currencies_ibfk_1` FOREIGN KEY (`league`) REFERENCES `Leagues` (`leagueName`)
-) ENGINE=InnoDB AUTO_INCREMENT=1095 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=24203 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `CurrencyStats` (
@@ -85,14 +85,14 @@ CREATE TABLE `CurrencyStats` (
   KEY `buy` (`buy`) USING BTREE,
   KEY `currencyKey` (`currencyKey`) USING BTREE,
   CONSTRAINT `currencystats_ibfk_1` FOREIGN KEY (`currencyKey`) REFERENCES `Currencies` (`currencyKey`)
-) ENGINE=InnoDB AUTO_INCREMENT=18206 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=572798 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `Items` (
   `w` tinyint(4) NOT NULL DEFAULT '0',
   `h` tinyint(4) NOT NULL DEFAULT '0',
   `ilvl` smallint(6) NOT NULL DEFAULT '0',
-  `icon` varchar(128) NOT NULL DEFAULT '',
+  `icon` varchar(1024) DEFAULT NULL,
   `league` varchar(128) NOT NULL DEFAULT '',
   `itemId` varchar(128) NOT NULL DEFAULT '',
   `name` varchar(128) DEFAULT NULL,
@@ -146,8 +146,9 @@ CREATE TABLE `Mods` (
   KEY `modName` (`modName`) USING BTREE,
   KEY `modType` (`modType`) USING BTREE,
   KEY `idx_itemId_modName` (`itemId`,`modName`) USING BTREE,
+  KEY `idx_modValue1` (`modValue1`) USING BTREE,
   CONSTRAINT `Mods_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=20174836 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=826280929 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `Properties` (
@@ -162,7 +163,7 @@ CREATE TABLE `Properties` (
   KEY `itemId` (`itemId`),
   KEY `Properties_ibfk_2` (`propertyName`),
   CONSTRAINT `Properties_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15462426 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=393066962 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `Requirements` (
@@ -177,7 +178,7 @@ CREATE TABLE `Requirements` (
   KEY `itemId` (`itemId`) USING BTREE,
   KEY `requirementName` (`requirementName`) USING BTREE,
   CONSTRAINT `Requirements_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10033809 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=255968970 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `Sockets` (
@@ -191,7 +192,7 @@ CREATE TABLE `Sockets` (
   UNIQUE KEY `unnamedColumn` (`id`),
   KEY `itemId` (`itemId`) USING BTREE,
   CONSTRAINT `Sockets_ibfk_1` FOREIGN KEY (`itemId`) REFERENCES `Items` (`itemId`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5617225 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=138485023 DEFAULT CHARSET=utf8;
 
 
 CREATE TABLE `Stashes` (
