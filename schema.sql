@@ -155,7 +155,7 @@ CREATE TABLE `Properties` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `itemId` varchar(128) DEFAULT NULL,
   `propertyName` varchar(128) NOT NULL DEFAULT '0',
-  `propertyValue1` smallint(6) DEFAULT '0',
+  `propertyValue1` VARCHAR(128) DEFAULT '0',
   `propertyValue2` smallint(6) DEFAULT '0',
   `propertyKey` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
