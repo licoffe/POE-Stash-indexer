@@ -85,7 +85,7 @@ The client features:
 Required node packages can be installed through `npm install`. On Ubuntu it may also be required to create an alias of the nodejs command to node using the following `ln /usr/bin/nodejs /usr/bin/node`.
 
 #### How to run?
-The indexer can be started with `npm start`.
+The client can be started with `npm start`.
 
 ### Requirements
 MySQL and NodeJS
