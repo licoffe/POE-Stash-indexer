@@ -11,16 +11,16 @@ The indexer polls the official stash API at a given interval to retrieve JSON fo
 #### Installation
 - Install NodeJS from https://nodejs.org/en/
 - Install MySQL Server
-    - Mac and Windows: Download from 
+    - Mac and Windows: Download from https://dev.mysql.com/downloads/installer
     - Linux (ubuntu): apt-get install mysql-server
-- Import schema.sql
+- Import the schema.sql file
 - Add a new user with rights to insert and update the POE DB
 - Edit config.json to add credentials and ports
 
 Required node packages can be installed through `npm install`.
 
 #### How to run?
-The indexer can be started with `node ./indexer.js` or `nodejs ./indexer.js` depending on your system.
+The indexer can be started with `node ./indexer-mysql.js` or `nodejs ./indexer-mysql.js` depending on your system.
 
 ##### CLI arguments
 `-d` will output additional log informations into a _log.txt_ file. Only use to debug as it creates unnecessary IO traffic.
