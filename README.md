@@ -9,6 +9,14 @@ This tool is composed of both an indexer for the official Path of Exile Stash AP
 The indexer polls the official stash API at a given interval to retrieve JSON formatted stash contents. This content is then inserted into a Mongo database for future polling.
 
 #### Installation
+- Install NodeJS from https://nodejs.org/en/
+- Install MySQL Server
+    - Mac and Windows: Download from 
+    - Linux (ubuntu): apt-get install mysql-server
+- Import schema.sql
+- Add a new user with rights to insert and update the POE DB
+- Edit config.json to add credentials and ports
+
 Required node packages can be installed through `npm install`.
 
 #### How to run?
@@ -80,4 +88,4 @@ Required node packages can be installed through `npm install`. On Ubuntu it may 
 The indexer can be started with `npm start`.
 
 ### Requirements
-MongoDB and NodeJS
+MySQL and NodeJS
