@@ -1,6 +1,8 @@
-## Disclaimer
+## Important notice
 
-<span style="color: red">The project in the current state is deprecated. For efficient indexer code, check <a href="https://github.com/licoffe/POE-Stash-indexer-NG">this code</a>. There is currently no up to date client interface for this new codebase.</span>
+The project in the current state is **DEPRECATED**. For efficient indexer code, check [this code](https://github.com/licoffe/POE-Stash-indexer-NG). There is currently no up to date client interface for this new codebase.
+
+## Disclaimer
 
 This indexer is for you if you have:
 - A powerful spare computer with a lot of RAM, ideally 16GB to dedicate fully to the task
