@@ -1,3 +1,11 @@
+## Disclaimer
+
+This indexer is for you if you have:
+- A powerful spare computer with a lot of RAM, ideally 16GB to dedicate fully to the task
+- > 300 GB storage
+- Unlimited bandwidth
+- Knowledge in MySQL (Table optimization, index creation, db maintenance)
+
 ## What is included ?
 
 This tool is composed of both an indexer for the official Path of Exile Stash API and a client interface.
