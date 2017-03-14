@@ -1,5 +1,7 @@
 ## Disclaimer
 
+<span style="color: red">This project is deprecated</span>
+
 This indexer is for you if you have:
 - A powerful spare computer with a lot of RAM, ideally 16GB to dedicate fully to the task
 - At least 300 GB storage
